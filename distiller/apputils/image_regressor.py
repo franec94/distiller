@@ -871,7 +871,7 @@ def quantize_and_test_model(test_loader, model, criterion, args, loggers=None, s
         checkpoint_name = 'quantized'
         apputils.save_checkpoint(0, args_qe.arch, qe_model, scheduler=scheduler,
             name='_'.join([args_qe.name, checkpoint_name]) if args_qe.name else checkpoint_name,
-            dir=msglogger.logdir, extras={'quantized_top1': test_res[0]})
+            dir=msglogger.logdir, extras={'quantized_mse': test_res[0]})
 
     del qe_model
     return test_res

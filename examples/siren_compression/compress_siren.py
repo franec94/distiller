@@ -6,7 +6,7 @@ from distiller.models import create_model
 import distiller.apputils.image_classifier as classifier
 import distiller.apputils.image_regressor as regressor
 import distiller.apputils as apputils
-import parser
+import custom_parser
 import os
 import numpy as np
 from ptq_lapq import image_classifier_ptq_lapq
@@ -18,7 +18,7 @@ msglogger = logging.getLogger()
 
 def main():
     # Parse arguments
-    args = parser.add_cmdline_args(regressor.init_regressor_compression_arg_parser(True)).parse_args()
+    args = custom_parser.add_cmdline_args(regressor.init_regressor_compression_arg_parser(True)).parse_args()
     app = RegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
     if app.handle_subapps():
         return
@@ -30,7 +30,7 @@ def main():
     
 def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args):
     def load_test_data(args):
-        test_loader = classifier.load_data(args, load_train=False, load_val=False, load_test=True)
+        test_loader = regressor.load_data(args, load_train=False, load_val=False, load_test=True)
         return test_loader
 
     do_exit = False
@@ -48,10 +48,10 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
                                                 args.dataset, add_softmax=True, verbose=False)
         do_exit = True
     elif args.qe_calibration and not (args.evaluate and args.quantize_eval):
-        classifier.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
+        regressor.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
         do_exit = True
     elif args.activation_histograms:
-        classifier.acts_histogram_collection(model, criterion, pylogger, args)
+        regressor.acts_histogram_collection(model, criterion, pylogger, args)
         do_exit = True
     elif args.sensitivity is not None:
         test_loader = load_test_data(args)
@@ -63,8 +63,8 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
             image_classifier_ptq_lapq(model, criterion, pylogger, args)
         else:
             test_loader = load_test_data(args)
-            classifier.evaluate_model(test_loader, model, criterion, pylogger,
-                classifier.create_activation_stats_collectors(model, *args.activation_stats),
+            regressor.evaluate_model(test_loader, model, criterion, pylogger,
+                regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=compression_scheduler)
         do_exit = True
     elif args.thinnify:
@@ -129,9 +129,9 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
     msglogger.info("Running sensitivity tests")
     if not isinstance(loggers, list):
         loggers = [loggers]
-    test_fnc = partial(classifier.test, test_loader=data_loader, criterion=criterion,
+    test_fnc = partial(regressor.test, test_loader=data_loader, criterion=criterion,
                        loggers=loggers, args=args,
-                       activations_collectors=classifier.create_activation_stats_collectors(model))
+                       activations_collectors=regressor.create_activation_stats_collectors(model))
     which_params = [param_name for param_name, _ in model.named_parameters()]
     sensitivity = distiller.perform_sensitivity_analysis(model,
                                                          net_params=which_params,
@@ -143,11 +143,11 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
 
 
 def greedy(model, criterion, optimizer, loggers, args):
-    train_loader, val_loader, test_loader = classifier.load_data(args)
+    train_loader, val_loader, test_loader = regressor.load_data(args)
 
-    test_fn = partial(classifier.test, test_loader=test_loader, criterion=criterion,
+    test_fn = partial(regressor.test, test_loader=test_loader, criterion=criterion,
                       loggers=loggers, args=args, activations_collectors=None)
-    train_fn = partial(classifier.train, train_loader=train_loader, criterion=criterion, args=args)
+    train_fn = partial(regressor.train, train_loader=train_loader, criterion=criterion, args=args)
     assert args.greedy_target_density is not None
     distiller.pruning.greedy_filter_pruning.greedy_pruner(model, args,
                                                           args.greedy_target_density,

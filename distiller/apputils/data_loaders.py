@@ -62,6 +62,7 @@ def classification_get_input_shape(dataset):
 def __dataset_factory(dataset, arch):
     return {'cifar10': cifar10_get_datasets,
             'mnist': mnist_get_datasets,
+            'cameramen': get_cameramen_dataset,
             'imagenet': partial(imagenet_get_datasets, arch=arch)}.get(dataset, None)
 
 
@@ -333,3 +334,13 @@ def get_data_loaders(datasets_fn, data_dir, batch_size, num_workers, validation_
 
     # If validation split was 0 we use the test set as the validation set
     return train_loader, valid_loader or test_loader, test_loader, input_shape
+
+
+def get_cameramen_dataset(data_dir, arch, load_train=True, load_test=True):
+    train_dataset = None
+    if load_train:
+        
+    test_dataset = None
+    if load_test:
+
+    return train_dataset, test_dataset

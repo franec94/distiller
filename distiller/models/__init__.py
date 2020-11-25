@@ -60,6 +60,8 @@ MNIST_MODEL_NAMES = sorted(name for name in mnist_models.__dict__
                            if name.islower() and not name.startswith("__")
                            and callable(mnist_models.__dict__[name]))
 
+SIREN_MODEL_NAMES = ["siren"]
+
 ALL_MODEL_NAMES = sorted(map(lambda s: s.lower(),
                             set(IMAGENET_MODEL_NAMES + CIFAR10_MODEL_NAMES + MNIST_MODEL_NAMES)))
 
@@ -249,3 +251,7 @@ def _is_registered_extension(arch, dataset, pretrained):
 
 def _create_extension_model(arch, dataset):
     return _model_extensions[(arch, dataset)]()
+
+
+def _create_siren_model(arch):
+    return 

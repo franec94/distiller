@@ -652,8 +652,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
     batch_time = tnt.AverageValueMeter()
     total_samples = len(data_loader.sampler)
     batch_size = data_loader.batch_size
-    if args.display_confusion:
-        confusion = tnt.ConfusionMeter(args.num_classes)
+
     total_steps = total_samples / batch_size
     msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
 
@@ -920,5 +919,5 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
     how_many = min(how_many, performance_tracker.max_len)
     best_scores = performance_tracker.best_scores(how_many)
     for score in best_scores:
-        logger.info('==> Best [MSE: %.3f   Top5: %.3f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
+        logger.info('==> Best [MSE: %.3f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
                     score.mse, score.sparsity, -score.params_nnz_cnt, score.epoch)

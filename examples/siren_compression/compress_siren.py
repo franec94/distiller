@@ -107,7 +107,7 @@ def early_exit_init(args):
     msglogger.info('=> using early-exit threshold values of %s', args.earlyexit_thresholds)
 
 
-class RegressorCompressorSampleApp(classifier.ClassifierCompressor):
+class RegressorCompressorSampleApp(regressor.RegressorCompressor):
     def __init__(self, args, script_dir):
         super().__init__(args, script_dir)
         early_exit_init(self.args)

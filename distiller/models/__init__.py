@@ -26,6 +26,7 @@ import torch.nn as nn
 from . import cifar10 as cifar10_models
 from . import mnist as mnist_models
 from . import imagenet as imagenet_extra_models
+from . import siren as siren_model
 import pretrainedmodels
 
 from distiller.utils import set_model_input_shape_attr, model_setattr
@@ -34,7 +35,7 @@ from distiller.modules import Mean, EltwiseAdd
 import logging
 msglogger = logging.getLogger()
 
-SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist')
+SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist', "caneramen")
 
 # ResNet special treatment: we have our own version of ResNet, so we need to over-ride
 # TorchVision's version.
@@ -103,10 +104,12 @@ def patch_torchvision_mobilenet_v2(model):
             m.__class__.forward = patched_forward_invertedresidual
 
 
-_model_extensions = {}
+_model_extensions = {
+    ('siren', 'cameramen') : _create_siren_model,
+}
 
 
-def create_model(pretrained, dataset, arch, parallel=True, device_ids=None):
+def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args = None):
     """Create a pytorch model based on the model architecture and dataset
 
     Args:
@@ -133,6 +136,8 @@ def create_model(pretrained, dataset, arch, parallel=True, device_ids=None):
             model = _create_cifar10_model(arch, pretrained)
         elif dataset == 'mnist':
             model = _create_mnist_model(arch, pretrained)
+        else:
+           raise ValueError(f"{dataset} for extension!") 
     except ValueError:
         if _is_registered_extension(arch, dataset, pretrained):
             model = _create_extension_model(arch, dataset)
@@ -249,9 +254,18 @@ def _is_registered_extension(arch, dataset, pretrained):
         return False
 
 
-def _create_extension_model(arch, dataset):
+def _create_extension_model(arch, dataset, args = None):
+    if (arch, dataset) == ('siren', 'cameramen'):
+        return _model_extensions[(arch, dataset)](arch, args)
     return _model_extensions[(arch, dataset)]()
 
 
-def _create_siren_model(arch):
-    return 
+def _create_siren_model(arch, args):
+    hyper_params = dict(
+        in_features=2,
+        hidden_features=args.n_hf,
+        hidden_layers=args.n_hl,
+        out_features=1,
+        outermost_linear=False, 
+        first_omega_0=30, hidden_omega_0=30.)
+    return siren_model.__dict__[arch](**hyper_params)

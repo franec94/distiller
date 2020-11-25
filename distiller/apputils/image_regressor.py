@@ -39,7 +39,7 @@ class RegressorCompressor(object):
     """
     def __init__(self, args, script_dir):
         self.args = copy.deepcopy(args)
-        self._infer_implicit_args(self.args)
+        # self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
         _config_determinism(self.args)
         _config_compute_device(self.args)
@@ -117,14 +117,14 @@ class RegressorCompressor(object):
 
         if self.compression_scheduler:
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
-                                                    metrics={'min': loss, 'max': top1})
+                                                    metrics={'min': loss,})
         return loss
 
     def validate_one_epoch(self, epoch, verbose=True):
         """Evaluate on validation set"""
         self.load_datasets()
         with collectors_context(self.activations_collectors["valid"]) as collectors:
-            top1, top5, vloss = validate(self.val_loader, self.model, self.criterion, 
+            vloss = validate(self.val_loader, self.model, self.criterion, 
                                          [self.pylogger], self.args, epoch)
             distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
@@ -132,12 +132,10 @@ class RegressorCompressor(object):
 
         if verbose:
             stats = ('Performance/Validation/',
-            OrderedDict([('Loss', vloss),
-                         ('Top1', top1),
-                         ('Top5', top5)]))
+            OrderedDict([('Loss', vloss),]))
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=[self.tflogger])
-        return top1, top5, vloss
+        return vloss
 
     def _finalize_epoch(self, epoch, mse):
         # Update the list of top scores achieved so far, and save the checkpoint
@@ -145,8 +143,8 @@ class RegressorCompressor(object):
         _log_best_scores(self.performance_tracker, msglogger)
         best_score = self.performance_tracker.best_scores()[0]
         is_best = epoch == best_score.epoch
-        checkpoint_extras = {'current_top1': top1,
-                             'best_top1': best_score.top1,
+        checkpoint_extras = {'current_mse': mse,
+                             'best_mse': best_score.mse,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
             apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
@@ -173,7 +171,7 @@ class RegressorCompressor(object):
         self.performance_tracker.reset()
         for epoch in range(self.start_epoch, self.ending_epoch):
             msglogger.info('\n')
-            mse, loss = self.train_validate_with_scheduling(epoch)
+            loss = self.train_validate_with_scheduling(epoch)
             self._finalize_epoch(epoch, mse)
         return self.performance_tracker.perf_scores_history
 
@@ -395,8 +393,8 @@ def _init_learner(args):
             msglogger.info('\nreset_optimizer flag set: Overriding resumed optimizer and resetting epoch count to 0')
 
     if optimizer is None and not args.evaluate:
-        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr,
-                                    momentum=args.momentum, weight_decay=args.weight_decay)
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
+                                    weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)
 
@@ -616,10 +614,10 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
         activations_collectors = create_activation_stats_collectors(model, None)
 
     with collectors_context(activations_collectors["test"]) as collectors:
-        top1, top5, lossses = _validate(test_loader, model, criterion, loggers, args)
+        lossses = _validate(test_loader, model, criterion, loggers, args)
         distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
         save_collectors_data(collectors, msglogger.logdir)
-    return top1, top5, lossses
+    return lossses
 
 
 # Temporary patch until we refactor early-exit handling

@@ -25,11 +25,13 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data.sampler import Sampler
 from functools import partial
+import skimage
+from PIL import Image
 import numpy as np
 import distiller
 
 
-DATASETS_NAMES = ['imagenet', 'cifar10', 'mnist']
+DATASETS_NAMES = ['imagenet', 'cifar10', 'mnist', 'cameramen']
 
 
 def classification_dataset_str_from_arch(arch):
@@ -91,6 +93,18 @@ def load_data(dataset, arch, data_dir,
     if dataset not in DATASETS_NAMES:
         raise ValueError('load_data does not support dataset %s" % dataset')
     datasets_fn = __dataset_factory(dataset, arch)
+
+    if dataset == 'cameramen':
+        train_dataset, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
+        _, val_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
+
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1, pin_memory=True, num_workers=0)
+        test_dataset = torch.utils.data.DataLoader(test_dataset, batch_size=1, pin_memory=True, num_workers=0)
+        val_dataset = torch.utils.data.DataLoader(val_dataset, batch_size=1, pin_memory=True, num_workers=0)
+        
+        input_shape = __image_size(test_dataset)
+        return train_dataloader, val_dataset, val_dataset, input_shape
+    
     return get_data_loaders(datasets_fn, data_dir, batch_size, workers,
                             validation_split=validation_split,
                             deterministic=deterministic,
@@ -336,11 +350,50 @@ def get_data_loaders(datasets_fn, data_dir, batch_size, num_workers, validation_
     return train_loader, valid_loader or test_loader, test_loader, input_shape
 
 
-def get_cameramen_dataset(data_dir, arch, load_train=True, load_test=True):
+def get_cameramen_dataset(data_dir = None, load_train=True, load_test=True):
     train_dataset = None
     if load_train:
+        train_dataset = ImageFitting(256)
         
     test_dataset = None
     if load_test:
+        test_dataset = ImageFitting(256)
 
     return train_dataset, test_dataset
+
+
+def get_cameraman_tensor(sidelength):
+    img = Image.fromarray(skimage.data.camera())        
+    transform = transforms.Compose([
+        transforms.CenterCrop(sidelength),
+        transforms.ToTensor(),
+        transforms.Normalize(torch.Tensor([0.5]), torch.Tensor([0.5]))
+    ])
+    img = transform(img)
+    return img
+
+
+def get_mgrid(sidelen, dim=2):
+    '''Generates a flattened grid of (x,y,...) coordinates in a range of -1 to 1.
+    sidelen: int
+    dim: int'''
+    tensors = tuple(dim * [torch.linspace(-1, 1, steps=sidelen)])
+    mgrid = torch.stack(torch.meshgrid(*tensors), dim=-1)
+    mgrid = mgrid.reshape(-1, dim)
+    return mgrid
+
+
+class ImageFitting(Dataset):
+    def __init__(self, sidelength):
+        super().__init__()
+        img = get_cameraman_tensor(sidelength)
+        self.pixels = img.permute(1, 2, 0).view(-1, 1)
+        self.coords = get_mgrid(sidelength, 2)
+
+    def __len__(self):
+        return 1
+
+    def __getitem__(self, idx):    
+        if idx > 0: raise IndexError
+            
+        return self.coords, self.pixels

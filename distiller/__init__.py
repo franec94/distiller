@@ -32,8 +32,12 @@ import pkg_resources
 import logging
 logging.captureWarnings(True)
 
-del dict_config
-del thinning
+try:
+    del dict_config
+except: pass
+try:
+    del thinning
+except: pass
 
 # Distiller version
 try:

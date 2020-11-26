@@ -17,5 +17,9 @@
 from .l1_regularizer import L1Regularizer
 from .group_regularizer import GroupLassoRegularizer, GroupVarianceRegularizer
 
-del l1_regularizer
-del group_regularizer
+try:
+    del l1_regularizer
+except: pass
+try:
+    del group_regularizer
+except: pass

@@ -44,12 +44,25 @@ from .baidu_rnn_pruner import BaiduRNNPruner
 from .greedy_filter_pruning import greedy_pruner
 import torch
 
-del magnitude_pruner
-del automated_gradual_pruner
-del level_pruner
-del sensitivity_pruner
-del structure_pruner
-del ranked_structures_pruner
+try:
+    del magnitude_pruner
+except: pass
+try:
+    del automated_gradual_pruner
+except: pass
+try:
+    del level_pruner
+except: pass
+try:
+    del structure_pruner
+except: pass
+try:
+    del sensitivity_pruner
+except: pass
+try:
+    del ranked_structures_pruner
+except: pass
+
 
 
 def mask_tensor(tensor, mask, inplace=True):

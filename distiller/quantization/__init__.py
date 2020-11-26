@@ -23,7 +23,12 @@ from .clipped_linear import LinearQuantizeSTE, ClippedLinearQuantization, WRPNQu
 from .q_utils import *
 from .pytorch_quant_conversion import convert_distiller_ptq_model_to_pytorch, distiller_qparams_to_pytorch, \
     distiller_quantized_tensor_to_pytorch
-
-del quantizer
-del range_linear
-del clipped_linear
+try:
+    del quantizer
+except: pass
+try:
+    del range_linear
+except: pass
+try:
+    del clipped_linear
+except: pass

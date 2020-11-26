@@ -227,7 +227,7 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
 
     parser.add_argument('--print-freq', '-p', default=10, type=int,
                         metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Emit debug log messages')
+    parser.add_argument('--verbose', '-v', action='store_true', default=False, help='Emit debug log messages')
 
     load_checkpoint_group = parser.add_argument_group('Resuming arguments')
     load_checkpoint_group_exc = load_checkpoint_group.add_mutually_exclusive_group()

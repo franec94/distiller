@@ -671,11 +671,11 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
         for validation_step, (inputs, target) in enumerate(data_loader):
             inputs, target = inputs.to(args.device), target.to(args.device)
             # compute output from model
-            output = model(inputs)
+            output, _ = model(inputs)
 
             if not _is_earlyexit(args):
                 # compute loss
-                loss, _ = criterion(output, target)
+                loss = criterion(output, target)
                 # measure accuracy and record loss
                 losses['objective_loss'].add(loss.item())
             else:

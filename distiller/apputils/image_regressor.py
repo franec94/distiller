@@ -179,7 +179,7 @@ class RegressorCompressor(object):
         for epoch in range(self.start_epoch, self.ending_epoch):
             msglogger.info('\n')
             loss = self.train_validate_with_scheduling(epoch)
-            self._finalize_epoch(epoch, mse)
+            self._finalize_epoch(epoch, loss)
         return self.performance_tracker.perf_scores_history
 
     def validate(self, epoch=-1):
@@ -557,7 +557,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         if not hasattr(args, 'kd_policy') or args.kd_policy is None:
             output = model(inputs)
         else:
-            output = args.kd_policy.forward(inputs)
+            output, _ = args.kd_policy.forward(inputs)
 
         if not early_exit_mode(args):
             loss = criterion(output, target)

@@ -32,22 +32,22 @@ policies:
       instance_name : low_pruner
     starting_epoch: 0
     ending_epoch: 10000
-    frequency: 2
+    frequency: 10
 
   - pruner:
       instance_name : mid_pruner
     starting_epoch: 5000
     ending_epoch: 20000
-    frequency: 2
+    frequency: 10
 
   - pruner:
       instance_name : high_pruner
     starting_epoch: 10000
     ending_epoch: 50000
-    frequency: 2
+    frequency: 10
 
   - lr_scheduler:
       instance_name: pruning_lr
     starting_epoch: 1000
     ending_epoch: 80000
-    frequency: 1
+    frequency: 5

@@ -675,7 +675,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
             if not _is_earlyexit(args):
                 # compute loss
-                loss = criterion(output, target)
+                loss, _ = criterion(output, target)
                 # measure accuracy and record loss
                 losses['objective_loss'].add(loss.item())
             else:

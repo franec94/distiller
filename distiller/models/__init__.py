@@ -104,11 +104,6 @@ def patch_torchvision_mobilenet_v2(model):
             m.__class__.forward = patched_forward_invertedresidual
 
 
-_model_extensions = {
-    ('siren', 'cameramen') : _create_siren_model,
-}
-
-
 def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args = None):
     """Create a pytorch model based on the model architecture and dataset
 
@@ -269,3 +264,8 @@ def _create_siren_model(arch, args):
         outermost_linear=False, 
         first_omega_0=30, hidden_omega_0=30.)
     return siren_model.__dict__[arch](**hyper_params)
+
+
+_model_extensions = {
+    ('siren', 'cameramen') : _create_siren_model,
+}

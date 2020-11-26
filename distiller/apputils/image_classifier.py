@@ -32,10 +32,10 @@ import parser
 from functools import partial
 import argparse
 import distiller
-import distiller.apputils as apputils
+import distiller.apputils
 from distiller.data_loggers import *
-import distiller.quantization as quantization
-import distiller.models as models
+import distiller.quantization
+import distiller.models
 from distiller.models import create_model
 from distiller.utils import float_range_argparse_checker as float_range
 
@@ -75,7 +75,7 @@ class ClassifierCompressor(object):
         self.train_loader, self.val_loader, self.test_loader = (None, None, None)
         self.activations_collectors = create_activation_stats_collectors(
             self.model, *self.args.activation_stats)
-        self.performance_tracker = apputils.SparsityAccuracyTracker(self.args.num_best_scores)
+        self.performance_tracker = distiller.apputils.SparsityAccuracyTracker(self.args.num_best_scores)
     
     def load_datasets(self):
         """Load the datasets"""
@@ -165,7 +165,7 @@ class ClassifierCompressor(object):
                              'best_top1': best_score.top1,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
-            apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
+            distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                                      scheduler=self.compression_scheduler, extras=checkpoint_extras,
                                      is_best=is_best, name=self.args.name, dir=msglogger.logdir)
 
@@ -212,9 +212,9 @@ def init_classifier_compression_arg_parser(include_ptq_lapq_args=False):
     parser = argparse.ArgumentParser(description='Distiller image classification model compression')
     parser.add_argument('data', metavar='DATASET_DIR', help='path to dataset')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18', type=lambda s: s.lower(),
-                        choices=models.ALL_MODEL_NAMES,
+                        choices=distiller.models.ALL_MODEL_NAMES,
                         help='model architecture: ' +
-                        ' | '.join(models.ALL_MODEL_NAMES) +
+                        ' | '.join(distiller.models.ALL_MODEL_NAMES) +
                         ' (default: resnet18)')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
@@ -323,12 +323,12 @@ def _init_logger(args, script_dir):
         return None
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
-    msglogger = apputils.config_pylogger(os.path.join(script_dir, 'logging.conf'),
+    msglogger = distiller.apputils.config_pylogger(os.path.join(script_dir, 'logging.conf'),
                                          args.name, args.output_dir, args.verbose)
 
     # Log various details about the execution environment.  It is sometimes useful
     # to refer to past experiment executions and this information may be useful.
-    apputils.log_execution_env_state(
+    distiller.apputils.log_execution_env_state(
         filter(None, [args.compress, args.qe_stats_file]),  # remove both None and empty strings
         msglogger.logdir)
     msglogger.debug("Distiller: %s", distiller.__version__)
@@ -395,10 +395,10 @@ def _init_learner(args):
     optimizer = None
     start_epoch = 0
     if args.resumed_checkpoint_path:
-        model, compression_scheduler, optimizer, start_epoch = apputils.load_checkpoint(
+        model, compression_scheduler, optimizer, start_epoch = distiller.apputils.load_checkpoint(
             model, args.resumed_checkpoint_path, model_device=args.device)
     elif args.load_model_path:
-        model = apputils.load_lean_checkpoint(model, args.load_model_path, model_device=args.device)
+        model = distiller.apputils.load_lean_checkpoint(model, args.load_model_path, model_device=args.device)
     if args.reset_optimizer:
         start_epoch = 0
         if optimizer is not None:
@@ -472,7 +472,7 @@ def save_collectors_data(collectors, directory):
 def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_val=True, load_test=True):
     test_only = not load_train and not load_val
 
-    train_loader, val_loader, test_loader, _ = apputils.load_data(args.dataset, args.arch,
+    train_loader, val_loader, test_loader, _ = distiller.apputils.load_data(args.dataset, args.arch,
                               os.path.expanduser(args.data), args.batch_size,
                               args.workers, args.validation_split, args.deterministic,
                               args.effective_train_size, args.effective_valid_size, args.effective_test_size,
@@ -582,7 +582,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             # Handle loss calculation for inception models separately due to auxiliary outputs
             # if user turned off auxiliary classifiers by hand, then loss should be calculated normally,
             # so, we have this check to ensure we only call this function when output is a tuple
-            if models.is_inception(args.arch) and isinstance(output, tuple):
+            if distiller.models.is_inception(args.arch) and isinstance(output, tuple):
                 loss = inception_training_loss(output, target, criterion, args)
             else:
                 loss = criterion(output, target)
@@ -873,7 +873,7 @@ def earlyexit_validate_stats(args):
 def _convert_ptq_to_pytorch(model, args):
     msglogger.info('Converting Distiller PTQ model to PyTorch quantization API')
     dummy_input = distiller.get_dummy_input(input_shape=model.input_shape)
-    model = quantization.convert_distiller_ptq_model_to_pytorch(model, dummy_input, backend=args.qe_pytorch_backend)
+    model = distiller.quantizationconvert_distiller_ptq_model_to_pytorch(model, dummy_input, backend=args.qe_pytorch_backend)
     msglogger.debug('\nModel after conversion:\n{}'.format(model))
     args.device = 'cpu'
     return model
@@ -929,7 +929,7 @@ def quantize_and_test_model(test_loader, model, criterion, args, loggers=None, s
     else:
         qe_model = copy.deepcopy(model).to(args.device)
 
-    quantizer = quantization.PostTrainLinearQuantizer.from_args(qe_model, args_qe)
+    quantizer = distiller.quantizationPostTrainLinearQuantizer.from_args(qe_model, args_qe)
     dummy_input = distiller.get_dummy_input(input_shape=model.input_shape)
     quantizer.prepare_model(dummy_input)
 
@@ -940,7 +940,7 @@ def quantize_and_test_model(test_loader, model, criterion, args, loggers=None, s
 
     if save_flag:
         checkpoint_name = 'quantized'
-        apputils.save_checkpoint(0, args_qe.arch, qe_model, scheduler=scheduler,
+        distiller.apputils.save_checkpoint(0, args_qe.arch, qe_model, scheduler=scheduler,
             name='_'.join([args_qe.name, checkpoint_name]) if args_qe.name else checkpoint_name,
             dir=msglogger.logdir, extras={'quantized_top1': test_res[0]})
 
@@ -984,7 +984,7 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
 
     This function is currently written for pruning use-cases, but can be generalized.
     """
-    assert isinstance(performance_tracker, (apputils.SparsityAccuracyTracker))
+    assert isinstance(performance_tracker, (distiller.apputils.SparsityAccuracyTracker))
     if how_many < 1:
         how_many = performance_tracker.max_len
     how_many = min(how_many, performance_tracker.max_len)

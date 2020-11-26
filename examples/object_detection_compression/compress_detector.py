@@ -97,12 +97,12 @@ def main(args):
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
     if utils.is_main_process():
-        msglogger = apputils.config_pylogger(os.path.join(script_dir, 'logging.conf'), args.name, args.output_dir,
+        msglogger = distiller.apputils.config_pylogger(os.path.join(script_dir, 'logging.conf'), args.name, args.output_dir,
                                              args.verbose)
 
         # Log various details about the execution environment.  It is sometimes useful
         # to refer to past experiment executions and this information may be useful.
-        apputils.log_execution_env_state(
+        distiller.apputils.log_execution_env_state(
             filter(None, [args.compress, args.qe_stats_file]),  # remove both None and empty strings
             msglogger.logdir)
         msglogger.debug("Distiller: %s", distiller.__version__)

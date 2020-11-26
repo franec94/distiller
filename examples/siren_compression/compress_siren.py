@@ -3,9 +3,8 @@ import logging
 from functools import partial
 import distiller
 from distiller.models import create_model
-import distiller.apputils.image_classifier as classifier
-import distiller.apputils.image_regressor as regressor
-import distiller.apputils as apputils
+import distiller.apputils.image_regressor
+import distiller.apputils
 import custom_parser
 import os
 import numpy as np
@@ -18,7 +17,7 @@ msglogger = logging.getLogger()
 
 def main():
     # Parse arguments
-    args = custom_parser.add_cmdline_args(regressor.init_regressor_compression_arg_parser(True)).parse_args()
+    args = custom_parser.add_cmdline_args(distiller.apputils.image_regressor.init_regressor_compression_arg_parser(True)).parse_args()
     app = RegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
     if app.handle_subapps():
         return
@@ -30,7 +29,7 @@ def main():
     
 def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args):
     def load_test_data(args):
-        test_loader = regressor.load_data(args, load_train=False, load_val=False, load_test=True)
+        test_loader = distiller.apputils.image_regressor.load_data(args, load_train=False, load_val=False, load_test=True)
         return test_loader
 
     do_exit = False
@@ -48,10 +47,10 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
                                                 args.dataset, add_softmax=True, verbose=False)
         do_exit = True
     elif args.qe_calibration and not (args.evaluate and args.quantize_eval):
-        regressor.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
+        distiller.apputils.image_regressor.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
         do_exit = True
     elif args.activation_histograms:
-        regressor.acts_histogram_collection(model, criterion, pylogger, args)
+        distiller.apputils.image_regressor.acts_histogram_collection(model, criterion, pylogger, args)
         do_exit = True
     elif args.sensitivity is not None:
         test_loader = load_test_data(args)
@@ -63,15 +62,15 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
             image_classifier_ptq_lapq(model, criterion, pylogger, args)
         else:
             test_loader = load_test_data(args)
-            regressor.evaluate_model(test_loader, model, criterion, pylogger,
-                regressor.create_activation_stats_collectors(model, *args.activation_stats),
+            distiller.apputils.image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
+                distiller.apputils.image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=compression_scheduler)
         do_exit = True
     elif args.thinnify:
         assert args.resumed_checkpoint_path is not None, \
             "You must use --resume-from to provide a checkpoint file to thinnify"
         distiller.contract_model(model, compression_scheduler.zeros_mask_dict, args.arch, args.dataset, optimizer=None)
-        apputils.save_checkpoint(0, args.arch, model, optimizer=None, scheduler=compression_scheduler,
+        distiller.apputilssave_checkpoint(0, args.arch, model, optimizer=None, scheduler=compression_scheduler,
                                  name="{}_thinned".format(args.resumed_checkpoint_path.replace(".pth.tar", "")),
                                  dir=msglogger.logdir)
         msglogger.info("Note: if your model collapsed to random inference, you may want to fine-tune")
@@ -84,7 +83,7 @@ def init_knowledge_distillation(args, model, compression_scheduler):
     if args.kd_teacher:
         teacher = create_model(args.kd_pretrained, args.dataset, args.kd_teacher, device_ids=args.gpus)
         if args.kd_resume:
-            teacher = apputils.load_lean_checkpoint(teacher, args.kd_resume)
+            teacher = distiller.apputilsload_lean_checkpoint(teacher, args.kd_resume)
         dlw = distiller.DistillationLossWeights(args.kd_distill_wt, args.kd_student_wt, args.kd_teacher_wt)
         args.kd_policy = distiller.KnowledgeDistillationPolicy(model, teacher, args.kd_temp, dlw)
         compression_scheduler.add_policy(args.kd_policy, starting_epoch=args.kd_start_epoch, ending_epoch=args.epochs,
@@ -107,14 +106,14 @@ def early_exit_init(args):
     msglogger.info('=> using early-exit threshold values of %s', args.earlyexit_thresholds)
 
 
-class RegressorCompressorSampleApp(regressor.RegressorCompressor):
+class RegressorCompressorSampleApp(distiller.apputils.image_regressor.RegressorCompressor):
     def __init__(self, args, script_dir):
         super().__init__(args, script_dir)
         early_exit_init(self.args)
         # Save the randomly-initialized model before training (useful for lottery-ticket method)
         if args.save_untrained_model:
             ckpt_name = '_'.join((self.args.name or "", "untrained"))
-            apputils.save_checkpoint(0, self.args.arch, self.model,
+            distiller.apputilssave_checkpoint(0, self.args.arch, self.model,
                                      name=ckpt_name, dir=msglogger.logdir)
 
 
@@ -129,9 +128,9 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
     msglogger.info("Running sensitivity tests")
     if not isinstance(loggers, list):
         loggers = [loggers]
-    test_fnc = partial(regressor.test, test_loader=data_loader, criterion=criterion,
+    test_fnc = partial(distiller.apputils.image_regressor.test, test_loader=data_loader, criterion=criterion,
                        loggers=loggers, args=args,
-                       activations_collectors=regressor.create_activation_stats_collectors(model))
+                       activations_collectors=distiller.apputils.image_regressor.create_activation_stats_collectors(model))
     which_params = [param_name for param_name, _ in model.named_parameters()]
     sensitivity = distiller.perform_sensitivity_analysis(model,
                                                          net_params=which_params,
@@ -143,11 +142,11 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
 
 
 def greedy(model, criterion, optimizer, loggers, args):
-    train_loader, val_loader, test_loader = regressor.load_data(args)
+    train_loader, val_loader, test_loader = distiller.apputils.image_regressor.load_data(args)
 
-    test_fn = partial(regressor.test, test_loader=test_loader, criterion=criterion,
+    test_fn = partial(distiller.apputils.image_regressor.test, test_loader=test_loader, criterion=criterion,
                       loggers=loggers, args=args, activations_collectors=None)
-    train_fn = partial(regressor.train, train_loader=train_loader, criterion=criterion, args=args)
+    train_fn = partial(distiller.apputils.image_regressor.train, train_loader=train_loader, criterion=criterion, args=args)
     assert args.greedy_target_density is not None
     distiller.pruning.greedy_filter_pruning.greedy_pruner(model, args,
                                                           args.greedy_target_density,

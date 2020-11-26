@@ -16,7 +16,7 @@ from collections import OrderedDict
 import data
 import model
 import distiller
-import distiller.apputils as apputils
+import distiller.apputils
 from distiller.data_loggers import TensorBoardLogger, PythonLogger
 
 
@@ -279,7 +279,7 @@ def export_onnx(path, batch_size, seq_len):
 
 
 # Distiller loggers
-msglogger = apputils.config_pylogger('logging.conf', None)
+msglogger = distiller.apputils.config_pylogger('logging.conf', None)
 tflogger = TensorBoardLogger(msglogger.logdir)
 tflogger.log_gradients = True
 pylogger = PythonLogger(msglogger)

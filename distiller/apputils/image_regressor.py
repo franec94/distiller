@@ -17,6 +17,7 @@ from functools import partial
 import argparse
 import distiller
 import distiller.apputils
+from distiller.apputils.performance_tracker import SparsityMSETracker
 from distiller.data_loggers import *
 import distiller.quantization
 import distiller.models
@@ -62,7 +63,10 @@ class RegressorCompressor(object):
         self.train_loader, self.val_loader, self.test_loader = (None, None, None)
         self.activations_collectors = create_activation_stats_collectors(
             self.model, *self.args.activation_stats)
-        self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
+        try:
+            self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
+        except:
+            self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
     
     def load_datasets(self):
         """Load the datasets"""

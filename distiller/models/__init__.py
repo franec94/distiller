@@ -35,7 +35,7 @@ from distiller.modules import Mean, EltwiseAdd
 import logging
 msglogger = logging.getLogger()
 
-SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist', "caneramen")
+SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist', "cameramen")
 
 # ResNet special treatment: we have our own version of ResNet, so we need to over-ride
 # TorchVision's version.

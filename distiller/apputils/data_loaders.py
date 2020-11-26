@@ -226,7 +226,10 @@ def imagenet_get_datasets(data_dir, arch, load_train=True, load_test=True):
 
 def __image_size(dataset):
     # un-squeeze is used here to add the batch dimension (value=1), which is missing
-    return dataset[0][0].unsqueeze(0).size()
+    try:
+        return dataset[0][0].unsqueeze(0).size()
+    except:
+        return ()
 
 
 def __deterministic_worker_init_fn(worker_id, seed=0):

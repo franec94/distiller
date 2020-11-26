@@ -23,9 +23,18 @@ from .checkpoint import *
 from .execution_env import *
 from .dataset_summaries import *
 from .performance_tracker import *
-
-del data_loaders
-del checkpoint
-del execution_env
-del dataset_summaries
-del performance_tracker
+try:
+    del data_loaders
+except: pass
+try:
+    del checkpoint
+except: pass
+try:
+    del execution_env
+except: pass
+try:
+    del dataset_summaries
+except: pass
+try:
+    del performance_tracker
+except: pass

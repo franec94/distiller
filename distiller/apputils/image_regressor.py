@@ -920,7 +920,10 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
 
     This function is currently written for pruning use-cases, but can be generalized.
     """
-    assert isinstance(performance_tracker, (distiller.apputils.SparsityMSETracker))
+    try:
+        assert isinstance(performance_tracker, (distiller.apputils.SparsityMSETracker))
+    except:
+        assert isinstance(performance_tracker, (SparsityMSETracker))
     if how_many < 1:
         how_many = performance_tracker.max_len
     how_many = min(how_many, performance_tracker.max_len)

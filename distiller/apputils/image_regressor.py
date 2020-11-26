@@ -43,6 +43,7 @@ class RegressorCompressor(object):
             self.args = copy.deepcopy(args)
         except:
             self.args = args
+        self.args.verbose = False
         # self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
         _config_determinism(self.args)
@@ -67,6 +68,7 @@ class RegressorCompressor(object):
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
         except:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
+        
     
     def load_datasets(self):
         """Load the datasets"""

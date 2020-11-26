@@ -383,7 +383,7 @@ def get_mgrid(sidelen, dim=2):
     return mgrid
 
 
-class ImageFitting(Dataset):
+class ImageFitting(torch.utils.data.Dataset):
     def __init__(self, sidelength):
         super().__init__()
         img = get_cameraman_tensor(sidelength)

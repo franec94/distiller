@@ -3,22 +3,22 @@ pruners:
   low_pruner:
     class: AutomatedGradualPruner
     initial_sparsity : 0.05
-    final_sparsity: 0.30
+    final_sparsity: 0.15
     weights: [module.net.0.linear.weight]
 
   mid_pruner:
     class:  AutomatedGradualPruner
     initial_sparsity : 0.05
     final_sparsity: 0.67
-    weights: [module.net.1.linear,module.net.2.linear
-              module.net.3.linear]
+    weights: [module.net.1.linear.weight,module.net.2.linear.weight
+              module.net.3.linear.weight]
 
   high_pruner:
     class:  AutomatedGradualPruner
     initial_sparsity : 0.05
     final_sparsity: 0.76
-    weights: [module.net.4.linear,
-              module.net.5.linear]
+    weights: [module.net.4.linear.weight,
+              module.net.5.linear.weight]
 
 lr_schedulers:
    pruning_lr:

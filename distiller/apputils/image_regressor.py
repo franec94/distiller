@@ -43,8 +43,7 @@ class RegressorCompressor(object):
             self.args = copy.deepcopy(args)
         except:
             self.args = args
-        self.args.verbose = False
-        # self._infer_implicit_args(self.args)
+        self.args = self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
         _config_determinism(self.args)
         _config_compute_device(self.args)
@@ -76,18 +75,19 @@ class RegressorCompressor(object):
             self.train_loader, self.val_loader, self.test_loader = load_data(self.args)
         return self.data_loaders
 
+
     @property
     def data_loaders(self):
         return self.train_loader, self.val_loader, self.test_loader
 
+
     @staticmethod
     def _infer_implicit_args(args):
         # Infer the dataset from the model name
-        if not hasattr(args, 'dataset'):
-            args.dataset = distiller.apputils.classification_dataset_str_from_arch(args.arch)
-        if not hasattr(args, "num_classes"):
-            args.num_classes = distiller.apputils.classification_num_classes(args.dataset)
+        if not hasattr(args, 'verbose'):
+            args.verbose = False
         return args
+
 
     @staticmethod
     def mock_args():
@@ -95,9 +95,11 @@ class RegressorCompressor(object):
         return RegressorCompressor._infer_implicit_args(
             init_regressor_compression_arg_parser().parse_args(['fictive_required_arg',]))
 
+
     @classmethod
     def mock_classifier(cls):
         return cls(cls.mock_args(), '')
+
 
     def train_one_epoch(self, epoch, verbose=True):
         """Train for one epoch"""
@@ -116,6 +118,7 @@ class RegressorCompressor(object):
                                                                     self.compression_scheduler))
         return loss
 
+
     def train_validate_with_scheduling(self, epoch, validate=True, verbose=True):
         if self.compression_scheduler:
             self.compression_scheduler.on_epoch_begin(epoch)
@@ -128,6 +131,7 @@ class RegressorCompressor(object):
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
                                                     metrics={'min': loss,})
         return loss
+
 
     def validate_one_epoch(self, epoch, verbose=True):
         """Evaluate on validation set"""
@@ -146,6 +150,7 @@ class RegressorCompressor(object):
                                             total_steps=1, log_freq=1, loggers=[self.tflogger])
         return vloss
 
+
     def _finalize_epoch(self, epoch, mse):
         # Update the list of top scores achieved so far, and save the checkpoint
         self.performance_tracker.step(self.model, epoch, mse=mse)
@@ -159,6 +164,7 @@ class RegressorCompressor(object):
             distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                                      scheduler=self.compression_scheduler, extras=checkpoint_extras,
                                      is_best=is_best, name=self.args.name, dir=msglogger.logdir)
+
 
     def run_training_loop(self):
         """Run the main training loop with compression.
@@ -184,10 +190,12 @@ class RegressorCompressor(object):
             self._finalize_epoch(epoch, loss)
         return self.performance_tracker.perf_scores_history
 
+
     def validate(self, epoch=-1):
         self.load_datasets()
         return validate(self.val_loader, self.model, self.criterion,
                         [self.tflogger, self.pylogger], self.args, epoch)
+
 
     def test(self):
         self.load_datasets()
@@ -200,26 +208,26 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     '''
     SUMMARY_CHOICES = ['sparsity', 'compute', 'model', 'modules', 'png', 'png_w_params']
 
-    parser = argparse.ArgumentParser(description='Distiller image classification model compression')
-    parser.add_argument('data', metavar='DATASET_DIR', help='path to dataset')
-    parser.add_argument('--arch', '-a', metavar='ARCH', default='siren', type=lambda s: s.lower(),
+    parser_regressor = argparse.ArgumentParser(description='Distiller image classification model compression')
+    parser_regressor.add_argument('data', metavar='DATASET_DIR', help='path to dataset')
+    parser_regressor.add_argument('--arch', '-a', metavar='ARCH', default='siren', type=lambda s: s.lower(),
                         choices=distiller.models.ALL_MODEL_NAMES,
                         help='model architecture: ' +
                         ' | '.join(distiller.models.ALL_MODEL_NAMES) +
                         ' (default: resnet18)')
-    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+    parser_regressor.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('--epochs', type=int, metavar='N', default=90,
+    parser_regressor.add_argument('--epochs', type=int, metavar='N', default=90,
                         help='number of total epochs to run (default: 90')
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
+    parser_regressor.add_argument('-b', '--batch-size', default=256, type=int,
                         metavar='N', help='mini-batch size (default: 256)')
 
-    parser.add_argument('-n_hf', '--number-hidden-features', default=8, type=int,
+    parser_regressor.add_argument('-n_hf', '--number-hidden-features', default=8, type=int,
                         metavar='N', help='number hidden features (default: 8)')
-    parser.add_argument('-n_hl', '--number-hidden-layerss', default=8, type=int,
+    parser_regressor.add_argument('-n_hl', '--number-hidden-layerss', default=8, type=int,
                         metavar='N', help='number hidden layers (default: 8)')
 
-    optimizer_args = parser.add_argument_group('Optimizer arguments')
+    optimizer_args = parser_regressor.add_argument_group('Optimizer arguments')
     optimizer_args.add_argument('--lr', '--learning-rate', default=0.1,
                     type=float, metavar='LR', help='initial learning rate')
     optimizer_args.add_argument('--momentum', default=0.9, type=float,
@@ -227,11 +235,11 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     optimizer_args.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 
-    parser.add_argument('--print-freq', '-p', default=10, type=int,
+    parser_regressor.add_argument('--print-freq', '-p', default=10, type=int,
                         metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--verbose', '-v', action='store_true', default=False, help='Emit debug log messages')
+    parser_regressor.add_argument('--verbose', '-v', action='store_true', default=False, help='Emit debug log messages')
 
-    load_checkpoint_group = parser.add_argument_group('Resuming arguments')
+    load_checkpoint_group = parser_regressor.add_argument_group('Resuming arguments')
     load_checkpoint_group_exc = load_checkpoint_group.add_mutually_exclusive_group()
     # TODO(barrh): args.deprecated_resume is deprecated since v0.3.1
     load_checkpoint_group_exc.add_argument('--resume', dest='deprecated_resume', default='', type=str,
@@ -247,69 +255,69 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     load_checkpoint_group.add_argument('--reset-optimizer', action='store_true',
                         help='Flag to override optimizer if resumed from checkpoint. This will reset epochs count.')
 
-    parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
+    parser_regressor.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on test set')
-    parser.add_argument('--activation-stats', '--act-stats', nargs='+', metavar='PHASE', default=list(),
+    parser_regressor.add_argument('--activation-stats', '--act-stats', nargs='+', metavar='PHASE', default=list(),
                         help='collect activation statistics on phases: train, valid, and/or test'
                         ' (WARNING: this slows down training)')
-    parser.add_argument('--activation-histograms', '--act-hist',
+    parser_regressor.add_argument('--activation-histograms', '--act-hist',
                         type=float_range(exc_min=True),
                         metavar='PORTION_OF_TEST_SET',
                         help='Run the model in evaluation mode on the specified portion of the test dataset and '
                              'generate activation histograms. NOTE: This slows down evaluation significantly')
-    parser.add_argument('--masks-sparsity', dest='masks_sparsity', action='store_true', default=False,
+    parser_regressor.add_argument('--masks-sparsity', dest='masks_sparsity', action='store_true', default=False,
                         help='print masks sparsity table at end of each epoch')
-    parser.add_argument('--param-hist', dest='log_params_histograms', action='store_true', default=False,
+    parser_regressor.add_argument('--param-hist', dest='log_params_histograms', action='store_true', default=False,
                         help='log the parameter tensors histograms to file '
                              '(WARNING: this can use significant disk space)')
-    parser.add_argument('--summary', type=lambda s: s.lower(), choices=SUMMARY_CHOICES, action='append',
+    parser_regressor.add_argument('--summary', type=lambda s: s.lower(), choices=SUMMARY_CHOICES, action='append',
                         help='print a summary of the model, and exit - options: | '.join(SUMMARY_CHOICES))
-    parser.add_argument('--export-onnx', action='store', nargs='?', type=str, const='model.onnx', default=None,
+    parser_regressor.add_argument('--export-onnx', action='store', nargs='?', type=str, const='model.onnx', default=None,
                         help='export model to ONNX format')
-    parser.add_argument('--compress', dest='compress', type=str, nargs='?', action='store',
+    parser_regressor.add_argument('--compress', dest='compress', type=str, nargs='?', action='store',
                         help='configuration file for pruning the model (default is to use hard-coded schedule)')
-    parser.add_argument('--sense', dest='sensitivity', choices=['element', 'filter', 'channel'],
+    parser_regressor.add_argument('--sense', dest='sensitivity', choices=['element', 'filter', 'channel'],
                         type=lambda s: s.lower(), help='test the sensitivity of layers to pruning')
-    parser.add_argument('--sense-range', dest='sensitivity_range', type=float, nargs=3, default=[0.0, 0.95, 0.05],
+    parser_regressor.add_argument('--sense-range', dest='sensitivity_range', type=float, nargs=3, default=[0.0, 0.95, 0.05],
                         help='an optional parameter for sensitivity testing '
                              'providing the range of sparsities to test.\n'
                              'This is equivalent to creating sensitivities = np.arange(start, stop, step)')
-    parser.add_argument('--deterministic', '--det', action='store_true',
+    parser_regressor.add_argument('--deterministic', '--det', action='store_true',
                         help='Ensure deterministic execution for re-producible results.')
-    parser.add_argument('--seed', type=int, default=None,
+    parser_regressor.add_argument('--seed', type=int, default=None,
                         help='seed the PRNG for CPU, CUDA, numpy, and Python')
-    parser.add_argument('--gpus', metavar='DEV_ID', default=None,
+    parser_regressor.add_argument('--gpus', metavar='DEV_ID', default=None,
                         help='Comma-separated list of GPU device IDs to be used '
                              '(default is to use all available devices)')
-    parser.add_argument('--cpu', action='store_true', default=False,
+    parser_regressor.add_argument('--cpu', action='store_true', default=False,
                         help='Use CPU only. \n'
                         'Flag not set => uses GPUs according to the --gpus flag value.'
                         'Flag set => overrides the --gpus flag')
-    parser.add_argument('--name', '-n', metavar='NAME', default=None, help='Experiment name')
-    parser.add_argument('--out-dir', '-o', dest='output_dir', default='logs', help='Path to dump logs and checkpoints')
-    parser.add_argument('--validation-split', '--valid-size', '--vs', dest='validation_split',
+    parser_regressor.add_argument('--name', '-n', metavar='NAME', default=None, help='Experiment name')
+    parser_regressor.add_argument('--out-dir', '-o', dest='output_dir', default='logs', help='Path to dump logs and checkpoints')
+    parser_regressor.add_argument('--validation-split', '--valid-size', '--vs', dest='validation_split',
                         type=float_range(exc_max=True), default=0.1,
                         help='Portion of training dataset to set aside for validation')
-    parser.add_argument('--effective-train-size', '--etrs', type=float_range(exc_min=True), default=1.,
+    parser_regressor.add_argument('--effective-train-size', '--etrs', type=float_range(exc_min=True), default=1.,
                         help='Portion of training dataset to be used in each epoch. '
                              'NOTE: If --validation-split is set, then the value of this argument is applied '
                              'AFTER the train-validation split according to that argument')
-    parser.add_argument('--effective-valid-size', '--evs', type=float_range(exc_min=True), default=1.,
+    parser_regressor.add_argument('--effective-valid-size', '--evs', type=float_range(exc_min=True), default=1.,
                         help='Portion of validation dataset to be used in each epoch. '
                              'NOTE: If --validation-split is set, then the value of this argument is applied '
                              'AFTER the train-validation split according to that argument')
-    parser.add_argument('--effective-test-size', '--etes', type=float_range(exc_min=True), default=1.,
+    parser_regressor.add_argument('--effective-test-size', '--etes', type=float_range(exc_min=True), default=1.,
                         help='Portion of test dataset to be used in each epoch')
-    parser.add_argument('--confusion', dest='display_confusion', default=False, action='store_true',
+    parser_regressor.add_argument('--confusion', dest='display_confusion', default=False, action='store_true',
                         help='Display the confusion matrix')
-    parser.add_argument('--num-best-scores', dest='num_best_scores', default=1, type=int,
+    parser_regressor.add_argument('--num-best-scores', dest='num_best_scores', default=1, type=int,
                         help='number of best scores to track and report (default: 1)')
-    parser.add_argument('--load-serialized', dest='load_serialized', action='store_true', default=False,
+    parser_regressor.add_argument('--load-serialized', dest='load_serialized', action='store_true', default=False,
                         help='Load a model without DataParallel wrapping it')
-    parser.add_argument('--thinnify', dest='thinnify', action='store_true', default=False,
+    parser_regressor.add_argument('--thinnify', dest='thinnify', action='store_true', default=False,
                         help='physically remove zero-filters and create a smaller model')
-    distiller.quantization.add_post_train_quant_args(parser, add_lapq_args=include_ptq_lapq_args)
-    return parser
+    distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
+    return parser_regressor
 
 
 def _init_logger(args, script_dir):

@@ -1,7 +1,10 @@
+from pprint import pprint
+
 import copy
 import math
 import time
 import os
+import sys
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -67,6 +70,9 @@ class RegressorCompressor(object):
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
         except:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
+
+        pprint(self.args)
+        sys.exit(0)
         
     
     def load_datasets(self):

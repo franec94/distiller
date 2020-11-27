@@ -249,7 +249,7 @@ def greedy(model, criterion, optimizer, loggers, args):
 if __name__ == '__main__':
     try:
         opt, parser = get_cmd_line_opts()
-        main()
+        main(opt)
     except KeyboardInterrupt:
         print("\n-- KeyboardInterrupt --")
     except Exception as e:

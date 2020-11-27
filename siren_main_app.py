@@ -22,10 +22,14 @@ import distiller
 from distiller.models import create_model
 import distiller.apputils.siren_image_regressor
 import distiller.apputils
-import examples.siren_compression.custom_parser
+import examples.siren_compression.custom_parser 
 import os
 import numpy as np
 # from ptq_lapq import image_classifier_ptq_lapq
+
+from distiller.models import register_user_model
+from distiller.models.siren import Siren
+import distiller.apputils.siren_image_regressor as regressor
 
 
 # Logger handle
@@ -98,7 +102,7 @@ def main(opt):
         dataset="cameramen",
         model=sire_model)
     # Parse arguments
-    args , _ = custom_parser.add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_known_args() # .parse_args()
+    args , _ = examples.siren_compression.custom_parser .add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_known_args() # .parse_args()
     args = init_regressor_default_args(args, opt)
     args = config_learner_args(
         args,

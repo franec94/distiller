@@ -4,7 +4,6 @@ import copy
 import math
 import time
 import os
-import sys
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -15,7 +14,7 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 import torchnet.meter as tnt
-import parser
+# import parser
 from functools import partial
 import argparse
 import distiller
@@ -68,7 +67,7 @@ class RegressorCompressor(object):
             self.model, *self.args.activation_stats)
         try:
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
-        except:
+        except Exception as _:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
         
     

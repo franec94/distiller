@@ -3,7 +3,7 @@ import logging
 from functools import partial
 import distiller
 from distiller.models import create_model
-import distiller.apputils.image_regressor
+import distiller.apputils.siren_image_regressor
 import distiller.apputils
 import custom_parser
 import os
@@ -17,8 +17,8 @@ msglogger = logging.getLogger()
 
 def main():
     # Parse arguments
-    args = custom_parser.add_cmdline_args(distiller.apputils.image_regressor.init_regressor_compression_arg_parser(True)).parse_args()
-    app = RegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
+    args = custom_parser.add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_args()
+    app = SirenRegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
     if app.handle_subapps():
         return
     init_knowledge_distillation(app.args, app.model, app.compression_scheduler)
@@ -29,7 +29,7 @@ def main():
     
 def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args):
     def load_test_data(args):
-        test_loader = distiller.apputils.image_regressor.load_data(args, load_train=False, load_val=False, load_test=True)
+        test_loader = distiller.apputils.siren_image_regressor.load_data(args, load_train=False, load_val=False, load_test=True)
         return test_loader
 
     do_exit = False
@@ -47,10 +47,10 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
                                                 args.dataset, add_softmax=True, verbose=False)
         do_exit = True
     elif args.qe_calibration and not (args.evaluate and args.quantize_eval):
-        distiller.apputils.image_regressor.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
+        distiller.apputils.siren_image_regressor.acts_quant_stats_collection(model, criterion, pylogger, args, save_to_file=True)
         do_exit = True
     elif args.activation_histograms:
-        distiller.apputils.image_regressor.acts_histogram_collection(model, criterion, pylogger, args)
+        distiller.apputils.siren_image_regressor.acts_histogram_collection(model, criterion, pylogger, args)
         do_exit = True
     elif args.sensitivity is not None:
         test_loader = load_test_data(args)
@@ -62,8 +62,8 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
             image_classifier_ptq_lapq(model, criterion, pylogger, args)
         else:
             test_loader = load_test_data(args)
-            distiller.apputils.image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
-                distiller.apputils.image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
+            distiller.apputils.siren_image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
+                distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=compression_scheduler)
         do_exit = True
     elif args.thinnify:
@@ -106,14 +106,14 @@ def early_exit_init(args):
     msglogger.info('=> using early-exit threshold values of %s', args.earlyexit_thresholds)
 
 
-class RegressorCompressorSampleApp(distiller.apputils.image_regressor.RegressorCompressor):
+class SirenRegressorCompressorSampleApp(distiller.apputils.siren_image_regressor.SirenRegressorCompressor):
     def __init__(self, args, script_dir):
         super().__init__(args, script_dir)
         early_exit_init(self.args)
         # Save the randomly-initialized model before training (useful for lottery-ticket method)
         if args.save_untrained_model:
             ckpt_name = '_'.join((self.args.name or "", "untrained"))
-            distiller.apputilssave_checkpoint(0, self.args.arch, self.model,
+            distiller.apputils.save_checkpoint(0, self.args.arch, self.model,
                                      name=ckpt_name, dir=msglogger.logdir)
 
 
@@ -128,9 +128,9 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
     msglogger.info("Running sensitivity tests")
     if not isinstance(loggers, list):
         loggers = [loggers]
-    test_fnc = partial(distiller.apputils.image_regressor.test, test_loader=data_loader, criterion=criterion,
+    test_fnc = partial(distiller.apputils.siren_image_regressor.test, test_loader=data_loader, criterion=criterion,
                        loggers=loggers, args=args,
-                       activations_collectors=distiller.apputils.image_regressor.create_activation_stats_collectors(model))
+                       activations_collectors=distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model))
     which_params = [param_name for param_name, _ in model.named_parameters()]
     sensitivity = distiller.perform_sensitivity_analysis(model,
                                                          net_params=which_params,
@@ -142,11 +142,11 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
 
 
 def greedy(model, criterion, optimizer, loggers, args):
-    train_loader, val_loader, test_loader = distiller.apputils.image_regressor.load_data(args)
+    train_loader, val_loader, test_loader = distiller.apputils.siren_image_regressor.load_data(args)
 
-    test_fn = partial(distiller.apputils.image_regressor.test, test_loader=test_loader, criterion=criterion,
+    test_fn = partial(distiller.apputils.siren_image_regressor.test, test_loader=test_loader, criterion=criterion,
                       loggers=loggers, args=args, activations_collectors=None)
-    train_fn = partial(distiller.apputils.image_regressor.train, train_loader=train_loader, criterion=criterion, args=args)
+    train_fn = partial(distiller.apputils.siren_image_regressor.train, train_loader=train_loader, criterion=criterion, args=args)
     assert args.greedy_target_density is not None
     distiller.pruning.greedy_filter_pruning.greedy_pruner(model, args,
                                                           args.greedy_target_density,

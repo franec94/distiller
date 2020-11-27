@@ -30,7 +30,7 @@ from distiller.utils import float_range_argparse_checker as float_range
 msglogger = logging.getLogger()
 
 
-class RegressorCompressor(object):
+class SirenRegressorCompressor(object):
     """Base class for applications that want to compress image regressor.
 
     This class performs boiler-plate code used in image-regressor compression:
@@ -94,7 +94,7 @@ class RegressorCompressor(object):
     @staticmethod
     def mock_args():
         """Generate a Namespace based on default arguments"""
-        return RegressorCompressor._infer_implicit_args(
+        return SirenRegressorCompressor._infer_implicit_args(
             init_regressor_compression_arg_parser().parse_args(['fictive_required_arg',]))
 
 
@@ -635,7 +635,7 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     """Model Test"""
     msglogger.info('--- test ---------------------')
     if args is None:
-        args = RegressorCompressor.mock_args()
+        args = SirenRegressorCompressor.mock_args()
     if activations_collectors is None:
         activations_collectors = create_activation_stats_collectors(model, None)
 

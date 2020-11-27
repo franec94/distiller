@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-import argparse
+# import argparse
 import distiller
 import distiller.pruning
 import distiller.models as models

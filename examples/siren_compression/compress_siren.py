@@ -70,7 +70,7 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
         assert args.resumed_checkpoint_path is not None, \
             "You must use --resume-from to provide a checkpoint file to thinnify"
         distiller.contract_model(model, compression_scheduler.zeros_mask_dict, args.arch, args.dataset, optimizer=None)
-        distiller.apputilssave_checkpoint(0, args.arch, model, optimizer=None, scheduler=compression_scheduler,
+        distiller.apputils.save_checkpoint(0, args.arch, model, optimizer=None, scheduler=compression_scheduler,
                                  name="{}_thinned".format(args.resumed_checkpoint_path.replace(".pth.tar", "")),
                                  dir=msglogger.logdir)
         msglogger.info("Note: if your model collapsed to random inference, you may want to fine-tune")
@@ -83,7 +83,7 @@ def init_knowledge_distillation(args, model, compression_scheduler):
     if args.kd_teacher:
         teacher = create_model(args.kd_pretrained, args.dataset, args.kd_teacher, device_ids=args.gpus)
         if args.kd_resume:
-            teacher = distiller.apputilsload_lean_checkpoint(teacher, args.kd_resume)
+            teacher = distiller.apputils.load_lean_checkpoint(teacher, args.kd_resume)
         dlw = distiller.DistillationLossWeights(args.kd_distill_wt, args.kd_student_wt, args.kd_teacher_wt)
         args.kd_policy = distiller.KnowledgeDistillationPolicy(model, teacher, args.kd_temp, dlw)
         compression_scheduler.add_policy(args.kd_policy, starting_epoch=args.kd_start_epoch, ending_epoch=args.epochs,

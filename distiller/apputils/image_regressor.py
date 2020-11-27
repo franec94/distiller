@@ -113,7 +113,7 @@ class RegressorCompressor(object):
                                      epoch, self.compression_scheduler, 
                                      loggers=[self.tflogger, self.pylogger], args=self.args)
             if verbose:
-                if epoch > 0 and epoch % self.args.print_freq == 0:
+                if epoch >= 0 and epoch % self.args.print_freq == 0:
                     distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
             distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
@@ -158,7 +158,7 @@ class RegressorCompressor(object):
     def _finalize_epoch(self, epoch, mse):
         # Update the list of top scores achieved so far, and save the checkpoint
         self.performance_tracker.step(self.model, epoch, mse=mse)
-        if epoch > 0 and epoch % self.args.print_freq == 0:
+        if epoch >= 0 and epoch % self.args.print_freq == 0:
             _log_best_scores(self.performance_tracker, msglogger)
         best_score = self.performance_tracker.best_scores()[0]
         is_best = epoch == best_score.epoch
@@ -166,7 +166,7 @@ class RegressorCompressor(object):
                              'best_mse': best_score.mse,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
-            if epoch > 0 and epoch % self.args.print_freq == 0:
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
                 distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                                      scheduler=self.compression_scheduler, extras=checkpoint_extras,
                                      is_best=is_best, name=self.args.name, dir=msglogger.logdir)
@@ -191,7 +191,8 @@ class RegressorCompressor(object):
 
         self.performance_tracker.reset()
         for epoch in range(self.start_epoch, self.ending_epoch):
-            msglogger.info('\n')
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
+                msglogger.info('\n')
             loss = self.train_validate_with_scheduling(epoch)
             self._finalize_epoch(epoch, loss)
         return self.performance_tracker.perf_scores_history
@@ -555,7 +556,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     total_samples = len(train_loader.sampler)
     batch_size = train_loader.batch_size
     steps_per_epoch = math.ceil(total_samples / batch_size)
-    if epoch > 0 and epoch % args.print_freq == 0:
+    if epoch >= 0 and epoch % args.print_freq == 0:
         msglogger.info('Training epoch: %d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to train mode
@@ -612,7 +613,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        if epoch > 0 and epoch % args.print_freq == 0:
+        if epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
 
         end = time.time()
@@ -624,7 +625,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
 def validate(val_loader, model, criterion, loggers, args, epoch=-1):
     """Model validation"""
     if epoch > -1:
-        if epoch > 0 and epoch % args.print_freq == 0:
+        if epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('--- validate (epoch=%d)-----------', epoch)
     else:
         msglogger.info('--- validate ---------------------')
@@ -680,7 +681,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
     batch_size = data_loader.batch_size
 
     total_steps = total_samples / batch_size
-    if epoch > 0 and epoch % args.print_freq == 0:
+    if epoch >= 0 and epoch % args.print_freq == 0:
         msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to evaluation mode
@@ -707,11 +708,11 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-            if epoch > 0 and epoch % args.print_freq == 0:
+            if epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress()
 
     if not _is_earlyexit(args):
-        if epoch > 0 and epoch % args.print_freq == 0:
+        if epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('==> Loss: %.3f\n', losses['objective_loss'].mean)
 
         return losses['objective_loss'].mean

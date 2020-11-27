@@ -141,7 +141,7 @@ class SirenRegressorCompressor(object):
         """Evaluate on validation set"""
         self.load_datasets()
         with collectors_context(self.activations_collectors["valid"]) as collectors:
-            vloss = validate(self.val_loader, self.model, self.criterion, 
+            vloss, vpsnr, vssim = validate(self.val_loader, self.model, self.criterion, 
                                          [self.pylogger], self.args, epoch)
             distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
@@ -149,7 +149,10 @@ class SirenRegressorCompressor(object):
 
         if verbose:
             stats = ('Performance/Validation/',
-            OrderedDict([('Loss', vloss),]))
+            OrderedDict([('Loss', vloss),
+                ('PSNR', vpsnr),
+                ('SSIM', vssim),
+            ]))
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=[self.tflogger])
         return vloss
@@ -673,6 +676,10 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
     """Execute the validation/test loop."""
     losses = {'objective_loss': tnt.AverageValueMeter()}
+    metrices = {
+        'psnr': [],
+        'ssim': []
+    }
 
     if _is_earlyexit(args):
         # for Early Exit, we have a list of errors and losses for each of the exits.
@@ -705,6 +712,10 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
                 loss = criterion(output, target)
                 # measure accuracy and record loss
                 losses['objective_loss'].add(loss.item())
+                val_psnr, val_mssim = compute_desired_metrices(
+                    model_output = loss, gt = target, data_range=1.)
+                metrices['psnr'].append(val_psnr)
+                metrices['ssim'].append(val_mssim)
             else:
                 earlyexit_validate_loss(output, target, criterion, args)
 
@@ -719,9 +730,12 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
     if not _is_earlyexit(args):
         if epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> Loss: %.7f\n', losses['objective_loss'].mean)
+            metrices['psnr'] = np.array(metrices['psnr'])
+            metrices['ssim'] = np.array(metrices['ssim'])
+            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
 
-        return losses['objective_loss'].mean
+        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
     else:
         losses_exits_stats = earlyexit_validate_stats(args)
         return losses_exits_stats[args.num_exits-1]
@@ -960,3 +974,30 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
     for score in best_scores:
         logger.info('==> Best [MSE: %.7f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
                     score.mse, score.sparsity, -score.params_nnz_cnt, score.epoch)
+
+
+def compute_desired_metrices(model_output, gt, data_range=1.):
+    """Compute PSNR and SSIM scores.
+    Params:
+    -------
+    `model_output` - output produced by a Pytorch model\n
+    `gt` - reference data\n
+    `data_range` - int, range of input data\n
+
+    Return:
+    -------
+    `val_psnr, val_mssim` - scores from metrices PSNR, and SSIM
+    """
+
+    sidelenght = model_output.size()[1]
+
+    arr_gt = gt.cpu().view(sidelenght).detach().numpy()
+    arr_gt = (arr_gt / 2.) + 0.5
+
+    arr_output = model_output.cpu().view(sidelenght).detach().numpy()
+    arr_output = (arr_output / 2.) + 0.5
+    arr_output = np.clip(arr_output, a_min=0., a_max=1.)
+
+    val_psnr = psnr(arr_gt, arr_output,data_range=data_range)
+    val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
+    return val_psnr, val_mssim

@@ -15,7 +15,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --sidelength 256 \
   --num_epochs 100 \
   --n_hf 64  \
-  --n_hl 5 \
+  --n_hl 8 \
   --lambda_L_1 0 \
   --lambda_L_2 0.0001 \
   --epochs_til_ckpt 10 \

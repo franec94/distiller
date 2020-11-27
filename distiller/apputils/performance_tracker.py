@@ -77,12 +77,14 @@ class SparsityMSETracker(TrainingPerformanceTracker):
     Expects 'top1' and 'top5' to appear in the kwargs.
     """
     def step(self, model, epoch, **kwargs):
-        assert all(score in kwargs.keys() for score in ('mse',))
+        assert all(score in kwargs.keys() for score in ('mse', 'psnr_score', 'ssim_score'))
         model_sparsity, _, params_nnz_cnt = distiller.model_params_stats(model)
         self.perf_scores_history.append(distiller.MutableNamedTuple({
             'params_nnz_cnt': -params_nnz_cnt,
             'sparsity': model_sparsity,
             'mse': kwargs['mse'],
+            'psnr_score': kwargs['psnr_score'],
+            'ssim_score': kwargs['ssim_score'],
             'epoch': epoch}))
         # Keep perf_scores_history sorted from best to worst
         self.perf_scores_history.sort(

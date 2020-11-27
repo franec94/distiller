@@ -129,12 +129,12 @@ class SirenRegressorCompressor(object):
 
         loss = self.train_one_epoch(epoch, verbose)
         if validate:
-            loss = self.validate_one_epoch(epoch, verbose)
+            loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose)
 
         if self.compression_scheduler:
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
                                                     metrics={'min': loss,})
-        return loss
+        return loss, psnr_score, ssim_score
 
 
     def validate_one_epoch(self, epoch, verbose=True):
@@ -155,18 +155,26 @@ class SirenRegressorCompressor(object):
             ]))
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=[self.tflogger])
-        return vloss
+        return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score):
         # Update the list of top scores achieved so far, and save the checkpoint
-        self.performance_tracker.step(self.model, epoch, mse=mse)
+        self.performance_tracker.step(
+            self.model,
+            epoch,
+            mse=mse,
+            psnr_score=psnr_score, ssim_score=ssim_score)
         if epoch >= 0 and epoch % self.args.print_freq == 0:
             _log_best_scores(self.performance_tracker, msglogger)
         best_score = self.performance_tracker.best_scores()[0]
         is_best = epoch == best_score.epoch
         checkpoint_extras = {'current_mse': mse,
+                             'current_psnr_score': psnr_score,
+                             'current_psnr_score': ssim_score,
                              'best_mse': best_score.mse,
+                             'best_psnr_score': best_score.psnr_score,
+                             'best_ssim_score': best_score.ssim_score,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
             distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
@@ -195,8 +203,8 @@ class SirenRegressorCompressor(object):
         for epoch in range(self.start_epoch, self.ending_epoch):
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 msglogger.info('\n')
-            loss = self.train_validate_with_scheduling(epoch)
-            self._finalize_epoch(epoch, loss)
+            loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score)
         return self.performance_tracker.perf_scores_history
 
 

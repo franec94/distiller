@@ -521,6 +521,13 @@ def train(train_loader, model, criterion, optimizer, epoch,
         optimizer.step()
         compression_scheduler.on_minibatch_end(epoch)
     """
+
+    if epoch > -1:
+        if epoch >= 0 and epoch % args.print_freq == 0:
+            msglogger.info('--- train (epoch=%d)-----------', epoch)
+    else:
+        msglogger.info('--- train ---------------------')
+
     def _log_training_progress():
         # Log some statistics
 

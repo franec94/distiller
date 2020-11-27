@@ -166,10 +166,9 @@ class SirenRegressorCompressor(object):
                              'best_mse': best_score.mse,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
-            if epoch >= 0 and epoch % self.args.print_freq == 0:
-                distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
-                                     scheduler=self.compression_scheduler, extras=checkpoint_extras,
-                                     is_best=is_best, name=self.args.name, dir=msglogger.logdir)
+            distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
+                scheduler=self.compression_scheduler, extras=checkpoint_extras,
+                is_best=is_best, name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq)
 
 
     def run_training_loop(self):

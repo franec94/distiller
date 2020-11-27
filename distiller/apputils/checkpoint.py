@@ -33,7 +33,7 @@ msglogger = logging.getLogger()
 
 
 def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
-                    extras=None, is_best=False, name=None, dir='.'):
+                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None):
     """Save a pytorch training checkpoint
 
     Args:
@@ -82,7 +82,8 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
         checkpoint['quantizer_metadata'] = model.quantizer_metadata
 
     checkpoint['extras'] = extras
-    torch.save(checkpoint, fullpath)
+    if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0:
+        torch.save(checkpoint, fullpath)
     if is_best:
         shutil.copyfile(fullpath, fullpath_best)
 

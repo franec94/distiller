@@ -54,6 +54,10 @@ def get_cmd_line_opts():
     parser.add_argument('--lr', nargs='+', type=float, default=[1e-4], help='learning rate. default=1e-4')
     parser.add_argument('--num_epochs', nargs='+', type=int, default=[10000], dest='num_epochs',
                help='Number of epochs to train for.')
+    parser.add_argument('--momentum', nargs='+', type=int, default=[0.0], dest='momentum',
+               help='Number for momentum.')
+
+               
     parser.add_argument('--seed',  nargs='+', type=int, required=False, default=[0],
         help='List of seeds (default: [0]).'
     )

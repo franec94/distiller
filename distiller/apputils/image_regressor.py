@@ -610,7 +610,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
         batch_time.add(time.time() - end)
         steps_completed = (train_step+1)
 
-        if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+        # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+        if epoch > 0 and epoch % args.print_freq == 0:
             _log_training_progress()
 
         end = time.time()
@@ -702,7 +703,8 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
             end = time.time()
 
             steps_completed = (validation_step+1)
-            if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+            # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+            if epoch > 0 and epoch % args.print_freq == 0:
                 _log_validation_progress()
 
     if not _is_earlyexit(args):

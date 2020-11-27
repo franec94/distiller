@@ -719,7 +719,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
 
     if not _is_earlyexit(args):
         if epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> Loss: %.3f\n', losses['objective_loss'].mean)
+            msglogger.info('==> Loss: %.7f\n', losses['objective_loss'].mean)
 
         return losses['objective_loss'].mean
     else:
@@ -958,5 +958,5 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
     how_many = min(how_many, performance_tracker.max_len)
     best_scores = performance_tracker.best_scores(how_many)
     for score in best_scores:
-        logger.info('==> Best [MSE: %.3f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
+        logger.info('==> Best [MSE: %.7f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
                     score.mse, score.sparsity, -score.params_nnz_cnt, score.epoch)

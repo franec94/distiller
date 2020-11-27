@@ -87,5 +87,5 @@ class SparsityMSETracker(TrainingPerformanceTracker):
         # Keep perf_scores_history sorted from best to worst
         self.perf_scores_history.sort(
             key=operator.attrgetter('params_nnz_cnt', 'mse', 'epoch'),
-            reverse=True)
+            reverse=False)
 

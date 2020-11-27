@@ -22,7 +22,7 @@ import distiller
 from distiller.models import create_model
 import distiller.apputils.siren_image_regressor
 import distiller.apputils
-import custom_parser
+import examples.siren_compression.custom_parser
 import os
 import numpy as np
 # from ptq_lapq import image_classifier_ptq_lapq

@@ -980,8 +980,8 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
     how_many = min(how_many, performance_tracker.max_len)
     best_scores = performance_tracker.best_scores(how_many)
     for score in best_scores:
-        logger.info('==> Best [MSE: %.7f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
-                    score.mse, score.sparsity, -score.params_nnz_cnt, score.epoch)
+        logger.info('==> Best [MSE: %.7f   PSNR: %.7f   SSIM: %.7f   Sparsity:%.2f   NNZ-Params: %d on epoch: %d]',
+                    score.mse, score.psnr_score, score.ssim_score, score.sparsity, -score.params_nnz_cnt, score.epoch)
 
 
 def compute_desired_metrices(model_output, gt, data_range=1.):

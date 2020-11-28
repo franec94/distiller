@@ -86,6 +86,15 @@ def get_cmd_line_opts():
 
     parser.add_argument('--compress', dest='compress', type=str, nargs='?', action='store',
                         help='configuration file for pruning the model (default is to use hard-coded schedule)')
-
+    parser.add_argument('--sense', dest='sensitivity', choices=['element', 'filter', 'channel'],
+                        type=lambda s: s.lower(), help='test the sensitivity of layers to pruning')
+    parser.add_argument('--sense-range', dest='sensitivity_range', type=float, nargs=3, default=[0.0, 0.95, 0.05],
+                        help='an optional parameter for sensitivity testing '
+                             'providing the range of sparsities to test.\n'
+                             'This is equivalent to creating sensitivities = np.arange(start, stop, step)')
+    parser.add_argument('--exp-load-weights-from', dest='load_model_path',
+                        default='', type=str, metavar='PATH',
+                        help='path to checkpoint to load weights from (excluding other fields) (experimental)')
+    
     opt = parser.parse_args()
     return opt, parser

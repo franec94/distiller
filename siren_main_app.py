@@ -73,6 +73,11 @@ def init_regressor_default_args(args, opt):
     # args.summary = "sparsity"
     args.qe_stats_file = None
     args.verbose = True
+    if opt.sensitivity != None:
+        args.sensitivity = opt.sensitivity
+        args.sensitivity_range = opt.sensitivity_range
+    if opt.load_model_path:
+        args.load_model_path = opt.load_model_path
     return args
 
 

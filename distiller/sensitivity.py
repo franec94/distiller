@@ -38,7 +38,7 @@ from .scheduler import CompressionScheduler
 msglogger = logging.getLogger()
 
 
-def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group):
+def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group, kind_task = None):
     """Perform a sensitivity test for a model's weights parameters.
 
     The model should be trained to maximum accuracy, because we aim to understand
@@ -65,6 +65,9 @@ def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group
 
     The test_func is expected to execute the model on a test/validation dataset,
     and return the results for top1 and top5 accuracies, and the loss value.
+    Args:
+    -----
+    :`kind_task`: str object, if None task is equal to classification. Options allowed `classification` or `regression`. Check made will be: if kind_task != None then kind_task.lower() in (`classification` or `regression`).\n
     """
     if group not in ['element', 'filter', 'channel']:
         raise ValueError("group parameter contains an illegal value: {}".format(group))
@@ -114,9 +117,15 @@ def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group
             scheduler.mask_all_weights()
 
             # Test and record the performance of the pruned model
-            prec1, prec5, loss = test_func(model=model_cpy)
-            sensitivity[sparsity_level] = (prec1, prec5, loss)
-            sensitivities[param_name] = sensitivity
+            if kind_task == None or kind_task.lower() == 'classification':
+                prec1, prec5, loss = test_func(model=model_cpy)
+                sensitivity[sparsity_level] = (prec1, prec5, loss)
+                sensitivities[param_name] = sensitivity
+            elif kind_task != None and kind_task.lower() == 'regression':
+                loss, mse_score, psnr_score = test_func(model=model_cpy)
+                sensitivity[sparsity_level] = (loss, mse_score, psnr_score)
+                sensitivities[param_name] = sensitivity
+                pass
     return sensitivities
 
 

@@ -175,7 +175,7 @@ def sensitivities_to_png(sensitivities, fname, kind_task = None):
             plt.title('Pruning Sensitivity')
             plt.legend(loc='lower center',
                    ncol=2, mode="expand", borderaxespad=0.)
-            plt.savefig(fname, format='png')
+            plt.savefig(fname + "_" + f'{labels[ii].lower()}', format='png')
             pass
 
 

@@ -32,6 +32,7 @@ from copy import deepcopy
 from collections import OrderedDict
 import logging
 import csv
+import os
 import distiller
 from .scheduler import CompressionScheduler
 
@@ -175,7 +176,15 @@ def sensitivities_to_png(sensitivities, fname, kind_task = None):
             plt.title('Pruning Sensitivity')
             plt.legend(loc='lower center',
                    ncol=2, mode="expand", borderaxespad=0.)
-            plt.savefig(fname + "_" + f'{labels[ii].lower()}', format='png')
+            fname_tmp = str(fname)
+            fname_tmp_basename = os.path.basename(fname_tmp)
+            fnam_tmp_, ext_tmp = os.path.splitext(fname_tmp_basename)
+
+            fnam_tmp_dir = os.path.dirname(fname_tmp)
+
+            final_fname = fnam_tmp_ + "_" + f'{labels[ii].lower()}' + ext_tmp
+            final_fname = os.path.join(fnam_tmp_dir, final_fname)
+            plt.savefig(final_fname, format='png')
             pass
 
 

@@ -744,9 +744,9 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
                 _log_validation_progress()
 
     if not _is_earlyexit(args):
+        metrices['psnr'] = np.array(metrices['psnr'])
+        metrices['ssim'] = np.array(metrices['ssim'])
         if epoch >= 0 and epoch % args.print_freq == 0:
-            metrices['psnr'] = np.array(metrices['psnr'])
-            metrices['ssim'] = np.array(metrices['ssim'])
             msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 

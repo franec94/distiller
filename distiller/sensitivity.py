@@ -166,6 +166,7 @@ def sensitivities_to_png(sensitivities, fname, kind_task = None):
     elif kind_task != None and kind_task.lower() == 'regression':
         labels = 'mse,psnr,ssim'.split(",")
         for ii in range(0, 3):
+            plt.figure()
             for param_name, sensitivity in sensitivities.items():
                 sense = [values[ii] for sparsity, values in sensitivity.items()]
                 sparsities = [sparsity for sparsity, values in sensitivity.items()]

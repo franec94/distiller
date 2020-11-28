@@ -129,11 +129,13 @@ def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group
     return sensitivities
 
 
-def sensitivities_to_png(sensitivities, fname):
+def sensitivities_to_png(sensitivities, fname, kind_task = None):
     """Create a mulitplot of the sensitivities.
 
     The 'sensitivities' argument is expected to have the dict-of-dict structure
     described in the documentation of perform_sensitivity_test.
+
+    :`kind_task`: str object, if None task is equal to classification. Options allowed `classification` or `regression`. Check made will be: if kind_task != None then kind_task.lower() in (`classification` or `regression`).\n
     """
     try:
         # sudo apt-get install python3-tk
@@ -148,29 +150,58 @@ def sensitivities_to_png(sensitivities, fname):
 
     msglogger.info("Generating sensitivity graph")
 
-    for param_name, sensitivity in sensitivities.items():
-        sense = [values[1] for sparsity, values in sensitivity.items()]
-        sparsities = [sparsity for sparsity, values in sensitivity.items()]
-        plt.plot(sparsities, sense, label=param_name)
+    if kind_task == None or kind_task.lower() == 'classification':
+        for param_name, sensitivity in sensitivities.items():
+            sense = [values[1] for sparsity, values in sensitivity.items()]
+            sparsities = [sparsity for sparsity, values in sensitivity.items()]
+            plt.plot(sparsities, sense, label=param_name)
 
-    plt.ylabel('top5')
-    plt.xlabel('sparsity')
-    plt.title('Pruning Sensitivity')
-    plt.legend(loc='lower center',
+        plt.ylabel('top5')
+        plt.xlabel('sparsity')
+        plt.title('Pruning Sensitivity')
+        plt.legend(loc='lower center',
                ncol=2, mode="expand", borderaxespad=0.)
-    plt.savefig(fname, format='png')
+        plt.savefig(fname, format='png')
+    elif kind_task != None and kind_task.lower() == 'regression':
+        labels = 'mse,psnr,ssim'.split(",")
+        for ii in range(1, 3+1):
+            for param_name, sensitivity in sensitivities.items():
+                sense = [values[ii] for sparsity, values in sensitivity.items()]
+                sparsities = [sparsity for sparsity, values in sensitivity.items()]
+                plt.plot(sparsities, sense, label=param_name)
+
+            plt.ylabel(f'{labels[ii].upper()}')
+            plt.xlabel('sparsity')
+            plt.title('Pruning Sensitivity')
+            plt.legend(loc='lower center',
+                   ncol=2, mode="expand", borderaxespad=0.)
+            plt.savefig(fname, format='png')
+            pass
 
 
-def sensitivities_to_csv(sensitivities, fname):
+
+def sensitivities_to_csv(sensitivities, fname, kind_task = None):
     """Create a CSV file listing from the sensitivities dictionary.
 
     The 'sensitivities' argument is expected to have the dict-of-dict structure
     described in the documentation of perform_sensitivity_test.
+    :`kind_task`: str object, if None task is equal to classification. Options allowed `classification` or `regression`. Check made will be: if kind_task != None then kind_task.lower() in (`classification` or `regression`).\n
     """
     with open(fname, 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        # write the header
-        writer.writerow(['parameter', 'sparsity', 'top1', 'top5', 'loss'])
-        for param_name, sensitivity in sensitivities.items():
-            for sparsity, values in sensitivity.items():
-                writer.writerow([param_name] + [sparsity] + list(values))
+        if kind_task == None or kind_task.lower() == 'classification':
+            writer = csv.writer(csv_file)
+            # write the header
+            writer.writerow(['parameter', 'sparsity', 'top1', 'top5', 'loss'])
+            for param_name, sensitivity in sensitivities.items():
+                for sparsity, values in sensitivity.items():
+                    writer.writerow([param_name] + [sparsity] + list(values))
+        elif kind_task != None and kind_task.lower() == 'regression':
+            writer = csv.writer(csv_file)
+            # write the header
+            writer.writerow(['parameter', 'sparsity', 'loss', 'psnr_score', 'ssim_score'])
+            for param_name, sensitivity in sensitivities.items():
+                for sparsity, values in sensitivity.items():
+                    writer.writerow([param_name] + [sparsity] + list(values))
+            pass
+        pass
+    pass

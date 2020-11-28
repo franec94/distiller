@@ -718,6 +718,10 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
             if not _is_earlyexit(args):
                 # compute loss
                 loss = criterion(output, target)
+                print('type data loss:', type(loss))
+                if isinstance(loss, torch.Tensor):
+                    print('shape data loss:', loss.size)
+                pprint(loss)
                 # measure accuracy and record loss
                 losses['objective_loss'].add(loss.item())
                 val_psnr, val_mssim = compute_desired_metrices(

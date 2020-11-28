@@ -239,8 +239,8 @@ def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsitie
                                                          test_func=test_fnc,
                                                          group=args.sensitivity,
                                                          kind_task = 'regression')
-    distiller.sensitivities_to_png(sensitivity, os.path.join(msglogger.logdir, 'sensitivity.png'))
-    distiller.sensitivities_to_csv(sensitivity, os.path.join(msglogger.logdir, 'sensitivity.csv'))
+    distiller.sensitivities_to_png(sensitivity, os.path.join(msglogger.logdir, 'sensitivity.png'), kind_task = 'regression')
+    distiller.sensitivities_to_csv(sensitivity, os.path.join(msglogger.logdir, 'sensitivity.csv'), kind_task = 'regression')
 
 
 def greedy(model, criterion, optimizer, loggers, args):

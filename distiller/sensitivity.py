@@ -64,7 +64,7 @@ def perform_sensitivity_analysis(model, net_params, sparsities, test_func, group
                                      0.15: (54.454, 77.854, 2.3127)} }
 
     The test_func is expected to execute the model on a test/validation dataset,
-    and return the results for top1 and top5 accuracies, and the loss value.
+    and return the results for top1 and top5 accuracies, and the loss value.\n
     Args:
     -----
     :`kind_task`: str object, if None task is equal to classification. Options allowed `classification` or `regression`. Check made will be: if kind_task != None then kind_task.lower() in (`classification` or `regression`).\n
@@ -133,7 +133,7 @@ def sensitivities_to_png(sensitivities, fname, kind_task = None):
     """Create a mulitplot of the sensitivities.
 
     The 'sensitivities' argument is expected to have the dict-of-dict structure
-    described in the documentation of perform_sensitivity_test.
+    described in the documentation of perform_sensitivity_test.\n
 
     :`kind_task`: str object, if None task is equal to classification. Options allowed `classification` or `regression`. Check made will be: if kind_task != None then kind_task.lower() in (`classification` or `regression`).\n
     """

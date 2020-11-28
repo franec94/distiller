@@ -26,6 +26,13 @@ import distiller.models
 from distiller.models import create_model
 from distiller.utils import float_range_argparse_checker as float_range
 
+
+import skimage
+import skimage.metrics as skmetrics
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error
+
 # Logger handle
 msglogger = logging.getLogger()
 

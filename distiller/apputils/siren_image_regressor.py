@@ -343,7 +343,7 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
                         help='number of best scores to track and report (default: 1)')
     parser_regressor.add_argument('--load-serialized', dest='load_serialized', action='store_true', default=False,
                         help='Load a model without DataParallel wrapping it')
-    parser_regressor.add_argument('--thinnify', dest='thinnify', action='store_true', defauif epochlt=False,
+    parser_regressor.add_argument('--thinnify', dest='thinnify', action='store_true', default=False,
                         help='physically remove zero-filters and create a smaller model')
 
     # Added arguments with respect to original minima arguments for running trials

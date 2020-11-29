@@ -45,8 +45,12 @@ def init_regressor_default_args(args, opt):
     args.evaluate = False
     args.seed = opt.seed[0]
     args.deterministic = True
-    args.cpu = False
-    args.gpus = "0"
+    if opt.cuda:
+        args.cpu = False
+        args.gpus = "0"
+    else:
+        args.cpu = True
+        args.gpus = ""
     args.load_serialized = False
     args.deprecated_resume = None
     args.resumed_checkpoint_path = None

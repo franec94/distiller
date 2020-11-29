@@ -19,7 +19,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --lambda_L_1 0 \
   --lambda_L_2 0 \
   --epochs_til_ckpt 5000 \
-  --save_mid_ckpts 99999 199999 299999 399999 499999  \
+  --save_mid_ckpts 99999 149999 199999 249999 299999 349999 399999 449999 499999  \
   --seed 0 \
   --cuda \
   --train \

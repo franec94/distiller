@@ -26,3 +26,7 @@ test_run_program_siren_app_train_on_cameramen:
 	clear
 	chmod u+x $(TEST_RUN_PROGRAM)
 	./$(TEST_RUN_PROGRAM)
+
+install_distiller_dependencies_via_requirements_file:
+	clear
+	pip install -r requirements.txt

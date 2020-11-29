@@ -78,6 +78,7 @@ def init_regressor_default_args(args, opt):
         args.sensitivity_range = opt.sensitivity_range
     if opt.load_model_path:
         args.load_model_path = opt.load_model_path
+    args.save_mid_ckpts = opt.save_mid_ckpts
     return args
 
 

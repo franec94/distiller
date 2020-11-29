@@ -33,7 +33,7 @@ msglogger = logging.getLogger()
 
 
 def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
-                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None):
+                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False):
     """Save a pytorch training checkpoint
 
     Args:
@@ -47,6 +47,9 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
         is_best: If true, will save a copy of the checkpoint with the suffix 'best'
         name: the name of the checkpoint file
         dir: directory in which to save the checkpoint
+        freq_ckpt: int value, representing epoch at which saving checkpoint, if None it is not exploited, for back-compatibility.
+        is_mid_ckpt: if True, then a specific checkpoint is saved as f'mid_ckpt_epoch_{epoch}.pth.tar' within directory created if any for
+                     the current running. If False, nothing happens and is set like this if you want to keep a back-compatibility behaviour of your code.
     """
     if not os.path.isdir(dir):
         raise IOError(ENOENT, 'Checkpoint directory does not exist at', os.path.abspath(dir))
@@ -60,8 +63,12 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     fullpath = os.path.join(dir, filename)
     if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0:
         msglogger.info("Saving checkpoint to: %s" % fullpath)
+    
     filename_best = 'best.pth.tar' if name is None else name + '_best.pth.tar'
     fullpath_best = os.path.join(dir, filename_best)
+
+    filename_mid_ckpt = f'mid_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_mid_ckpt_epoch_{epoch}.pth.tar'
+    fullpath_mid_ckpt = os.path.join(dir, filename_mid_ckpt)
 
     checkpoint = {'epoch': epoch, 'state_dict': model.state_dict(), 'arch': arch}
     try:
@@ -85,8 +92,12 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     checkpoint['extras'] = extras
     if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0:
         torch.save(checkpoint, fullpath)
+    else:
+        torch.save(checkpoint, fullpath)
     if is_best:
         shutil.copyfile(fullpath, fullpath_best)
+    if is_mid_ckpt:
+        shutil.copyfile(fullpath, fullpath_mid_ckpt)
 
 
 def load_lean_checkpoint(model, chkpt_file, model_device=None):

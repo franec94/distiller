@@ -21,6 +21,8 @@ def get_cmd_line_opts():
         help='Name of subdirectory in logging_root where summaries and checkpoints will be saved.')
     parser.add_argument('--epochs_til_ckpt', type=int, default=50,
                help='Time interval in seconds until checkpoint is saved.')
+    parser.add_argument('--save_mid_ckpts', nargs='+', type=int, default=[], dest = "save_mid_ckpts",
+               help='Fixed desired checkpoints to be saved, at a given epoch, a part from default saving checkpoint system. Default empty list, meaning no intermediate checkpoints')
     parser.add_argument('--verbose', required=False, type=int, default=0,
         help='Verbose style logging (default: 0, a.k.a silent mode), allowed: [0 for silent, 1 for complete, 2 for minimal].'
     )

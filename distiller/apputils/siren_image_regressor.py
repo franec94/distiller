@@ -184,9 +184,14 @@ class SirenRegressorCompressor(object):
                              'best_ssim_score': best_score.ssim_score,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
+            is_mid_ckpt = False
+            if hasattr(self.args, "save_mid_ckpts"):
+                if isinstance(self.args.save_mid_ckpts, list) and len(self.args.save_mid_ckpts) != 0:
+                    is_mid_ckpt = epoch in self.args.save_mid_ckpts
             distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                 scheduler=self.compression_scheduler, extras=checkpoint_extras,
-                is_best=is_best, name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq)
+                is_best=is_best, name=self.args.name, dir=msglogger.logdir,
+                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt)
 
 
     def run_training_loop(self):
@@ -338,8 +343,13 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
                         help='number of best scores to track and report (default: 1)')
     parser_regressor.add_argument('--load-serialized', dest='load_serialized', action='store_true', default=False,
                         help='Load a model without DataParallel wrapping it')
-    parser_regressor.add_argument('--thinnify', dest='thinnify', action='store_true', default=False,
+    parser_regressor.add_argument('--thinnify', dest='thinnify', action='store_true', defauif epochlt=False,
                         help='physically remove zero-filters and create a smaller model')
+
+    # Added arguments with respect to original minima arguments for running trials
+    # with this class.
+    parser_regressor.add_argument('--save_mid_ckpts', nargs='+', type=int, default=[], dest = "save_mid_ckpts",
+               help='Fixed desired checkpoints to be saved, at a given epoch, a part from default saving checkpoint system. Default empty list, meaning no intermediate checkpoints')
     distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
     return parser_regressor
 

@@ -10,7 +10,7 @@
 # =============================================== #
 
 CUDA_VISIBLE_DEVICES=0 python main.py \
-  --logging_root '../../../../results/cameramen/distiller-siren' \
+  --logging_root '../../../results/cameramen/distiller-siren' \
   --experiment_name 'train' \
   --sidelength 256 \
   --num_epochs 500000 \

@@ -10,20 +10,20 @@
 # =============================================== #
 
 CUDA_VISIBLE_DEVICES=0 python main.py \
-  --logging_root '../../../../results/cameramen' \
+  --logging_root '../../../../results/cameramen/distiller-siren' \
   --experiment_name 'train' \
   --sidelength 256 \
-  --num_epochs 100 \
+  --num_epochs 500000 \
   --n_hf 64  \
-  --n_hl 8 \
+  --n_hl 5 \
   --lambda_L_1 0 \
-  --lambda_L_2 0.0001 \
-  --epochs_til_ckpt 10 \
+  --lambda_L_2 0 \
+  --epochs_til_ckpt 5000 \
+  --save_mid_ckpts 99999 199999 299999 399999 499999  \
   --seed 0 \
   --cuda \
   --train \
   --evaluate \
-  --dynamic_quant qint8 qfloat16 \
   --verbose 0
 
 exit 0

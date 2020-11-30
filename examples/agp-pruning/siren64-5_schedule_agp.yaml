@@ -23,7 +23,7 @@ pruners:
 lr_schedulers:
    pruning_lr:
      class: ExponentialLR
-     gamma: 0.4
+     gamma: 0.9
 
 
 policies:

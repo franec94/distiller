@@ -28,5 +28,5 @@ policies:
   - lr_scheduler:
       instance_name: pruning_lr
     starting_epoch: 24
-    ending_epoch: 200
-    frequency: 1
+    ending_epoch: 1500
+    frequency: 400

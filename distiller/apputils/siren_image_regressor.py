@@ -1123,7 +1123,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
             output, _ = model(inputs)
 
             predicted_image_path = os.path.join(args.output_dir, 'predicted_image.txt')
-            arr_image = output.detach().cpu().numpy()
+            sidelenght = output.size()[1]
+            arr_image = output.cpu().view(sidelenght).detach().numpy()
             np.savetxt(predicted_image_path, arr_image)
 
             if not _is_earlyexit(args):

@@ -66,7 +66,7 @@ def get_cmd_line_opts():
 
 
     # Options for evaluating model, after training.
-    parser.add_argument("--train", required=False, action="store_true", default=False, dest='evaluate',
+    parser.add_argument("--train", required=False, action="store_true", default=False, dest='train',
         help="Flag for training mode. (Default: False)"
     )
     parser.add_argument("--evaluate", required=False, action="store_true", default=False, dest='evaluate',

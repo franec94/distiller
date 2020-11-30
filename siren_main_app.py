@@ -60,7 +60,7 @@ def init_regressor_default_args(args, opt):
     args.num_best_scores = opt.num_best_scores
     args.name = ""
     args.kd_policy = None
-    # args.summary = "sparsity"
+    args.summary = opt..summary
     args.qe_stats_file = None
     args.verbose = True
     args.save_mid_ckpts = opt.save_mid_ckpts

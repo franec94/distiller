@@ -350,6 +350,8 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     # with this class.
     parser_regressor.add_argument('--save_mid_ckpts', nargs='+', type=int, default=[], dest = "save_mid_ckpts",
                help='Fixed desired checkpoints to be saved, at a given epoch, a part from default saving checkpoint system. Default empty list, meaning no intermediate checkpoints')
+    parser_regressor.add_argument('--save-image-on-test', dest='save_image_on_test', action='store_true',
+                        help='set it to save predicted image as png.')
     distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
     return parser_regressor
 

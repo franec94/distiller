@@ -64,6 +64,7 @@ def init_regressor_default_args(args, opt):
     args.qe_stats_file = None
     args.verbose = True
     args.save_mid_ckpts = opt.save_mid_ckpts
+    args.save_image_on_test = opt.save_image_on_test
 
     if opt.logging_root == '':
         args.output_dir = None

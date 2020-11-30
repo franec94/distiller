@@ -10,7 +10,8 @@ def get_cmd_line_opts():
     opt - Namespace python object corresponding to the command line options provided to the program.\n
     parser - parser used for parsing command line options provided to the program.\n
     """
-
+    SUMMARY_CHOICES = ['sparsity', 'compute', 'model', 'modules', 'png', 'png_w_params']
+    
     # Define command line argument parser.
     parser = configargparse.ArgumentParser()
     parser.add('-c', '--config_filepath', required=False, is_config_file=True, help='Path to config file.')
@@ -107,6 +108,8 @@ def get_cmd_line_opts():
 
     parser.add_argument('--save-image-on-test', dest='save_image_on_test', action='store_true',
                         help='set it to save predicted image as png.')
+    parser.add_argument('--summary', type=lambda s: s.lower(), choices=SUMMARY_CHOICES, action='append',
+                        help='print a summary of the model, and exit - options: | '.join(SUMMARY_CHOICES))
     
     opt = parser.parse_args()
     return opt, parser

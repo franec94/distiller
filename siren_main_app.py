@@ -38,29 +38,15 @@ msglogger = logging.getLogger()
 
 def init_regressor_default_args(args, opt):
 
-    if opt.logging_root == '':
-        args.output_dir = None
-    else:
-        args.output_dir = str(opt.logging_root)
-    args.evaluate = False
+    
     args.seed = opt.seed[0]
     args.deterministic = True
-    if opt.cuda:
-        args.cpu = False
-        args.gpus = "0"
-    else:
-        args.cpu = True
-        args.gpus = ""
     args.load_serialized = False
     args.deprecated_resume = None
     args.resumed_checkpoint_path = None
     args.load_model_path = None
     args.reset_optimizer = False
-    args.lr = args.momentum = args.weight_decay = 0.
-    if opt.compress == None or opt.compress == '':
-        args.compress = None
-    else:
-        args.compress = opt.compress
+    args.lr = args.momentum = args.weight_decay = 0.0
     args.epochs = 0
     args.activation_stats = list()
     args.batch_size = 1
@@ -77,12 +63,28 @@ def init_regressor_default_args(args, opt):
     # args.summary = "sparsity"
     args.qe_stats_file = None
     args.verbose = True
+    args.save_mid_ckpts = opt.save_mid_ckpts
+
+    if opt.logging_root == '':
+        args.output_dir = None
+    else:
+        args.output_dir = str(opt.logging_root)
+    if opt.cuda:
+        args.cpu = False
+        args.gpus = "0"
+    else:
+        args.cpu = True
+        args.gpus = ""
+    if opt.compress == None or opt.compress == '':
+        args.compress = None
+    else:
+        args.compress = opt.compress
     if opt.sensitivity != None:
         args.sensitivity = opt.sensitivity
         args.sensitivity_range = opt.sensitivity_range
     if opt.load_model_path:
         args.load_model_path = opt.load_model_path
-    args.save_mid_ckpts = opt.save_mid_ckpts
+    # args.evaluate = False
     if opt.evaluate and not opt.train:
         args.evaluate = opt.evaluate
     return args

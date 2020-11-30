@@ -99,6 +99,11 @@ def get_cmd_line_opts():
                         help='path to checkpoint to load weights from (excluding other fields) (experimental)')
     parser.add_argument('--num-best-scores', dest='num_best_scores', default=1, type=int,
                         help='number of best scores to track and report (default: 1)')
+    parser.add_argument('--reset-optimizer', action='store_true',
+                        help='Flag to override optimizer if resumed from checkpoint. This will reset epochs count.')
+    parser.add_argument('--resume-from', dest='resumed_checkpoint_path', default='',
+                        type=str, metavar='PATH',
+                        help='path to latest checkpoint. Use to resume paused training session.')
     
     opt = parser.parse_args()
     return opt, parser

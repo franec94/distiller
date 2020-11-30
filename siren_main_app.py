@@ -43,9 +43,9 @@ def init_regressor_default_args(args, opt):
     args.deterministic = True
     args.load_serialized = False
     args.deprecated_resume = None
-    args.resumed_checkpoint_path = None
+    args.resumed_checkpoint_path = opt.resumed_checkpoint_path
     args.load_model_path = None
-    args.reset_optimizer = False
+    args.reset_optimizer = opt.reset_optimizer
     args.lr = args.momentum = args.weight_decay = 0.0
     args.epochs = 0
     args.activation_stats = list()

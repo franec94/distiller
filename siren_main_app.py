@@ -84,8 +84,8 @@ def init_regressor_default_args(args, opt):
         args.sensitivity_range = opt.sensitivity_range
     if opt.load_model_path:
         args.load_model_path = opt.load_model_path
-    # args.evaluate = False
-    if opt.evaluate and not opt.train:
+    args.evaluate = False
+    if opt.evaluate and opt.train == False:
         args.evaluate = opt.evaluate
     return args
 

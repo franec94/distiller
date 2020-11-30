@@ -1038,7 +1038,9 @@ def compute_desired_metrices(model_output, gt, data_range=1.):
     val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
     return val_psnr, val_mssim
 
-
+# ----------------------------------------------------------------------------------------------- #
+# Under-test functions
+# ----------------------------------------------------------------------------------------------- #
 def save_predicted_data(test_loader, model, criterion, loggers, activations_collectors=None, args=None, scheduler=None):
     # This sample application can be invoked to evaluate the accuracy of your model on
     # the test dataset.
@@ -1053,7 +1055,7 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
         # Handle case where a post-train quantized model was loaded, and user wants to convert it to PyTorch
         if args.qe_convert_pytorch:
             model = _convert_ptq_to_pytorch(model, args)
-        return test(test_loader, model, criterion, loggers, activations_collectors, args=args)
+        return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
     else:
         return quantize_and_test_model(test_loader, model, criterion, args, loggers,
                                        scheduler=scheduler, save_flag=True)

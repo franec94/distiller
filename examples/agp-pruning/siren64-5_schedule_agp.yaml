@@ -23,7 +23,7 @@ pruners:
 lr_schedulers:
    pruning_lr:
      class: ExponentialLR
-     gamma: 0.9
+     gamma: 0.4
 
 
 policies:
@@ -49,4 +49,4 @@ policies:
       instance_name: pruning_lr
     starting_epoch: 40
     ending_epoch: 100
-    frequency: 2
+    frequency: 5

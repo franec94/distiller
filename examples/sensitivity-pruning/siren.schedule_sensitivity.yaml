@@ -28,4 +28,4 @@ policies:
       instance_name: pruning_lr
     starting_epoch: 10
     ending_epoch: 50
-    frequency: 4
+    frequency: 20

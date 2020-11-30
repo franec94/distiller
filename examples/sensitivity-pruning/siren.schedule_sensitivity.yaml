@@ -21,7 +21,7 @@ policies:
   - pruner:
       instance_name : 'pruner1'
     starting_epoch: 20
-    ending_epoch: 200
+    ending_epoch: 400
     frequency: 2
 
   - lr_scheduler:

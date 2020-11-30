@@ -10,7 +10,7 @@ pruners:
     class:  AutomatedGradualPruner
     initial_sparsity : 0.05
     final_sparsity: 0.85
-    weights: [module.net.1.linear.weight,module.net.2.linear.weight
+    weights: [module.net.1.linear.weight, module.net.2.linear.weight,
               module.net.3.linear.weight]
 
   high_pruner:

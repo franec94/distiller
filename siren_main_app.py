@@ -83,6 +83,8 @@ def init_regressor_default_args(args, opt):
     if opt.load_model_path:
         args.load_model_path = opt.load_model_path
     args.save_mid_ckpts = opt.save_mid_ckpts
+    if opt.evaluate and not opt.train:
+        args.evaluate = opt.evaluate
     return args
 
 
@@ -126,10 +128,15 @@ def main(opt):
     app = SirenRegressorCompressorSampleApp(args, script_dir=opt.logging_root)
     if app.handle_subapps():
         return
-    init_knowledge_distillation(app.args, app.model, app.compression_scheduler)
-    app.run_training_loop()
-    # Finally run results on the test set
-    return app.test()
+    if opt.train:
+        init_knowledge_distillation(app.args, app.model, app.compression_scheduler)
+        app.run_training_loop()
+
+        # Finally run results on the test set
+        if opt.evaluate:
+            return app.test()
+        pass
+    return
 
     
 def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args):

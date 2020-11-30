@@ -11,7 +11,6 @@ pruners:
       'module.net.3.linear.weight': 0.40
       'module.net.4.linear.weight': 0.45
       'module.net.5.linear.weight': 0.55
-      'module.net.6.weight': 0.05
 
 lr_schedulers:
    pruning_lr:
@@ -27,6 +26,6 @@ policies:
 
   - lr_scheduler:
       instance_name: pruning_lr
-    starting_epoch: 24
-    ending_epoch: 1500
-    frequency: 400
+    starting_epoch: 10
+    ending_epoch: 50
+    frequency: 4

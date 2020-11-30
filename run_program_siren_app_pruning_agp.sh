@@ -20,8 +20,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --lambda_L_2 0 \
   --epochs_til_ckpt 10000 \
   --compress ./examples/agp-pruning/siren64-5_schedule_agp.yaml \
-  --save_mid_ckpts 99999 149999 199999 249999 299999 349999 399999 449999 499999  \
-  --save_mid_ckpts 99999 149999 \
+  --save_mid_ckpts 99999 149999 174999 \
   --seed 0 \
   --cuda \
   --train \

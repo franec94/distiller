@@ -4,19 +4,19 @@ pruners:
     class: AutomatedGradualPruner
     initial_sparsity : 0.05
     final_sparsity: 0.15
-    weights: [module.net.0.linear.weight]
+    weights: [module.net.0.linear.weight, module.net.6.weight]
 
   mid_pruner:
     class:  AutomatedGradualPruner
     initial_sparsity : 0.05
-    final_sparsity: 0.67
+    final_sparsity: 0.25
     weights: [module.net.1.linear.weight,module.net.2.linear.weight
               module.net.3.linear.weight]
 
   high_pruner:
     class:  AutomatedGradualPruner
     initial_sparsity : 0.05
-    final_sparsity: 0.76
+    final_sparsity: 0.35
     weights: [module.net.4.linear.weight,
               module.net.5.linear.weight]
 
@@ -30,23 +30,23 @@ policies:
   - pruner:
       instance_name : low_pruner
     starting_epoch: 0
-    ending_epoch: 500
-    frequency: 10
+    ending_epoch: 35
+    frequency: 1
 
   - pruner:
       instance_name : mid_pruner
     starting_epoch: 0
-    ending_epoch: 80000
-    frequency: 100
+    ending_epoch: 35
+    frequency: 1
 
   - pruner:
       instance_name : high_pruner
     starting_epoch: 0
-    ending_epoch: 80000
-    frequency: 100
+    ending_epoch: 35
+    frequency: 1
 
   - lr_scheduler:
       instance_name: pruning_lr
-    starting_epoch: 100
-    ending_epoch: 10000
-    frequency: 5
+    starting_epoch: 40
+    ending_epoch: 100
+    frequency: 1

@@ -5,7 +5,6 @@ pruners:
   pruner1:
     class: 'SensitivityPruner'
     sensitivities:
-      'module.net.0.linear.weight': 0.05
       'module.net.1.linear.weight': 0.25
       'module.net.2.linear.weight': 0.35
       'module.net.3.linear.weight': 0.40

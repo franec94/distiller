@@ -765,6 +765,10 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
             msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 
+        if args.evaluate and epoch == -1:
+            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+
         return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
     else:
         losses_exits_stats = earlyexit_validate_stats(args)

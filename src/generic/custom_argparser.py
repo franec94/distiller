@@ -97,6 +97,8 @@ def get_cmd_line_opts():
     parser.add_argument('--exp-load-weights-from', dest='load_model_path',
                         default='', type=str, metavar='PATH',
                         help='path to checkpoint to load weights from (excluding other fields) (experimental)')
+    parser.add_argument('--num-best-scores', dest='num_best_scores', default=1, type=int,
+                        help='number of best scores to track and report (default: 1)')
     
     opt = parser.parse_args()
     return opt, parser

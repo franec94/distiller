@@ -71,7 +71,7 @@ def init_regressor_default_args(args, opt):
     args.print_freq = opt.epochs_til_ckpt
     args.masks_sparsity = False
     args.display_confusion = False
-    args.num_best_scores = 1
+    args.num_best_scores = opt.num_best_scores
     args.name = ""
     args.kd_policy = None
     # args.summary = "sparsity"

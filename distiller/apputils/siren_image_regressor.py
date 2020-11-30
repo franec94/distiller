@@ -1035,3 +1035,126 @@ def compute_desired_metrices(model_output, gt, data_range=1.):
     val_psnr = psnr(arr_gt, arr_output,data_range=data_range)
     val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
     return val_psnr, val_mssim
+
+
+def save_predicted_data(test_loader, model, criterion, loggers, activations_collectors=None, args=None, scheduler=None):
+    # This sample application can be invoked to evaluate the accuracy of your model on
+    # the test dataset.
+    # You can optionally quantize the model to 8-bit integer before evaluation.
+    # For example:
+    # python3 compress_classifier.py --arch resnet20_cifar  ../data.cifar10 -p=50 --resume-from=checkpoint.pth.tar --evaluate
+
+    if not isinstance(loggers, list):
+        loggers = [loggers]
+
+    if not args.quantize_eval:
+        # Handle case where a post-train quantized model was loaded, and user wants to convert it to PyTorch
+        if args.qe_convert_pytorch:
+            model = _convert_ptq_to_pytorch(model, args)
+        return test(test_loader, model, criterion, loggers, activations_collectors, args=args)
+    else:
+        return quantize_and_test_model(test_loader, model, criterion, args, loggers,
+                                       scheduler=scheduler, save_flag=True)
+
+
+def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):
+    """Model Test"""
+    msglogger.info('--- predict data ---------------------')
+    if args is None:
+        args = SirenRegressorCompressor.mock_args()
+    if activations_collectors is None:
+        activations_collectors = create_activation_stats_collectors(model, None)
+
+    with collectors_context(activations_collectors["test"]) as collectors:
+        lossses = _save_predicted_image(test_loader, model, criterion, loggers, args)
+        distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
+        save_collectors_data(collectors, msglogger.logdir)
+    return lossses
+
+
+def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1):
+    def _log_validation_progress():
+        if not _is_earlyexit(args):
+            stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        else:
+            stats_dict = OrderedDict()
+            for exitnum in range(args.num_exits):
+                la_string = 'LossAvg' + str(exitnum)
+                stats_dict[la_string] = args.losses_exits[exitnum].mean
+        stats = ('Performance/Validation/', stats_dict)
+        distiller.log_training_progress(stats, None, epoch, steps_completed,
+                                        total_steps, args.print_freq, loggers)
+
+    """Execute the validation/test loop for saving image."""
+    losses = {'objective_loss': tnt.AverageValueMeter()}
+    metrices = {
+        'psnr': [],
+        'ssim': []
+    }
+
+    if _is_earlyexit(args):
+        # for Early Exit, we have a list of errors and losses for each of the exits.
+        args.exiterrors = []
+        args.losses_exits = []
+        for exitnum in range(args.num_exits):
+            args.losses_exits.append(tnt.AverageValueMeter())
+        args.exit_taken = [0] * args.num_exits
+
+    batch_time = tnt.AverageValueMeter()
+    total_samples = len(data_loader.sampler)
+    batch_size = data_loader.batch_size
+
+    total_steps = total_samples / batch_size
+    if epoch >= 0 and epoch % args.print_freq == 0:
+        msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
+
+    # Switch to evaluation mode
+    model.eval()
+
+    end = time.time()
+    with torch.no_grad():
+        for validation_step, (inputs, target) in enumerate(data_loader):
+            inputs, target = inputs.to(args.device), target.to(args.device)
+            # compute output from model
+            output, _ = model(inputs)
+
+            predicted_image_path = os.path.join(args.output_dir, 'predicted_image.txt')
+            arr_image = output.detach().cpu().numpy()
+            np.savetxt(predicted_image_path, arr_image)
+
+            if not _is_earlyexit(args):
+                # compute loss
+                loss = criterion(output, target)
+                # measure accuracy and record loss
+                losses['objective_loss'].add(loss.item())
+                val_psnr, val_mssim = compute_desired_metrices(
+                    model_output = output, gt = target, data_range=1.)
+                metrices['psnr'].append(val_psnr)
+                metrices['ssim'].append(val_mssim)
+            else:
+                earlyexit_validate_loss(output, target, criterion, args)
+
+            # measure elapsed time
+            batch_time.add(time.time() - end)
+            end = time.time()
+
+            steps_completed = (validation_step+1)
+            # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+            if epoch >= 0 and epoch % args.print_freq == 0:
+                _log_validation_progress()
+
+    if not _is_earlyexit(args):
+        metrices['psnr'] = np.array(metrices['psnr'])
+        metrices['ssim'] = np.array(metrices['ssim'])
+        if epoch >= 0 and epoch % args.print_freq == 0:
+            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+
+        if args.evaluate and epoch == -1:
+            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+
+        return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+    else:
+        losses_exits_stats = earlyexit_validate_stats(args)
+        return losses_exits_stats[args.num_exits-1]

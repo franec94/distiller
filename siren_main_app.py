@@ -180,6 +180,11 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
             distiller.apputils.siren_image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
                 distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=compression_scheduler)
+            if args.save_image_on_test:
+                test_loader = load_test_data(args)
+                distiller.apputils.siren_image_regressor.save_predicted_data(test_loader, model, criterion, pylogger,
+                    distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
+                    args, scheduler=compression_scheduler)
         do_exit = True
     elif args.thinnify:
         assert args.resumed_checkpoint_path is not None, \

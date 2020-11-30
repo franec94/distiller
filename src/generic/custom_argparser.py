@@ -104,6 +104,9 @@ def get_cmd_line_opts():
     parser.add_argument('--resume-from', dest='resumed_checkpoint_path', default='',
                         type=str, metavar='PATH',
                         help='path to latest checkpoint. Use to resume paused training session.')
+
+    parser.add_argument('--save-image-on-test', dest='save_image_on_test', action='store_true',
+                        help='set it to save predicted image as png.')
     
     opt = parser.parse_args()
     return opt, parser

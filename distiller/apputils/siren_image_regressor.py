@@ -448,6 +448,11 @@ def _init_learner(args):
                                     weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)
+    elif optimizer is None:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
+                                    weight_decay=args.weight_decay)
+        msglogger.debug('Optimizer Type: %s', type(optimizer))
+        msglogger.debug('Optimizer Args: %s', optimizer.defaults)
 
     if args.compress:
         # The main use-case for this sample application is CNN compression. Compression

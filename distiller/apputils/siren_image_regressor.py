@@ -231,7 +231,7 @@ class SirenRegressorCompressor(object):
         self.test_mode_on = True
         self.load_datasets()
         result_test = test(self.test_loader, self.model, self.criterion,
-                    self.pylogger, self.activations_collectors, args=self.args, self.test_mode_on)
+                    self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on)
         self.test_mode_on = False
         return result_test
 

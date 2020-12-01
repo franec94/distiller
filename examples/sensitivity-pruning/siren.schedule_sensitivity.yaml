@@ -19,12 +19,12 @@ lr_schedulers:
 policies:
   - pruner:
       instance_name : 'pruner1'
-    starting_epoch: 20
-    ending_epoch: 5000
+    starting_epoch: 10
+    ending_epoch: 8000
     frequency: 2
 
   - lr_scheduler:
       instance_name: pruning_lr
     starting_epoch: 10
-    ending_epoch: 50
+    ending_epoch: 70
     frequency: 20

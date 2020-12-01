@@ -52,6 +52,7 @@ class SirenRegressorCompressor(object):
             self.args = copy.deepcopy(args)
         except:
             self.args = args
+        self.test_mode_on = False
         self.args = self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
         _config_determinism(self.args)
@@ -227,9 +228,12 @@ class SirenRegressorCompressor(object):
 
 
     def test(self):
+        self.test_mode_on = True
         self.load_datasets()
-        return test(self.test_loader, self.model, self.criterion,
-                    self.pylogger, self.activations_collectors, args=self.args)
+        result_test = test(self.test_loader, self.model, self.criterion,
+                    self.pylogger, self.activations_collectors, args=self.args, self.test_mode_on)
+        self.test_mode_on = False
+        return result_test
 
 
 def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
@@ -673,7 +677,7 @@ def validate(val_loader, model, criterion, loggers, args, epoch=-1):
     return _validate(val_loader, model, criterion, loggers, args, epoch)
 
 
-def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):
+def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None, test_mode_on = True):
     """Model Test"""
     msglogger.info('--- test ---------------------')
     if args is None:
@@ -682,7 +686,7 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
         activations_collectors = create_activation_stats_collectors(model, None)
 
     with collectors_context(activations_collectors["test"]) as collectors:
-        lossses = _validate(test_loader, model, criterion, loggers, args)
+        lossses = _validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on)
         distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
         save_collectors_data(collectors, msglogger.logdir)
     return lossses
@@ -693,7 +697,7 @@ def _is_earlyexit(args):
     return hasattr(args, 'earlyexit_thresholds') and args.earlyexit_thresholds
 
 
-def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
+def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False):
     def _log_validation_progress():
         if not _is_earlyexit(args):
             stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
@@ -767,7 +771,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1):
             msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 
-        if args.evaluate and epoch == -1:
+        if args.evaluate and test_mode_on:
             msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 

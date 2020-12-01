@@ -14,28 +14,28 @@ pruners:
     class: 'SensitivityPruner'
     sensitivities:
       'module.net.0.linear.weight': 0.075
-      'module.net.6.weight': 0.05
+      'module.net.6.weight': 0.20
 
 lr_schedulers:
    pruning_lr:
      class: ExponentialLR
-     gamma: 0.9
+     gamma: 0.95
 
 policies:
   - pruner:
       instance_name : 'pruner1'
-    starting_epoch: 10
-    ending_epoch: 10000
+    starting_epoch: 25
+    ending_epoch: 17500
     frequency: 2
   
   - pruner:
       instance_name : 'pruner2'
     starting_epoch: 10
-    ending_epoch: 100
+    ending_epoch: 150
     frequency: 10
 
   - lr_scheduler:
       instance_name: pruning_lr
     starting_epoch: 10
-    ending_epoch: 40
-    frequency: 20
+    ending_epoch: 25
+    frequency: 10

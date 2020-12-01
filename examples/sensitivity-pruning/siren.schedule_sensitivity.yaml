@@ -10,6 +10,11 @@ pruners:
       'module.net.3.linear.weight': 0.45
       'module.net.4.linear.weight': 0.50
       'module.net.5.linear.weight': 0.60
+  pruner2:
+    class: 'SensitivityPruner'
+    sensitivities:
+      'module.net.0.linear.weight': 0.075
+      'module.net.6.weight': 0.05
 
 lr_schedulers:
    pruning_lr:
@@ -20,8 +25,14 @@ policies:
   - pruner:
       instance_name : 'pruner1'
     starting_epoch: 10
-    ending_epoch: 8500
+    ending_epoch: 10000
     frequency: 2
+  
+  - pruner:
+      instance_name : 'pruner2'
+    starting_epoch: 10
+    ending_epoch: 100
+    frequency: 10
 
   - lr_scheduler:
       instance_name: pruning_lr

@@ -16,11 +16,6 @@ pruners:
       'module.net.0.linear.weight': 0.075
       'module.net.6.weight': 0.20
 
-lr_schedulers:
-   pruning_lr:
-     class: ExponentialLR
-     gamma: 0.95
-
 policies:
   - pruner:
       instance_name : 'pruner1'
@@ -32,10 +27,4 @@ policies:
       instance_name : 'pruner2'
     starting_epoch: 10
     ending_epoch: 150
-    frequency: 10
-
-  - lr_scheduler:
-      instance_name: pruning_lr
-    starting_epoch: 10
-    ending_epoch: 25
     frequency: 10

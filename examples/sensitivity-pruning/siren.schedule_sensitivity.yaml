@@ -19,12 +19,12 @@ pruners:
 policies:
   - pruner:
       instance_name : 'pruner1'
-    starting_epoch: 25
-    ending_epoch: 17500
+    starting_epoch: 400024
+    ending_epoch: 417499
     frequency: 2
   
   - pruner:
       instance_name : 'pruner2'
-    starting_epoch: 10
-    ending_epoch: 150
+    starting_epoch: 400009
+    ending_epoch: 400149
     frequency: 10

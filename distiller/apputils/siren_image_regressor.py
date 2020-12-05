@@ -1209,7 +1209,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
 def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     global msglogger
     global FIND_EPOCH_FOR_PRUNING
-    
+
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
 
@@ -1227,7 +1227,7 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                 if data_tmp_dict["Fine (%)"] >= final_sparsity or data_tmp_dict["Fine (%)"] >= final_sparsity - 0.2:
                     is_updated = True
                     pruner_name = str(pruner).split(" ")[0].split(".")[-1]
-                    record_data = [str(epoch), str(param_name), pruner_name, data_tmp_dict["Fine (%)"]]
+                    record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
                     keys = "epoch,param_name,pruner,Fine (%)".split(",")
                     # if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))

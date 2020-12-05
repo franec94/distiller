@@ -37,7 +37,7 @@ from skimage.metrics import mean_squared_error
 # Logger handle
 msglogger = logging.getLogger()
 
-ONE_SHOT_MATCH_SPARSITY = True
+ONE_SHOT_MATCH_SPARSITY = False
 TARGET_TOTAL_SPARSITY = 30.0
 
 

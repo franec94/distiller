@@ -1240,6 +1240,6 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
         pass
     if is_updated:
         str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
-        msglogger.info("Epoch:", epoch)
+        msglogger.info(f"Epoch: {epoch}")
         msglogger.info(str_data)
     pass

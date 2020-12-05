@@ -674,6 +674,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+        check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
         if is_last_epoch:
             _log_training_progress()
             str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
@@ -691,8 +692,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
             msglogger.info(f"Epoch: {epoch}")
             msglogger.info(str_data)
-        
-        check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
+            pass
 
         end = time.time()
     #return acc_stats
@@ -1259,7 +1259,8 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
             pass
         pass
     if is_updated:
-        str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
-        msglogger.info(f"Epoch: {epoch}")
-        msglogger.info(str_data)
+        # str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+        # msglogger.info(f"Epoch: {epoch}")
+        # msglogger.info(str_data)
+        pass
     pass

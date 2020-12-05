@@ -693,6 +693,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
             str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
             msglogger.info(f"Epoch: {epoch}")
             msglogger.info(str_data)
+            print("str_data")
+            print(str_data)
             pass
 
         end = time.time()

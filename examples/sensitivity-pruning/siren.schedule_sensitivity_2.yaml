@@ -1,0 +1,30 @@
+# time python3 compress_regressor.py --lr 0.005 --train --evaluate --cuda  --n_hf N_HF --n_hl N_HL --sidelength SIDELENGTH --num_epochs EPOCHS --compress=../sensitivity-pruning/siren.schedule_sensitivity.yaml
+
+version: 1
+pruners:
+  pruner1:
+    class: 'SensitivityPruner'
+    sensitivities:
+      'module.net.1.linear.weight': 0.35
+      'module.net.2.linear.weight': 0.40
+      'module.net.3.linear.weight': 0.45
+      'module.net.4.linear.weight': 0.50
+      'module.net.5.linear.weight': 0.60
+  pruner2:
+    class: 'SensitivityPruner'
+    sensitivities:
+      'module.net.0.linear.weight': 0.075
+      'module.net.6.weight': 0.20
+
+policies:
+  - pruner:
+      instance_name : 'pruner1'
+    starting_epoch: 400024
+    ending_epoch: 417499
+    frequency: 2
+  
+  - pruner:
+      instance_name : 'pruner2'
+    starting_epoch: 400009
+    ending_epoch: 400149
+    frequency: 10

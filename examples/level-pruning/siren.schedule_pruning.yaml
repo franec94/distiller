@@ -1,0 +1,17 @@
+version: 1
+pruners:
+  pruner1:
+    class: 'SparsityLevelParameterPruner'
+    levels:
+      'module.net.1.linear.weight': 0.25
+      'module.net.2.linear.weight': 0.30
+      'module.net.3.linear.weight': 0.35
+      'module.net.4.linear.weight': 0.40
+      'module.net.5.linear.weight': 0.45
+
+policies:
+  - pruner:
+      instance_name : 'pruner1'
+    starting_epoch: 400024
+    ending_epoch: 400199
+    frequency: 2

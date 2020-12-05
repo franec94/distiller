@@ -117,7 +117,7 @@ def main(opt):
         dataset="cameramen",
         model=sire_model)
     # Parse arguments
-    args , _ = examples.siren_compression.custom_parser .add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_known_args() # .parse_args()
+    args , _ = examples.siren_compression.custom_parser.add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_known_args() # .parse_args()
     args = init_regressor_default_args(args, opt)
     args = config_learner_args(
         args,

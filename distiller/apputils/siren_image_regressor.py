@@ -470,8 +470,9 @@ def _init_learner(args):
         # requires a compression schedule configuration file in YAML.
         compression_scheduler = distiller.file_config(model, optimizer, args.compress, compression_scheduler,
             (start_epoch-1) if args.resumed_checkpoint_path else None)
-        pprint(compression_scheduler.policies)
+        # pprint(compression_scheduler.policies)
         pprint(compression_scheduler.sched_metadata)
+        pprint(compression_scheduler.sched_metadata.keys()[0])
         sys.exit(0)
         # Model is re-transferred to GPU in case parameters were added (e.g. PACTQuantizer)
         model.to(args.device)

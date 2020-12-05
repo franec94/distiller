@@ -576,6 +576,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     global ONE_SHOT_MATCH_SPARSITY
     global TARGET_TOTAL_SPARSITY
     global FIND_EPOCH_FOR_PRUNING
+    global msglogger
 
     if epoch > -1:
         if epoch >= 0 and epoch % args.print_freq == 0:

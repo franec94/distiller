@@ -1231,7 +1231,7 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
-                if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
+                if len(FIND_EPOCH_FOR_PRUNING.keys()) == 0 or param_name not in FIND_EPOCH_FOR_PRUNING.keys():
                     pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                     record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
                     keys = "epoch,param_name,pruner,Fine (%)".split(",")

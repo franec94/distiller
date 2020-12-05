@@ -1212,8 +1212,10 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
     for policy in policies_list:
         sched_metadata = compression_scheduler.sched_metadata[policy]
+        if not hasattr(policy, 'pruner') : continue
+        pruner = policy.pruner
         if isinstance(pruner, AutomatedGradualPruner):
-            pruner = policy.pruner
+            
             final_sparsity = pruner.agp_pr.final_sparsity
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]

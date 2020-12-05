@@ -1208,6 +1208,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
 
 def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     global msglogger
+    global FIND_EPOCH_FOR_PRUNING
+    
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
 

@@ -1210,6 +1210,8 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     global msglogger
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+
+    is_updated = False
     for policy in policies_list:
         sched_metadata = compression_scheduler.sched_metadata[policy]
         if not hasattr(policy, 'pruner') : continue
@@ -1221,16 +1223,20 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
                 if data_tmp_dict["Fine (%)"] >= final_sparsity or data_tmp_dict["Fine (%)"] >= final_sparsity - 0.2:
+                    is_updated = True
                     pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                     record_data = [str(epoch), str(param_name), pruner_name, data_tmp_dict["Fine (%)"]]
                     keys = "epoch,param_name,pruner,Fine (%)".split(",")
-                    if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
-                        FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-                        str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
-                        msglogger.info(str_data)
-                        pass
+                    # if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
+                    FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
+                    # str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+                    # msglogger.info(str_data)
+                    # pass
                     pass
                 pass
             pass
         pass
+    if is_updated:
+        str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+        msglogger.info(str_data)
     pass

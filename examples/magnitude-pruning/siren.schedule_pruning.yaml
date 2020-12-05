@@ -1,0 +1,20 @@
+version: 1
+pruners:
+  pruner1:
+    class: 'MagnitudeParameterPruner'
+    thresholds:
+      'module.net.1.linear.weight': 0.00047
+      'module.net.2.linear.weight': 0.00047
+      'module.net.3.linear.weight': 0.00047
+      'module.net.4.linear.weight': 0.00047
+      'module.net.5.linear.weight': 0.00047
+      '*': 0.00047
+
+policies:
+  - pruner:
+      instance_name : 'pruner1'
+      args:
+        keep_mask: True
+    starting_epoch: 400024
+    ending_epoch: 434999
+    frequency: 2

@@ -1237,6 +1237,13 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                     keys = "epoch,param_name,pruner,Fine (%)".split(",")
                     # if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
+                elif FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"] <= data_tmp_dict["Fine (%)"]:
+                    pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                    record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
+                    keys = "epoch,param_name,pruner,Fine (%)".split(",")
+                    # if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
+                    FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
+
                 if data_tmp_dict["Fine (%)"] >= final_sparsity * 100 or data_tmp_dict["Fine (%)"] >= final_sparsity * 100 - 2.0:
                     is_updated = True
                     pruner_name = str(pruner).split(" ")[0].split(".")[-1]

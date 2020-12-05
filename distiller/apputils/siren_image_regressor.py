@@ -668,8 +668,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
                 _log_training_progress()
-            ONE_SHOT_MATCH_SPARSITY = False
-            sys.exit(0)
+                ONE_SHOT_MATCH_SPARSITY = False
+                sys.exit(0)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
 

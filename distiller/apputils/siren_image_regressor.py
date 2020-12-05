@@ -35,6 +35,8 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error
 
+from distiller.pruning.automated_gradual_pruner import AutomatedGradualPruner
+
 # Logger handle
 msglogger = logging.getLogger()
 
@@ -1211,7 +1213,7 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     for policy in policies_list:
         sched_metadata = compression_scheduler.sched_metadata[policy]
         pruner = policy.pruner
-        if isinstance(pruner, distiller.pruning.automated_gradual_pruner.AutomatedGradualPruner):
+        if isinstance(pruner, AutomatedGradualPruner):
             final_sparsity = pruner.agp_pr.final_sparsity
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]

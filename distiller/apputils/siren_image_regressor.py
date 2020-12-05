@@ -153,7 +153,7 @@ class SirenRegressorCompressor(object):
         return loss, psnr_score, ssim_score
 
 
-    def validate_one_epoch(self, epoch, verbose=True):
+    def validate_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Evaluate on validation set"""
         self.load_datasets()
         with collectors_context(self.activations_collectors["valid"]) as collectors:

@@ -6,6 +6,7 @@ import time
 import os
 import sys
 import logging
+import json
 from collections import OrderedDict
 import numpy as np
 import torch
@@ -39,6 +40,7 @@ msglogger = logging.getLogger()
 
 ONE_SHOT_MATCH_SPARSITY = True
 TARGET_TOTAL_SPARSITY = 30.0
+FIND_EPOCH_FOR_PRUNING = dict()
 
 
 class SirenRegressorCompressor(object):
@@ -471,9 +473,9 @@ def _init_learner(args):
         compression_scheduler = distiller.file_config(model, optimizer, args.compress, compression_scheduler,
             (start_epoch-1) if args.resumed_checkpoint_path else None)
         # pprint(compression_scheduler.policies)
-        pprint(compression_scheduler.sched_metadata)
-        pprint(compression_scheduler.sched_metadata.keys()[0])
-        sys.exit(0)
+        # pprint(compression_scheduler.sched_metadata)
+        # pprint(compression_scheduler.sched_metadata.keys()[0])
+        # sys.exit(0)
         # Model is re-transferred to GPU in case parameters were added (e.g. PACTQuantizer)
         model.to(args.device)
     elif compression_scheduler is None:
@@ -680,6 +682,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
                 # sys.exit(0)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
+        
+        check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
 
         end = time.time()
     #return acc_stats
@@ -1198,3 +1202,30 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
     else:
         losses_exits_stats = earlyexit_validate_stats(args)
         return losses_exits_stats[args.num_exits-1]
+
+
+def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
+    global msglogger
+    policies_list = list(compression_scheduler.sched_metadata.keys())
+    t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+    for policy in policies_list:
+        sched_metadata = compression_scheduler.sched_metadata[policy]
+        pruner = policy.pruner
+        if isinstance(pruner, distiller.pruning.automated_gradual_pruner.AutomatedGradualPruner):
+            final_sparsity = pruner.agp_pr.final_sparsity
+            for param_name in pruner.params_names:
+                data_tmp = df[df["Name"] == param_name].values[0]
+                data_tmp_dict = dict(zip(list(df.clumns), data_tmp))
+                if data_tmp_dict["Fine (%)"] >= final_sparsity or data_tmp_dict["Fine (%)"] >= final_sparsity - 0.2:
+                    record_data = [str(epoch), str(param_name), str(pruner)]
+                    keys = "epoch,param_name,pruner".split(",")
+                    if param_name not in FIND_EPOCH_FOR_PRUNING.keys():
+                        FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
+                        str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+                        msglogger.info(str_data)
+                        pass
+                    pass
+                pass
+            pass
+        pass
+    pass

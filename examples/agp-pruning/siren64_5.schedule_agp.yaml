@@ -15,6 +15,11 @@ pruners:
     weights: [module.net.4.linear.weight,
               module.net.5.linear.weight]
 
+lr_schedulers:
+  # Learning rate decay scheduler
+   pruning_lr:
+     class: ReduceLROnPlateau
+
 policies:
 
   - pruner:
@@ -28,3 +33,9 @@ policies:
     starting_epoch: 300024
     ending_epoch: 334999
     frequency: 2
+
+  - lr_scheduler:
+      instance_name: pruning_lr
+    starting_epoch: 300024
+    ending_epoch: 334999
+    frequency: 1

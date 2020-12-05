@@ -44,6 +44,7 @@ from distiller.regularization import *
 from distiller.learning_rate import *
 from distiller.quantization import *
 from distiller.utils import filter_kwargs
+from pprint import pprint
 
 msglogger = logging.getLogger()
 app_cfg_logger = logging.getLogger("app_cfg")

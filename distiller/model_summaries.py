@@ -124,9 +124,13 @@ def weights_sparsity_summary(model, return_total_sparsity=False, param_dims=[2, 
     return df
 
 
-def weights_sparsity_tbl_summary(model, return_total_sparsity=False, param_dims=[2, 4]):
+def weights_sparsity_tbl_summary(model, return_total_sparsity=False, param_dims=[2, 4], return_df = False):
     df, total_sparsity = weights_sparsity_summary(model, return_total_sparsity=True, param_dims=param_dims)
     t = tabulate(df, headers='keys', tablefmt='psql', floatfmt=".5f")
+    if return_df:
+        if return_total_sparsity:
+            return t, total_sparsity, df
+        return t
     if return_total_sparsity:
         return t, total_sparsity
     return t

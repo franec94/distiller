@@ -33,7 +33,7 @@ msglogger = logging.getLogger()
 
 
 def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
-                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False):
+                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False, is_last_epoch = False):
     """Save a pytorch training checkpoint
 
     Args:
@@ -70,6 +70,9 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     filename_mid_ckpt = f'mid_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_mid_ckpt_epoch_{epoch}.pth.tar'
     fullpath_mid_ckpt = os.path.join(dir, filename_mid_ckpt)
 
+    filename_final_ckpt = f'final_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_final_ckpt_epoch_{epoch}.pth.tar'
+    fullpath_final_ckpt = os.path.join(dir, filename_final_ckpt)
+
     checkpoint = {'epoch': epoch, 'state_dict': model.state_dict(), 'arch': arch}
     try:
         checkpoint['is_parallel'] = model.is_parallel
@@ -98,7 +101,8 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
         shutil.copyfile(fullpath, fullpath_best)
     if is_mid_ckpt:
         shutil.copyfile(fullpath, fullpath_mid_ckpt)
-
+    if is_last_epoch:
+        shutil.copyfile(fullpath, fullpath_final_ckpt)
 
 def load_lean_checkpoint(model, chkpt_file, model_device=None):
     return load_checkpoint(model, chkpt_file, model_device=model_device,

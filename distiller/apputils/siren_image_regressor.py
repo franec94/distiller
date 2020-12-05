@@ -115,14 +115,14 @@ class SirenRegressorCompressor(object):
         return cls(cls.mock_args(), '')
 
 
-    def train_one_epoch(self, epoch, verbose=True):
+    def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Train for one epoch"""
         self.load_datasets()
 
         with collectors_context(self.activations_collectors["train"]) as collectors:
             loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
                                      epoch, self.compression_scheduler, 
-                                     loggers=[self.tflogger, self.pylogger], args=self.args)
+                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch)
             if verbose:
                 if epoch >= 0 and epoch % self.args.print_freq == 0:
                     if self.args.compress != None and self.args.compress != '':
@@ -135,13 +135,13 @@ class SirenRegressorCompressor(object):
         return loss
 
 
-    def train_validate_with_scheduling(self, epoch, validate=True, verbose=True):
+    def train_validate_with_scheduling(self, epoch, validate=True, verbose=True, is_last_epoch = False):
         if self.compression_scheduler:
             self.compression_scheduler.on_epoch_begin(epoch)
 
-        loss = self.train_one_epoch(epoch, verbose)
+        loss = self.train_one_epoch(epoch, verbose, is_last_epoch = is_last_epoch)
         if validate:
-            loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose)
+            loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose, is_last_epoch = is_last_epoch)
 
         if self.compression_scheduler:
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
@@ -170,7 +170,7 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False):
         # Update the list of top scores achieved so far, and save the checkpoint
         self.performance_tracker.step(
             self.model,
@@ -196,7 +196,7 @@ class SirenRegressorCompressor(object):
             distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                 scheduler=self.compression_scheduler, extras=checkpoint_extras,
                 is_best=is_best, name=self.args.name, dir=msglogger.logdir,
-                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt)
+                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt, is_last_epoch = is_last_epoch)
 
 
     def run_training_loop(self):
@@ -218,17 +218,18 @@ class SirenRegressorCompressor(object):
 
         self.performance_tracker.reset()
         for epoch in range(self.start_epoch, self.ending_epoch):
+            is_last_epoch = epoch == self.ending_epoch - 1
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 msglogger.info('\n')
-            loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch)
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score)
+            loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
         return self.performance_tracker.perf_scores_history
 
 
-    def validate(self, epoch=-1):
+    def validate(self, epoch=-1, is_last_epoch = False):
         self.load_datasets()
         return validate(self.val_loader, self.model, self.criterion,
-                        [self.tflogger, self.pylogger], self.args, epoch)
+                        [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
 
 
     def test(self):
@@ -469,6 +470,8 @@ def _init_learner(args):
         # requires a compression schedule configuration file in YAML.
         compression_scheduler = distiller.file_config(model, optimizer, args.compress, compression_scheduler,
             (start_epoch-1) if args.resumed_checkpoint_path else None)
+        pprint(compression_scheduler)
+        sys.exit(0)
         # Model is re-transferred to GPU in case parameters were added (e.g. PACTQuantizer)
         model.to(args.device)
     elif compression_scheduler is None:
@@ -551,7 +554,7 @@ def early_exit_mode(args):
 
 
 def train(train_loader, model, criterion, optimizer, epoch,
-          compression_scheduler, loggers, args):
+          compression_scheduler, loggers, args, is_last_epoch = False):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -664,13 +667,15 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        if ONE_SHOT_MATCH_SPARSITY:
-            t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
+        if is_last_epoch:
+            _log_training_progress()
+        elif ONE_SHOT_MATCH_SPARSITY:
+            t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
-                print('epoch', epoch, 'Total Sparsity:', total, 'TARGET_TOTAL_SPARSITY', TARGET_TOTAL_SPARSITY)
+                # print('epoch', epoch, 'Total Sparsity:', total, 'TARGET_TOTAL_SPARSITY', TARGET_TOTAL_SPARSITY)
                 _log_training_progress()
                 ONE_SHOT_MATCH_SPARSITY = False
-                sys.exit(0)
+                # sys.exit(0)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
 
@@ -680,14 +685,16 @@ def train(train_loader, model, criterion, optimizer, epoch,
     return losses[OVERALL_LOSS_KEY]
 
 
-def validate(val_loader, model, criterion, loggers, args, epoch=-1):
+def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch = False):
     """Model validation"""
     if epoch > -1:
-        if epoch >= 0 and epoch % args.print_freq == 0:
+        if is_last_epoch:
+            msglogger.info('--- validate (epoch=%d)-----------', epoch)
+        elif epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('--- validate (epoch=%d)-----------', epoch)
     else:
         msglogger.info('--- validate ---------------------')
-    return _validate(val_loader, model, criterion, loggers, args, epoch)
+    return _validate(val_loader, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch)
 
 
 def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None, test_mode_on = True):
@@ -710,7 +717,7 @@ def _is_earlyexit(args):
     return hasattr(args, 'earlyexit_thresholds') and args.earlyexit_thresholds
 
 
-def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False):
+def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False):
     global ONE_SHOT_MATCH_SPARSITY
     global TARGET_TOTAL_SPARSITY
 
@@ -777,18 +784,24 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
 
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-            if epoch >= 0 and epoch % args.print_freq == 0:
+            if is_last_epoch:
+                _log_validation_progress()
+            elif epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress()
 
     if not _is_earlyexit(args):
         metrices['psnr'] = np.array(metrices['psnr'])
         metrices['ssim'] = np.array(metrices['ssim'])
-        if epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+        if is_last_epoch:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+        elif epoch >= 0 and epoch % args.print_freq == 0:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 
-        if args.evaluate and test_mode_on:
-            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+        # if args.evaluate and test_mode_on:
+        if test_mode_on:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
 
         return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()

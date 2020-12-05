@@ -158,7 +158,7 @@ class SirenRegressorCompressor(object):
         self.load_datasets()
         with collectors_context(self.activations_collectors["valid"]) as collectors:
             vloss, vpsnr, vssim = validate(self.val_loader, self.model, self.criterion, 
-                                         [self.pylogger], self.args, epoch)
+                                         [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
             distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
             save_collectors_data(collectors, msglogger.logdir)
@@ -681,6 +681,9 @@ def train(train_loader, model, criterion, optimizer, epoch,
             str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
             msglogger.info(f"Epoch: {epoch}")
             msglogger.info(str_data)
+            out_file_data = os.path.join(f'{args.output_dir}', 'data.txt')
+            with open(out_file_data, 'w') as outfile:
+                json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:

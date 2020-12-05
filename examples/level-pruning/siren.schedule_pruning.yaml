@@ -14,6 +14,6 @@ policies:
       instance_name : 'pruner1'
       args:
         keep_mask: True
-    starting_epoch: 400024
-    ending_epoch: 434999
+    starting_epoch: 300024
+    ending_epoch: 334999
     frequency: 2

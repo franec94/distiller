@@ -4,6 +4,7 @@ import copy
 import math
 import time
 import os
+import sys
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -35,6 +36,9 @@ from skimage.metrics import mean_squared_error
 
 # Logger handle
 msglogger = logging.getLogger()
+
+ONE_SHOT_MATCH_SPARSITY = True
+TARGET_TOTAL_SPARSITY = 30.0
 
 
 class SirenRegressorCompressor(object):
@@ -560,6 +564,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
         optimizer.step()
         compression_scheduler.on_minibatch_end(epoch)
     """
+    global ONE_SHOT_MATCH_SPARSITY
+    global TARGET_TOTAL_SPARSITY
 
     if epoch > -1:
         if epoch >= 0 and epoch % args.print_freq == 0:
@@ -658,7 +664,13 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        if epoch >= 0 and epoch % args.print_freq == 0:
+        if ONE_SHOT_MATCH_SPARSITY:
+            t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
+            if total >= TARGET_TOTAL_SPARSITY:
+                _log_training_progress()
+            ONE_SHOT_MATCH_SPARSITY = False
+            sys.exit(0)
+        elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
 
         end = time.time()
@@ -698,6 +710,9 @@ def _is_earlyexit(args):
 
 
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False):
+    global ONE_SHOT_MATCH_SPARSITY
+    global TARGET_TOTAL_SPARSITY
+
     def _log_validation_progress():
         if not _is_earlyexit(args):
             stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])

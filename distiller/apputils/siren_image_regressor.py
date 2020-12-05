@@ -674,7 +674,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         if is_last_epoch:
             _log_training_progress()
         elif ONE_SHOT_MATCH_SPARSITY:
-            t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
+            t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
                 # print('epoch', epoch, 'Total Sparsity:', total, 'TARGET_TOTAL_SPARSITY', TARGET_TOTAL_SPARSITY)
                 _log_training_progress()

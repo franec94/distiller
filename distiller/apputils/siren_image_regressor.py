@@ -1217,7 +1217,7 @@ def check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
             final_sparsity = pruner.agp_pr.final_sparsity
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]
-                data_tmp_dict = dict(zip(list(df.clumns), data_tmp))
+                data_tmp_dict = dict(zip(list(df.columns), data_tmp))
                 if data_tmp_dict["Fine (%)"] >= final_sparsity or data_tmp_dict["Fine (%)"] >= final_sparsity - 0.2:
                     record_data = [str(epoch), str(param_name), str(pruner)]
                     keys = "epoch,param_name,pruner".split(",")

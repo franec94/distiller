@@ -13,5 +13,5 @@ policies:
   - pruner:
       instance_name : 'pruner1'
     starting_epoch: 400024
-    ending_epoch: 400199
+    ending_epoch: 434999
     frequency: 2

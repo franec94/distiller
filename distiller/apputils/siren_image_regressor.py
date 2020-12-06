@@ -1239,7 +1239,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                     # Insert new layer
                     record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-
                 
                 elif float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                     # Update existing layer  
@@ -1270,7 +1269,7 @@ def _log_train_epoch_pruning(args):
     out_file_data = os.path.join(f'{args.output_dir}', 'data.txt')
     str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
 
-    msglogger.info(f"--- dump Saving: on epoch {epoch} ---------")
+    msglogger.info(f"--- dump pruning data: on epoch {epoch} ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
     msglogger.info(str_data)
     try:

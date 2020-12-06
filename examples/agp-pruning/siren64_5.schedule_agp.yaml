@@ -32,25 +32,25 @@ policies:
   - pruner:
       instance_name : mid_pruner_1
     starting_epoch: 300024
-    ending_epoch: 334999
+    ending_epoch: 450000
     frequency: 2
   
   - pruner:
       instance_name : mid_pruner_2
     starting_epoch: 300024
-    ending_epoch: 334999
+    ending_epoch: 450000
     frequency: 2
 
   - pruner:
       instance_name : mid_pruner_3
     starting_epoch: 300024
-    ending_epoch: 334999
+    ending_epoch: 450000
     frequency: 2
 
   - lr_scheduler:
       instance_name: pruning_lr
     starting_epoch: 300024
-    ending_epoch: 334999
+    ending_epoch: 450000
     frequency: 1
 
 # starting_epoch: 300024 ending_epoch: 334999

@@ -1209,7 +1209,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
         return losses_exits_stats[args.num_exits-1]
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     global msglogger
     global FIND_EPOCH_FOR_PRUNING
@@ -1217,6 +1217,8 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
 
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+
+    is_updated = False
 
     for policy in policies_list:
         sched_metadata = compression_scheduler.sched_metadata[policy]
@@ -1234,20 +1236,24 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
                 
                 if len(FIND_EPOCH_FOR_PRUNING.keys()) == 0 or param_name not in FIND_EPOCH_FOR_PRUNING.keys():
+                    is_updated = True
                     # Insert new layer
                     record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 
                 elif float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                    is_updated = True
                     # Update existing layer  
                     record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 
                 if data_tmp_dict["Fine (%)"] >= final_sparsity * 100 - TOLL:
+                    is_updated = True
                     if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
                         FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 if data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
+                    is_updated = True
                     if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         # Update existing layer if satisfyes sparsity constraint
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]] # record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
@@ -1255,6 +1261,13 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
                     pass
                 pass
             pass
+        pass
+    try:
+        if is_updated:
+            with open(out_file_data, 'w') as outfile:
+                json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
+    except Exception as err:
+        msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
         pass
     pass
 
@@ -1265,7 +1278,7 @@ def _log_train_epoch_pruning(args, epoch):
     global msglogger
 
     if FIND_EPOCH_FOR_PRUNING == {}: return
-    
+
     out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
     str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
 

@@ -1269,6 +1269,8 @@ def _log_train_epoch_pruning(args):
     out_file_data = os.path.join(f'{args.output_dir}', 'data.txt')
     str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
 
+    if FIND_EPOCH_FOR_PRUNING == {}:
+        return
     msglogger.info(f"--- dump pruning data: on epoch {epoch} ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
     msglogger.info(str_data)

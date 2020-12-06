@@ -679,15 +679,15 @@ def train(train_loader, model, criterion, optimizer, epoch,
         _check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
         if is_last_epoch:
             _log_training_progress()
-            _log_train_epoch_pruning(args)
+            _log_train_epoch_pruning(args, epoch)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
-            _log_train_epoch_pruning(args)
+            _log_train_epoch_pruning(args, epoch)
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
                 _log_training_progress()
-                _log_train_epoch_pruning(args)
+                _log_train_epoch_pruning(args, epoch)
                 ONE_SHOT_MATCH_SPARSITY = False
 
         end = time.time()
@@ -1259,7 +1259,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
     pass
 
 
-def _log_train_epoch_pruning(args):
+def _log_train_epoch_pruning(args, epoch):
     """Log to json file information and data about when pruning take places per layer."""
     global FIND_EPOCH_FOR_PRUNING
     global msglogger

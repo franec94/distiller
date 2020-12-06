@@ -588,6 +588,9 @@ def train(train_loader, model, criterion, optimizer, epoch,
     def _log_training_progress():
         # Log some statistics
 
+        _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+        
+
         stats_dict = OrderedDict()
         for loss_name, meter in losses.items():
             stats_dict[loss_name] = meter.mean

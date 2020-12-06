@@ -1228,7 +1228,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
             
             final_sparsity = pruner.agp_pr.final_sparsity
 
-            keys = "epoch,param_name,pruner,Fine (%)".split(",")
+            keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
             pruner_name = str(pruner).split(" ")[0].split(".")[-1]
 
             for param_name in pruner.params_names:
@@ -1238,25 +1238,25 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
                 if len(FIND_EPOCH_FOR_PRUNING.keys()) == 0 or param_name not in FIND_EPOCH_FOR_PRUNING.keys():
                     is_updated = True
                     # Insert new layer
-                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
+                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 
                 elif float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                     is_updated = True
                     # Update existing layer  
-                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
+                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 
                 if data_tmp_dict["Fine (%)"] >= final_sparsity * 100 - TOLL:
                     is_updated = True
                     if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]]
+                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
                         FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 if data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
                     is_updated = True
                     if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         # Update existing layer if satisfyes sparsity constraint
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"]] # record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
+                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 2, TOLL] # record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
                         FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                     pass
                 pass

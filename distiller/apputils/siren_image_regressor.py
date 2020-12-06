@@ -676,7 +676,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
+        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch)
         if is_last_epoch:
             _log_training_progress()
             _log_train_epoch_pruning(args)

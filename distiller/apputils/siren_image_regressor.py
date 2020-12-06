@@ -1264,8 +1264,7 @@ def _log_train_epoch_pruning(args, epoch):
     global FIND_EPOCH_FOR_PRUNING
     global msglogger
 
-    if FIND_EPOCH_FOR_PRUNING == {}:
-        return
+    if FIND_EPOCH_FOR_PRUNING == {}: return
     
     out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
     str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)

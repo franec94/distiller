@@ -9,7 +9,7 @@
 # image.
 # =============================================== #
 
-CUDA_VISIBLE_DEVICES=0 python main.py \
+CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --logging_root '../../../results/cameramen/distiller-siren/agp_prune' \
   --experiment_name 'train' \
   --compress "../../../schedulers/agp-pruning/siren64_5.schedule_agp.yaml" \

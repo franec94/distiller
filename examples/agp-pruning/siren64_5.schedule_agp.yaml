@@ -25,6 +25,8 @@ lr_schedulers:
   # Learning rate decay scheduler
    pruning_lr:
      class: ReduceLROnPlateau
+     args:
+        verbose: True
 
 policies:
 
@@ -48,6 +50,6 @@ policies:
 
   - lr_scheduler:
       instance_name: pruning_lr
-# starting_epoch: 300024
-# ending_epoch: 334999
-# frequency: 1
+    starting_epoch: 300024
+    ending_epoch: 334999
+    frequency: 1

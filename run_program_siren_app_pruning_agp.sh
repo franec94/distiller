@@ -12,7 +12,7 @@
 CUDA_VISIBLE_DEVICES=0 python main.py \
   --logging_root '../../../results/cameramen/distiller-siren/agp_prune' \
   --experiment_name 'train' \
-  --compress ./examples/agp-pruning/siren64_5.schedule_agp.yaml \
+  --compress "../../../schedulers/agp-pruning/siren64_5.schedule_agp.yaml" \
   --sidelength 256 \
   --n_hf 64  \
   --n_hl 5 \
@@ -29,5 +29,6 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
   --verbose 0 \
   --resume-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar"
 
+# --compress ./examples/agp-pruning/siren64_5.schedule_agp.yaml \
 # --save_mid_ckpts 99999 149999 174999 199999 \
 exit 0

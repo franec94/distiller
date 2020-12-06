@@ -11,7 +11,9 @@ import tabulate
 import numpy as np
 import pandas as pd
 
-
+# ----------------------------------------------------------------------------------------------- #
+# Script parser object for accepting user input arguments for running the script.
+# ----------------------------------------------------------------------------------------------- #
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_filename", dest="input_filename", type=str,
     help="json input filename"
@@ -22,6 +24,20 @@ parser.add_argument("--show_as_table", dest="show_as_table", action="store_true"
 parser.add_argument("--save_as_csv", dest="save_as_csv", action="store_true", default=False,
     help="Save data into csv file, within local file system"
 )
+parser.add_argument("--output_dir", dest="output_dir", type=str, default=".",
+    help="Ouptut directory where results will be stored in"
+)
+
+
+# ----------------------------------------------------------------------------------------------- #
+# Util Functions
+# ----------------------------------------------------------------------------------------------- #
+def get_data_from_json_filename(filename) -> dict:
+    """Read input data from json file and store content into plain python dictionary instance."""
+    data: dict = {}
+    with open(filename, "r") as f:
+        data = json.load(f)
+    return data
 
 
 def from_dict_2_df(data_dict: dict) -> pd.DataFrame:
@@ -33,7 +49,11 @@ def from_dict_2_df(data_dict: dict) -> pd.DataFrame:
     layer_dicts_list = list(map(add_layer_name_as_info, data_dict.items()))
     df  = pd.DataFrame(layer_dicts_list)
     return df
-    
+
+
+# ----------------------------------------------------------------------------------------------- #
+# Business Functions
+# ----------------------------------------------------------------------------------------------- #
 def show_as_table_via_tabulate(data_df: pd.DataFrame, save_to_file: bool =False) -> None:
     """Show data as table via tabulate python's package.
         https://pypi.org/project/tabulate/
@@ -55,6 +75,7 @@ def show_as_table_via_tabulate(data_df: pd.DataFrame, save_to_file: bool =False)
             pass
     pass
 
+
 def show_data(data_dict: dict, args) -> None:
     """Show data to standard output as either formatted table or plain dictionary object via pprint."""
     data_df: pd.DataFrame = from_dict_2_df(data_dict=data_dict)
@@ -67,6 +88,25 @@ def show_data(data_dict: dict, args) -> None:
     pass
 
 
+def save_as_csv(args) -> None:
+    filename: str = args.input_filename
+    output_dir: str= args.output_dir
+    try:
+        data_dict: dict = get_data_from_json_filename(filename=filename)
+        data_df = from_dict_2_df(data_dict=data_dict)
+    
+        out_df_path = os.path.join(output_dir, "data.csv")
+        data_df.to_csv(f"{out_df_path}")
+    except Exception as err:
+        print(f"Error: occurred when saving input data from json file to csv file!")
+        print(f"{str(err)}")
+        pass
+    pass
+    
+
+# ----------------------------------------------------------------------------------------------- #
+# Check input arguments functions
+# ----------------------------------------------------------------------------------------------- #
 def check_input_filename(args):
     """Check whether user provided input file satisfyes requested and constraints to be a json resource file."""
     filename = args.input_filename
@@ -84,25 +124,47 @@ def check_input_filename(args):
     pass
 
 
-def get_data_from_json_filename(filename) -> dict:
-    """Read input data from json file and store content into plain python dictionary instance."""
-    data: dict = {}
-    with open(filename, "r") as f:
-        data = json.load(f)
-    return data
+def check_output_dir(args):
+    """Check whether user provided output dir path satisfyes requested and constraints to be a valid subdirectory within local file system."""
+    output_dir: str = args.output_dir
+    if os.path.exists(output_dir):
+        if not os.path.isdir(output_dir):
+            print(f"Error: input resource '{output_dir}' is not a directory!")
+            sys.exit(-1)
+            pass
+        pass
+    else:
+        try:
+            os.makesdir(output_dir)
+        except Exception as err:
+            raise Exception(f"Error occurred when attempting to create output directory:\nError:{str(err)}")
+        pass
+    pass
 
+
+# ----------------------------------------------------------------------------------------------- #
+# Entry Point
+# ----------------------------------------------------------------------------------------------- #
 def main(args):
     """Process input file."""
     
+    # Check input arguments from cmd line.
     check_input_filename(args)
-    filename = args.input_filename
+    check_output_dir(args)
     
+    # Show data.
+    filename = args.input_filename
     data_dict: dict = \
         get_data_from_json_filename(filename)
-        
     show_data(data_dict=data_dict, args=args)
     
+    # Save data as csv.
+    if args.save_as_csv:
+        save_as_csv(args)
+        pass
+    
     pass
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

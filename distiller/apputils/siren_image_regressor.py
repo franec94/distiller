@@ -1265,7 +1265,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
     try:
         if is_updated:
             out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-            str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+            # str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
             with open(out_file_data, 'w') as outfile:
                 json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
     except Exception as err:

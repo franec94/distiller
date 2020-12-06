@@ -1233,7 +1233,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch):
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
-
                 
                 if len(FIND_EPOCH_FOR_PRUNING.keys()) == 0 or param_name not in FIND_EPOCH_FOR_PRUNING.keys():
                     # Insert new layer
@@ -1265,12 +1264,13 @@ def _log_train_epoch_pruning(args):
     """Log to json file information and data about when pruning take places per layer."""
     global FIND_EPOCH_FOR_PRUNING
     global msglogger
+
+    if FIND_EPOCH_FOR_PRUNING == {}:
+        return
     
     out_file_data = os.path.join(f'{args.output_dir}', 'data.txt')
     str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
 
-    if FIND_EPOCH_FOR_PRUNING == {}:
-        return
     msglogger.info(f"--- dump pruning data ({epoch}) ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
     msglogger.info(str_data)

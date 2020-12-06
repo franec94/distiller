@@ -21,11 +21,11 @@ pruners:
     final_sparsity: 0.50
     weights: [module.net.5.linear.weight]
 
-lr_schedulers:
-  # Learning rate decay scheduler
-   pruning_lr:
-     class: ReduceLROnPlateau
-     verbose: True
+# lr_schedulers:
+# Learning rate decay scheduler
+#   pruning_lr:
+#     class: ReduceLROnPlateau
+#     verbose: True
 
 policies:
 
@@ -47,11 +47,11 @@ policies:
     ending_epoch: 450000
     frequency: 2
 
-  - lr_scheduler:
-      instance_name: pruning_lr
-    starting_epoch: 300024
-    ending_epoch: 450000
-    frequency: 1
+#  - lr_scheduler:
+#      instance_name: pruning_lr
+#    starting_epoch: 300024
+#    ending_epoch: 450000
+#    frequency: 1
 
 # starting_epoch: 300024 ending_epoch: 334999
 # starting_epoch: 300024 ending_epoch: 450000

@@ -451,8 +451,14 @@ def _init_learner(args):
     if args.resumed_checkpoint_path:
         model, compression_scheduler, optimizer, start_epoch = distiller.apputils.load_checkpoint(
             model, args.resumed_checkpoint_path, model_device=args.device)
+        if args.lr != -1.0:
+            optimizer.lr = args.lr
+            msglogger.debug('Optimizer LR updated: %.2f', optimizer.lr )
     elif args.load_model_path:
         model = distiller.apputils.load_lean_checkpoint(model, args.load_model_path, model_device=args.device)
+        if args.lr != -1.0:
+            optimizer.lr = args.lr
+            msglogger.debug('Optimizer LR updated: %.2f', optimizer.lr )
     if args.reset_optimizer:
         start_epoch = 0
         if optimizer is not None:
@@ -469,8 +475,7 @@ def _init_learner(args):
                                     weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)
-    if args.lr != -1:
-        optimizer.lr = args.lr
+        pass
 
     if args.compress:
         # The main use-case for this sample application is CNN compression. Compression

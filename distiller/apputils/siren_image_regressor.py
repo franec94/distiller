@@ -469,6 +469,8 @@ def _init_learner(args):
                                     weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)
+    if args.lr != -1:
+        optimizer.lr = args.lr
 
     if args.compress:
         # The main use-case for this sample application is CNN compression. Compression

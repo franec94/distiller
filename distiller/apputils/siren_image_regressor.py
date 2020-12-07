@@ -466,15 +466,15 @@ def _init_learner(args):
             msglogger.info('\nreset_optimizer flag set: Overriding resumed optimizer and resetting epoch count to 0')
 
     if optimizer is None and not args.evaluate:
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr*0.1,
                                     weight_decay=args.weight_decay)
-        msglogger.debug('Optimizer Type: %s', type(optimizer))
-        msglogger.debug('Optimizer Args: %s', optimizer.defaults)
+        msglogger.debug('Optimizer Type(1): %s', type(optimizer))
+        msglogger.debug('Optimizer Args(1): %s', optimizer.defaults)
     elif optimizer is None:
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr*0.1,
                                     weight_decay=args.weight_decay)
-        msglogger.debug('Optimizer Type: %s', type(optimizer))
-        msglogger.debug('Optimizer Args: %s', optimizer.defaults)
+        msglogger.debug('Optimizer Type(2): %s', type(optimizer))
+        msglogger.debug('Optimizer Args(2): %s', optimizer.defaults)
         pass
 
     if args.compress:

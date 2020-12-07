@@ -454,7 +454,9 @@ def _init_learner(args):
         if args.lr != -1.0:
             # optimizer.lr = args.lr
             # msglogger.debug('Optimizer LR updated: %.2f', optimizer.lr )
-            optimizer.state_dict()['param_groups'][0]['lr'] = args.lr
+            dest_state_dict = optimizer.state_dict()
+            dest_state_dict['param_groups'][0]['lr'] = args.lr
+            optimizer.load_state_dict(dest_state_dict)
             msglogger.debug('Optimizer LR updated: %f', optimizer.state_dict()['param_groups'][0]['lr'] )
             
         msglogger.debug('Optimizer LR updated: %f', optimizer.state_dict()['param_groups'][0]['lr'] )

@@ -455,9 +455,9 @@ def _init_learner(args):
             # optimizer.lr = args.lr
             # msglogger.debug('Optimizer LR updated: %.2f', optimizer.lr )
             optimizer.state_dict()['param_groups'][0]['lr'] = args.lr
-            msglogger.debug('Optimizer LR updated: %.2f', optimizer.state_dict()['param_groups'][0]['lr'] )
+            msglogger.debug('Optimizer LR updated: %f', optimizer.state_dict()['param_groups'][0]['lr'] )
             
-        msglogger.debug('Optimizer LR updated: %.2f', optimizer.state_dict()['param_groups'][0]['lr'] )
+        msglogger.debug('Optimizer LR updated: %f', optimizer.state_dict()['param_groups'][0]['lr'] )
         sys.exit(0)
     elif args.load_model_path:
         model = distiller.apputils.load_lean_checkpoint(model, args.load_model_path, model_device=args.device)

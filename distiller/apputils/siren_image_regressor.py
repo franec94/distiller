@@ -471,7 +471,7 @@ def _init_learner(args):
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)
     elif optimizer is None:
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr*0.1,
                                     weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type: %s', type(optimizer))
         msglogger.debug('Optimizer Args: %s', optimizer.defaults)

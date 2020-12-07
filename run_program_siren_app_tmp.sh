@@ -10,7 +10,7 @@
 # =============================================== #
 
 CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
-  --logging_root '../../../results/cameramen/distiller-siren/agp_prune' \
+  --logging_root '../../../results/cameramen/distiller-siren/fine_tune' \
   --experiment_name 'train' \
   --compress "../../../schedulers/fine-tuning/siren64_5.schedule_fine_tuning.yaml" \
   --sidelength 256 \

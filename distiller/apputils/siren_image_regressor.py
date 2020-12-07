@@ -589,7 +589,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         # Log some statistics
 
         _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
-        
+
 
         stats_dict = OrderedDict()
         for loss_name, meter in losses.items():
@@ -1250,7 +1250,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
                     record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
                     FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
                 
-                if data_tmp_dict["Fine (%)"] >= final_sparsity * 100 - TOLL:
+                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL):
                     is_updated = True
                     if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]

@@ -15,6 +15,8 @@ import plotext as plx
 import termplotlib as tpl
 import terminalplot as tp
 import termplot
+
+from sklearn.linear_model import LinearRegression
 import numpy as np
 
 parser = argparse.ArgumentParser(description="Create text graphics from input data collected earlier within file in textual format or either format such as json, yaml, csv.")
@@ -70,6 +72,13 @@ def main(args):
     plx.scatter(x, y, rows = 17, cols = 70, \
       equations=True, \
       point_color='red', axes=True, \
+      point_marker='*', axes_color='')
+
+    reg = LinearRegression().fit(x[:, np.newaxis], y)
+    y_pred = reg.predict(x[:, np.newaxis])
+    plx.plot(x, y_pred, rows = 17, cols = 70, \
+      equations=True, \
+      line_color='blue', axes=True, \
       point_marker='*', axes_color='')
     plx.show()
   except Exception as err:

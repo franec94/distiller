@@ -17,6 +17,7 @@ function save_data_as_txt_file() {
 
 function print_raw_table() {
   local file_name=$1
+  echo "==== Show sorted data ===="
   header="|Occrs.|Data|" \
   line_str="-----------------------" \
 

@@ -43,6 +43,9 @@ function print_raw_table() {
   tot_lines=$(cat data.txt | wc -l)
   echo "Tot Lines.: ${tot_lines}"
   echo  "${line_str}"
+  last_entry_recorded
+  echo  "${line_str}"
+
   echo ""
   unset file_name
 }
@@ -52,6 +55,16 @@ function get_stats() {
   get_avg_via_awk
   get_var_via_awk
   get_std_via_awk
+}
+
+function last_entry_recorded() {
+  last_recorded=$(cat data.txt | tail -n 1)
+  last_epoch=$(cat ${file_name} \
+    | grep -e "^.*epoch=.*$" \
+    | tail -n 1 )
+
+  echo "Last entry: ${last_recorded}"
+  echo "Last epoch: ${last_epoch}"
 }
 
 function get_avg_via_awk() {
@@ -76,6 +89,7 @@ save_data_as_txt_file ${file_name}
 
 print_raw_table ${file_name}
 
+echo "==== Plot Psnr Trend ===="
 python3 graphis_on_shell.py --input_file data.txt
 
 exit 0

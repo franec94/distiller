@@ -80,6 +80,8 @@ def main(args):
       equations=True, \
       line_color='blue', axes=True, \
       point_marker='*', axes_color='')
+    # plx.set_xlim([0, len(x)])
+    # plx.set_ylim([min(x), max(x)])
     plx.show()
   except Exception as err:
     print(f"Error: occurred when plotting data via plotext.\n{str(err)}")

@@ -62,6 +62,7 @@ def init_regressor_default_args(args, opt):
     args.kd_policy = None
     args.summary = opt.summary
     args.qe_stats_file = None
+    args.qe_calibration = opt.qe_calibration
     args.verbose = True
     args.save_mid_ckpts = opt.save_mid_ckpts
     args.save_image_on_test = opt.save_image_on_test

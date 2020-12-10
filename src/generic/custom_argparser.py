@@ -86,7 +86,7 @@ def get_cmd_line_opts():
         help='Kind of quant engine (default: fbgemm).'
     )
 
-
+    # Option added for closing the gap between distiller framework and siren handling
     parser.add_argument('--compress', dest='compress', type=str, nargs='?', action='store',
                         help='configuration file for pruning the model (default is to use hard-coded schedule)')
     parser.add_argument('--sense', dest='sensitivity', choices=['element', 'filter', 'channel'],
@@ -110,6 +110,15 @@ def get_cmd_line_opts():
                         help='set it to save predicted image as png.')
     parser.add_argument('--summary', type=lambda s: s.lower(), choices=SUMMARY_CHOICES, action='append',
                         help='print a summary of the model, and exit - options: | '.join(SUMMARY_CHOICES))
+    
+    # Options for quantizing distiller model's
+    parser.add_argument('--qe_calibration', type=float, default=None, dest='qe_calibration',
+                        help='calibration ratio for quantizing model, specifies the number of batches to use for statistics generation.')
+    parser.add_argument('--quantize-eval', action='store_true', default=False, dest='quantize_eval',
+                        help='Apply linear quantization to model before evaluation. Applicable only if --evaluate is also set')
+    parser.add_argument('--qe-config-file', type=str, default=None, metavar='PATH',
+                             help='Path to YAML file containing configuration for PostTrainRLinearQuantizer '
+                                  '(if present, all other --qe* arguments are ignored)')
     
     opt = parser.parse_args()
     return opt, parser

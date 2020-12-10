@@ -30,7 +30,7 @@ import distiller.quantization.ptq_coordinate_search as lapq
 msglogger = logging.getLogger()
 
 
-def image_classifier_ptq_lapq(model, criterion, loggers, args):
+def image_regressor_ptq_lapq(model, criterion, loggers, args):
     args = deepcopy(args)
 
     effective_test_size_bak = args.effective_test_size
@@ -61,12 +61,12 @@ def image_classifier_ptq_lapq(model, criterion, loggers, args):
                 loss += criterion(outputs, targets).item()
             loss = loss / len(memoized_data_loader)
         else:
-            _, _, loss = distiller.apputils.siren_image_regressor.test(eval_data_loader, model, criterion, loggers, None, args)
+            loss, psnr_score, ssim_score = distiller.apputils.siren_image_regressor.test(eval_data_loader, model, criterion, loggers, None, args)
         return loss
 
     def test_fn(model):
-        top1, top5, loss = distiller.apputils.siren_image_regressor.test(test_data_loader, model, criterion, loggers, None, args)
-        return OrderedDict([('top-1', top1), ('top-5', top5), ('loss', loss)])
+        loss, psnr_score, ssim_score = distiller.apputils.siren_image_regressor.test(test_data_loader, model, criterion, loggers, None, args)
+        return OrderedDict([('loss_score', loss), ('psnr_score', psnr_score), ('ssim_score', ssim_score)])
 
     args.device = device
     if args.resumed_checkpoint_path:
@@ -83,18 +83,18 @@ def image_classifier_ptq_lapq(model, criterion, loggers, args):
                                                 **lapq.cmdline_args_to_dict(args))
 
     results = test_fn(quantizer.model)
-    msglogger.info("Arch: %s \tTest: \t top1 = %.3f \t top5 = %.3f \t loss = %.3f" %
-                   (args.arch, results['top-1'], results['top-5'], results['loss']))
+    msglogger.info("Arch: %s \tTest: \t loss_score = %.3f \t psnr_score = %.3f \t ssim_score = %.3f" %
+                   (args.arch, results['loss_score'], results['psnr_score'], results['ssim_score']))
     distiller.yaml_ordered_save('%s.quant_params_dict.yaml' % args.arch, qp_dict)
 
     distiller.apputils.save_checkpoint(0, args.arch, model,
-                                       extras={'top1': results['top-1'], 'qp_dict': qp_dict}, name=args.name,
+                                       extras={'loss_score': results['loss_score'], 'qp_dict': qp_dict}, name=args.name,
                                        dir=msglogger.logdir)
 
 
 if __name__ == "__main__":
-    parser = classifier.init_classifier_compression_arg_parser(include_ptq_lapq_args=True)
+    parser = distiller.apputils.siren_image_regressor.init_classifier_compression_arg_parser(include_ptq_lapq_args=True)
     args = parser.parse_args()
     args.epochs = float('inf')  # hack for args parsing so there's no error in epochs
-    cc = classifier.ClassifierCompressor(args, script_dir=os.path.dirname(__file__))
-    image_classifier_ptq_lapq(cc.model, cc.criterion, [cc.pylogger, cc.tflogger], cc.args)
+    cc = distiller.apputils.siren_image_regressor.SirenRegressorCompressor(args, script_dir=os.path.dirname(__file__))
+    image_regressor_ptq_lapq(cc.model, cc.criterion, [cc.pylogger, cc.tflogger], cc.args)

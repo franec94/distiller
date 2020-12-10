@@ -729,7 +729,11 @@ def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoc
 
 
 def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None, test_mode_on = True):
-    """Model Test"""
+    """Model Test.
+    Return
+    ------
+    `losses` - list python object keeping MSE, PSNR and SSIM scores in that precise order.\n
+    """
     msglogger.info('--- test ---------------------')
     if args is None:
         args = SirenRegressorCompressor.mock_args()
@@ -737,10 +741,10 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
         activations_collectors = create_activation_stats_collectors(model, None)
 
     with collectors_context(activations_collectors["test"]) as collectors:
-        lossses = _validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on)
+        losses = _validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on)
         distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
         save_collectors_data(collectors, msglogger.logdir)
-    return lossses
+    return losses
 
 
 # Temporary patch until we refactor early-exit handling
@@ -749,6 +753,13 @@ def _is_earlyexit(args):
 
 
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False):
+    """Validate model on validation set or test set, depending on which time instant it is called.
+    Return
+    ------
+    `loss_score` - float value corresponding to MSE score.\n
+    `psnr_score` - float value corresponding to PSNR score.\n
+    `ssim_score` - float value corresponding to SSIM score.\n
+    """
     global ONE_SHOT_MATCH_SPARSITY
     global TARGET_TOTAL_SPARSITY
 

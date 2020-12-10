@@ -20,7 +20,7 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
     --evaluate \
     --verbose 0 \
     --save-image-on-test \
-    --exp-load-weights-from "" \
+    --exp-load-weights-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar" \
     --quantize-eval \
-    --qe-config-file "" \
+    --qe-config-file "../../../quant-configs/-------.yaml" \
     --qe_lapq

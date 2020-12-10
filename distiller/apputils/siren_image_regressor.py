@@ -464,8 +464,9 @@ def _init_learner(args):
     elif args.load_model_path:
         model = distiller.apputils.load_lean_checkpoint(model, args.load_model_path, model_device=args.device)
         if args.lr != -1.0:
-            optimizer.lr = args.lr
-            msglogger.debug('Optimizer LR updated: %.2f', optimizer.lr )
+            dest_state_dict = optimizer.state_dict()
+            dest_state_dict['param_groups'][0]['lr'] = args.lr
+            optimizer.load_state_dict(dest_state_dict)
     if args.reset_optimizer:
         start_epoch = 0
         if optimizer is not None:

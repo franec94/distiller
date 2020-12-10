@@ -25,12 +25,27 @@ import distiller.apputils as apputils
 # import distiller.apputils.image_classifier as classifier
 import distiller.apputils.siren_image_regressor
 import distiller.quantization.ptq_coordinate_search as lapq
+import distiller.quantization
 
 
 msglogger = logging.getLogger()
 
+def save_arch_as_pytorch_model(model, dummy_input, args):
+    """Save quantized model as pytorch-compliant model within run output directory, of local file system.
+    Arsg:
+    -----
+    `model` - distiller quantized model.\n
+    `dummy_input` - model's dummy input.\n
+    `args` - parser.Namespace object for getting output directory where model will be saved as pytorch-compliant arch.\n
+    """
+    # dummy_input = distiller.get_dummy_input(input_shape=model.input_shape)
+    pyt_model = quantizer.convert_to_pytorch(dummy_input)
+    pyt_model_path = os.path.join(args.output_dir, 'model_pyt.th')
+    torch.save(pyt_model.state_dict(), pyt_model_path)
+    pass
 
-def image_regressor_ptq_lapq(model, criterion, loggers, args, scheduler=None):
+
+def image_regressor_ptq_lapq(model, criterion, loggers, args, scheduler=None, save_as_pytorch_model=False):
     """Post train quantization applied to a given distiller-based model"""
     args = deepcopy(args)
 
@@ -96,6 +111,11 @@ def image_regressor_ptq_lapq(model, criterion, loggers, args, scheduler=None):
         distiller.apputils.siren_image_regressor.save_predicted_data(test_loader, model, criterion, loggers,
             distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=scheduler)
+        pass
+    if save_as_pytorch_model:
+        save_arch_as_pytorch_model(model, dummy_input, args):
+        pass
+    pass
 
 
 if __name__ == "__main__":

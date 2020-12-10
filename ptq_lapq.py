@@ -30,7 +30,7 @@ import distiller.quantization.ptq_coordinate_search as lapq
 msglogger = logging.getLogger()
 
 
-def image_regressor_ptq_lapq(model, criterion, loggers, args):
+def image_regressor_ptq_lapq(model, criterion, loggers, args, scheduler=None):
     """Post train quantization applied to a given distiller-based model"""
     args = deepcopy(args)
 
@@ -91,6 +91,11 @@ def image_regressor_ptq_lapq(model, criterion, loggers, args):
     distiller.apputils.save_checkpoint(0, args.arch, model,
                                        extras={'loss_score': results['loss_score'], 'qp_dict': qp_dict}, name=args.name,
                                        dir=msglogger.logdir)
+    if args.save_image_on_test:
+        test_loader = distiller.apputils.siren_image_regressor.load_test_data(args)
+        distiller.apputils.siren_image_regressor.save_predicted_data(test_loader, model, criterion, loggers,
+            distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
+                args, scheduler=scheduler)
 
 
 if __name__ == "__main__":

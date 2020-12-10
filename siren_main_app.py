@@ -175,7 +175,7 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
         do_exit = True
     elif args.evaluate:
         if args.quantize_eval and args.qe_lapq:
-            image_regressor_ptq_lapq(model, criterion, pylogger, args)
+            image_regressor_ptq_lapq(model, criterion, pylogger, args, scheduler=compression_scheduler)
             pass
         else:
             test_loader = load_test_data(args)

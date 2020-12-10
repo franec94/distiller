@@ -1,8 +1,10 @@
+version: 1
 quantizers:
   post_train_quantizer:
     class: PostTrainLinearQuantizer
-    bits_activations: null
-    bits_parameters: 8
+    bits_activations: 32
     bits_accum: 32
-  
-  mode: SYMMETRIC_UNSIGNED
+    bits_parameters: 8
+    # overrides: null    
+    fpq_module: 16
+    mode: SYMMETRIC

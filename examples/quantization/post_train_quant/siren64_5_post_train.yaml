@@ -1,4 +1,3 @@
-version: 1
 quantizers:
   post_train_quantizer:
     class: PostTrainLinearQuantizer

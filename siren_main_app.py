@@ -37,8 +37,12 @@ msglogger = logging.getLogger()
 
 
 def init_regressor_default_args(args, opt):
-
-    
+    """Init args Namespaceobject to be employed by regression class for representing input image by an inplicit representation.
+    Args
+    ----
+    `args` - Namespace object to be correctly configurated.\n
+    `opt` - Namespace object from script used to provide or supply some arguments collected from cmd line to Regression Class args.\n
+    """
     args.seed = opt.seed[0]
     args.deterministic = True
     args.load_serialized = False

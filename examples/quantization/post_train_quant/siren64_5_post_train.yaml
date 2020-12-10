@@ -1,9 +1,31 @@
 quantizers:
   post_train_quantizer:
     class: PostTrainLinearQuantizer
-    # bits_activations: 32
-    # bits_accum: 32
-    bits_parameters: 16
+    bits_activations: 32
+    bits_accum: 32
+    bits_parameters: 8
     # overrides: null    
     # fpq_module: 16
     mode: SYMMETRIC
+    override:
+      net.0.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.1.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.2.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.3.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.4.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.5.linear:
+        bits_weights: 8
+        bits_bias: null
+      net.6:
+        bits_weights: 8
+        bits_bias: null

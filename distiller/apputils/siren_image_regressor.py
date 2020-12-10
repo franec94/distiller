@@ -1129,8 +1129,8 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
             model = _convert_ptq_to_pytorch(model, args)
         return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
     else:
-        return quantize_and_test_model(test_loader, model, criterion, args, loggers,
-                                       scheduler=scheduler, save_flag=True)
+        # return quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
+        pass
 
 
 def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):

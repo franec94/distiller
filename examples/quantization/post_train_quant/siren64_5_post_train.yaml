@@ -5,5 +5,5 @@ quantizers:
     bits_accum: 32
     bits_parameters: 8
     # overrides: null    
-    fpq_module: 16
+    # fpq_module: 16
     mode: SYMMETRIC

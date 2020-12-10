@@ -12,7 +12,7 @@
 CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
     --logging_root '../../../results/cameramen/distiller-siren/evals/ptq-eval' \
     --experiment_name 'test' \
-    --sidelength {SIDELENGHT} \
+    --sidelength 256 \
     --n_hf 64 \
     --n_hl 5 \
     --seed 0 \
@@ -20,7 +20,7 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
     --evaluate \
     --verbose 0 \
     --save-image-on-test \
-    --exp-load-weights-from ""\
+    --exp-load-weights-from "" \
     --quantize-eval \
     --qe-config-file "" \
     --qe_lapq

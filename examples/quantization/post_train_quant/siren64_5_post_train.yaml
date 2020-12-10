@@ -1,7 +1,7 @@
 quantizers:
   post_train_quantizer:
     class: PostTrainLinearQuantizer
-    bits_activations: 32
+    bits_activations: null
     bits_parameters: 8
     bits_accum: 32
   

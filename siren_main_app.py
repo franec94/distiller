@@ -72,6 +72,7 @@ def init_regressor_default_args(args, opt):
     args.save_image_on_test = opt.save_image_on_test
     args.qe_lapq = opt.qe_lapq
     args.quantize_eval = opt.quantize_eval
+    args.qe_config_file = qe_config_file
 
     if opt.logging_root == '':
         args.output_dir = None

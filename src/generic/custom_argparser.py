@@ -116,7 +116,7 @@ def get_cmd_line_opts():
                         help='calibration ratio for quantizing model, specifies the number of batches to use for statistics generation.')
     parser.add_argument('--quantize-eval', action='store_true', default=False, dest='quantize_eval',
                         help='Apply linear quantization to model before evaluation. Applicable only if --evaluate is also set')
-    parser.add_argument('--qe-config-file', type=str, default=None, metavar='PATH',
+    parser.add_argument('--qe-config-file', type=str, default=None, metavar='PATH', dest='qe_config_file'
                              help='Path to YAML file containing configuration for PostTrainRLinearQuantizer '
                                   '(if present, all other --qe* arguments are ignored)')
     parser.add_argument('--qe_lapq', action='store_true', default=False, dest='qe_lapq',

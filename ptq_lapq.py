@@ -31,6 +31,7 @@ msglogger = logging.getLogger()
 
 
 def image_regressor_ptq_lapq(model, criterion, loggers, args):
+    """Post train quantization applied to a given distiller-based model"""
     args = deepcopy(args)
 
     effective_test_size_bak = args.effective_test_size

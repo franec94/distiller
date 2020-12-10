@@ -119,6 +119,8 @@ def get_cmd_line_opts():
     parser.add_argument('--qe-config-file', type=str, default=None, metavar='PATH',
                              help='Path to YAML file containing configuration for PostTrainRLinearQuantizer '
                                   '(if present, all other --qe* arguments are ignored)')
+    parser.add_argument('--qe_lapq', action='store_true', default=False, dest='qe_lapq',
+                             help='Post train quantization evaluation.')                        
     
     opt = parser.parse_args()
     return opt, parser

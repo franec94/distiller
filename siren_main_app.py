@@ -25,7 +25,7 @@ import distiller.apputils
 import examples.siren_compression.custom_parser 
 import os
 import numpy as np
-# from ptq_lapq import image_classifier_ptq_lapq
+from ptq_lapq import image_regressor_ptq_lapq
 
 from distiller.models import register_user_model
 from distiller.models.siren import Siren
@@ -175,7 +175,7 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
         do_exit = True
     elif args.evaluate:
         if args.quantize_eval and args.qe_lapq:
-            # image_classifier_ptq_lapq(model, criterion, pylogger, args)
+            image_regressor_ptq_lapq(model, criterion, pylogger, args)
             pass
         else:
             test_loader = load_test_data(args)

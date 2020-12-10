@@ -1,0 +1,15 @@
+python siren_main_app.py ^
+    --logging_root "D:\data\data_thesys\tmp\evals\ptq-eval" ^
+    --experiment_name 'test' ^
+    --sidelength 256 ^
+    --n_hf 64 ^
+    --n_hl 5 ^
+    --seed 0 ^
+    --cuda ^
+    --evaluate ^
+    --verbose 0 ^
+    --save-image-on-test ^
+    --exp-load-weights-from "D:\data\data_thesys\distiller-siren\cameramen\baselines\___2020.11.29-231149\_mid_ckpt_epoch_299999.pth.tar" ^
+    --quantize-eval ^
+    --qe-config-file "C:\Users\Francesco\Documents\thesys\code\github_projects\mixining-siren-distiller\distiller\examples\quantization\post_train_quant\siren64_5_post_train.yaml" ^
+    --qe_lapq

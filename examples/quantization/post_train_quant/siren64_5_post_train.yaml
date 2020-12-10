@@ -5,7 +5,7 @@ quantizers:
     bits_accum: 32
     bits_parameters: 8
     mode:
-      activations: ASYMMETRIC_UNSIGNED
+      activations: SYMMETRIC
       weights: SYMMETRIC
     overrides:
       net.0.linear:

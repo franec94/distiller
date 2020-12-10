@@ -1127,10 +1127,9 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
         # Handle case where a post-train quantized model was loaded, and user wants to convert it to PyTorch
         if args.qe_convert_pytorch:
             model = _convert_ptq_to_pytorch(model, args)
-        return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
     else:
-        # return quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
-        pass
+        quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
+    return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
 
 
 def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):

@@ -7,7 +7,7 @@ quantizers:
     # overrides: null    
     # fpq_module: 16
     mode: SYMMETRIC
-    override:
+    overrides:
       net.0.linear:
         bits_weights: 8
         bits_bias: null

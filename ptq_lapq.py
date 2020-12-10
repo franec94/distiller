@@ -30,11 +30,11 @@ import distiller.quantization
 
 msglogger = logging.getLogger()
 
-def save_arch_as_pytorch_model(model, dummy_input, args):
+def save_arch_as_pytorch_model(quantizer, dummy_input, args):
     """Save quantized model as pytorch-compliant model within run output directory, of local file system.
     Arsg:
     -----
-    `model` - distiller quantized model.\n
+    `quantizer` - distiller.quantization.PostTrainLinearQuantizer object.\n
     `dummy_input` - model's dummy input.\n
     `args` - parser.Namespace object for getting output directory where model will be saved as pytorch-compliant arch.\n
     """
@@ -113,7 +113,7 @@ def image_regressor_ptq_lapq(model, criterion, loggers, args, scheduler=None, sa
                 args, scheduler=scheduler)
         pass
     if save_as_pytorch_model:
-        save_arch_as_pytorch_model(model, dummy_input, args):
+        save_arch_as_pytorch_model(quantizer, dummy_input, args)
         pass
     pass
 

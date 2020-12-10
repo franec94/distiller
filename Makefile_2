@@ -7,13 +7,13 @@ RUN_PROGRAM_APP = run_program_siren_app.sh
 RUN_PROGRAM = run_program_siren_app.sh
 TEST_RUN_PROGRAM = test_run_program_siren_app.sh
 
-
+RUN_PROGRAM_PTQ = run_program_siren_app_ptq.sh
 RUN_PROGRAM_AGP_PRUNE = run_program_siren_app_pruning_agp.sh
 RUN_PROGRAM_FINE_TUNE_TMP = run_program_siren_app_tmp.sh
 
 
 # ======================== #
-# Targets
+# Makefile_2 Targets:
 # ======================== #
 
 run_program_train_on_cameramen:
@@ -26,21 +26,41 @@ run_program_siren_app_train_on_cameramen:
 	chmod u+x $(RUN_PROGRAM_APP)
 	./$(RUN_PROGRAM_APP)
 
+# =============================================== #
+# Pruning tasks
+# =============================================== #
 run_program_siren_app_train_on_cameramen_agp_prune:
 	clear
 	chmod u+x $(RUN_PROGRAM_AGP_PRUNE)
 	./$(RUN_PROGRAM_AGP_PRUNE)
 
+# =============================================== #
+# Test tasks
+# =============================================== #
 test_run_program_siren_app_train_on_cameramen:
 	clear
 	chmod u+x $(TEST_RUN_PROGRAM)
 	./$(TEST_RUN_PROGRAM)
 
+# =============================================== #
+# Install dependencies tasks
+# =============================================== #
 install_distiller_dependencies_via_requirements_file:
 	clear
 	pip install -r requirements.txt
 
+# =============================================== #
+# Fine tune tasks
+# =============================================== #
 run_program_siren_app_train_on_cameramen_fine_tune:
 	clear
 	chmod u+x $(RUN_PROGRAM_FINE_TUNE_TMP)
 	./$(RUN_PROGRAM_FINE_TUNE_TMP)
+
+# =============================================== #
+# Test tasks
+# =============================================== #
+run_program_siren_app_test_on_cameramen_ptq:
+	clear
+	chmod u+x $(RUN_PROGRAM_PTQ)
+	./$(RUN_PROGRAM_PTQ)

@@ -1,0 +1,39 @@
+# Swith to decide whether focusing onto a single run or diving to 
+# analysis that takes into account multiple runs.
+data_fetch_strategy:
+    is_single_run: False
+    fetch_from_db: True
+    
+db_infos:
+    is_local_db: True
+    root_data_dir: 'D:\data\data_thesys\'
+    db_name: 'siren-db-train.db'
+    db_location: 'D:\data\data_thesys\databases'
+    db_url: 'None'
+
+# Dataframe details:
+columns_df_str: "#params;seed;hl;hf;mse;psnr;ssim;eta"
+
+# Infos exploited when dealing with data collected from a single run.
+result_file_path: "C:\\Users\\Francesco\\Documents\\tests\\siren-tests\\siren-train-logs\\cameramen\\23-10-2020\\1603410154-248962\\train\\result_comb_train.txt"
+result_timestamp: None
+
+cropped_image:
+    flag: True
+    crop_size: (256, 256)
+
+# Infos exploited when dealing with data collected from a multiple runs.
+results_file_paths:
+ - "C:\\Users\\Francesco\\Documents\\tests\\siren-tests\\siren-train-logs\\cameramen\\23-10-2020\\1603410154-248962\\train\\result_comb_train.txt"
+ - "C:\\Users\\Francesco\\Documents\\tests\\siren-tests\\siren-train-logs\\cameramen\\23-10-2020\\1603478755-305517\\train\\result_comb_train.txt"
+ - "C:\\Users\\Francesco\\Documents\\tests\\siren-tests\\siren-train-logs\\cameramen\\23-10-2020\\1603421693-497763\\train\\result_comb_train.txt"
+ 
+results_timestamps:
+ - "1603410154-248962"
+ - "1603478755-305517"
+ - "1603421693-497763"
+
+images:
+    - cropped_image:
+        flag: False
+        crop_size: (256, 256)

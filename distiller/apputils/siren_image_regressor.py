@@ -1269,10 +1269,10 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
     if early_stopping_agp is not None:
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
         if early_stopping_agp.is_triggered_once():
-            msglogger.info(f"Total sparsity: {total} has been met at epoch: {epoch}")
+            msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
         if early_stopping_agp.is_triggered():
             epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-            msglogger.info(f"EarlyStoppingAGP before halting training: ({epochs_done}/{total_epochs_to_patience})")
+            msglogger.info(f"EarlyStoppingAGP: before halting training: ({epochs_done}/{total_epochs_to_patience})")
             pass
         pass
 
@@ -1422,7 +1422,7 @@ class EarlyStoppingAGP(object):
         `int` - total epoch to patience.\n
         """
         self._steps_to_trail_epochs += 1
-        return self.trail_epochs - self._steps_to_trail_epochs, self.trail_epochs
+        return self._steps_to_trail_epochs, self.trail_epochs
 
     def stop_training(self):
         """Check wheter it is necessary to stop training.

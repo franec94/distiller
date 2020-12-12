@@ -96,7 +96,7 @@ def show_table(y, y_2, labels):
     table = tabulate.tabulate(**table_data_dict)
     print(table)
     print("==> Last entry recorded:")
-    print(tabulate.tabulate(data_df.tail(1),headers=data_df.columns))
+    print(tabulate.tabulate(data_df.tail(3),headers=data_df.columns))
     return data_df
 
 
@@ -167,7 +167,7 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
                 point_marker='+', axes_color='',)
             plx.show()
         else:
-            print("==> plot_graphics...")
+            # print("==> plot_graphics...")
             plx.scatter(x, y, rows = 17, cols = 70, \
                 equations=True, \
                 point_color='red', axes=True, \

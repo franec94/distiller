@@ -18,7 +18,7 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --n_hl 5 \
   --seed 0 \
   --cuda \
-  --num_epochs 450000 \
+  --num_epochs 475000 \
   --lr 0.0001 \
   --lambda_L_1 0 \
   --lambda_L_2 0 \
@@ -27,7 +27,11 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --train \
   --evaluate \
   --verbose 0 \
-  --resume-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar"
+  --resume-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar" \
+  --target_sparsity \
+  --toll_sparsity 2.0 \
+  --patience_sparsity 1000 \
+  --trail_epochs 1000
 
 # --compress ./examples/agp-pruning/siren64_5.schedule_agp.yaml \
 # --save_mid_ckpts 99999 149999 174999 199999 \

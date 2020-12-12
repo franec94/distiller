@@ -122,5 +122,14 @@ def get_cmd_line_opts():
     parser.add_argument('--qe_lapq', action='store_true', default=False, dest='qe_lapq',
                              help='Post train quantization evaluation.')                        
     
+
+    parser.add_argument('--target_sparsity', dest='target_sparsity', type=float, default=None,
+                        help='Target sparsity, if None no earlystopping on sparsity is exploited.')
+    parser.add_argument('--toll_sparsity', dest='toll_sparsity', type=float, default=2.0,
+                        help='Target toll sparsity.')
+    parser.add_argument('--patience_sparsity', dest='patience_sparsity', type=float, default=5,
+                        help='Target patience sparsity.')
+    parser.add_argument('--trail_epochs', dest='trail_epochs', type=float, default=5,
+                        help='Target trail epochs sparsity.')
     opt = parser.parse_args()
     return opt, parser

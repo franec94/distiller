@@ -87,6 +87,13 @@ class SirenRegressorCompressor(object):
         except Exception as _:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
         
+        if self.args.target_sparsity is not None:
+            self.early_stopping_agp = EarlyStoppingAGP(
+                target_sparsity=self.args.target_sparsity, toll=self.args.toll_sparsity,
+                patience=self.args.patience_sparsity, trail_epochs=self.args.trail_epochs)
+        else:
+            self.early_stopping_agp = None
+        
     
     def load_datasets(self):
         """Load the datasets"""
@@ -228,6 +235,10 @@ class SirenRegressorCompressor(object):
                 msglogger.info('\n')
             loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
+            if self.early_stopping_agp is not None:
+                if self.early_stopping_agp.stop_training():
+                    self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
+                    break
         return self.performance_tracker.perf_scores_history
 
 
@@ -366,6 +377,16 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
                help='Fixed desired checkpoints to be saved, at a given epoch, a part from default saving checkpoint system. Default empty list, meaning no intermediate checkpoints')
     parser_regressor.add_argument('--save-image-on-test', dest='save_image_on_test', action='store_true',
                         help='set it to save predicted image as png.')
+    
+    parser_regressor.add_argument('--target_sparsity', dest='target_sparsity', type=float, default=None,
+                        help='Target sparsity, if None no earlystopping on sparsity is exploited.')
+    parser_regressor.add_argument('--toll_sparsity', dest='toll_sparsity', type=float, default=2.0,
+                        help='Target toll sparsity.')
+    parser_regressor.add_argument('--patience_sparsity', dest='patience_sparsity', type=float, default=5,
+                        help='Target patience sparsity.')
+    parser_regressor.add_argument('--trail_epochs', dest='trail_epochs', type=float, default=5,
+                        help='Target trail epochs sparsity.')
+
     distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
     return parser_regressor
 
@@ -575,7 +596,7 @@ def early_exit_mode(args):
 
 
 def train(train_loader, model, criterion, optimizer, epoch,
-          compression_scheduler, loggers, args, is_last_epoch = False):
+          compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -693,7 +714,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args)
+        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp)
         if is_last_epoch:
             _log_training_progress()
             _log_train_epoch_pruning(args, epoch)
@@ -1236,7 +1257,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
         return losses_exits_stats[args.num_exits-1]
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp: EarlyStoppingAGP):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     global msglogger
     global FIND_EPOCH_FOR_PRUNING
@@ -1244,6 +1265,14 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args):
 
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+
+    early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
+    if early_stopping_agp.is_triggered_once():
+        msglogger.info(f"Total sparsity: {total} has been met at epoch: {epoch}")
+    if early_stopping_agp.is_triggered():
+        epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
+        msglogger.info(f"EarlyStoppingAGP before halting training: ({epochs_done}/{total_epochs_to_patience})")
+        pass
 
     is_updated = False
 
@@ -1320,4 +1349,87 @@ def _log_train_epoch_pruning(args, epoch):
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
         pass
+    pass
+
+
+class EarlyStoppingAGP(object):
+    """Class defining EarlyStoppingAGP behaviour."""
+    def __init__(self, target_sparsity, toll=2.0, patience=5, trail_epochs=5):
+        """Instantiate EarlyStoppingAGP object.
+        Args:
+        -----
+        `target_sparsity` - float, rate of sparsity level to achieve.\n
+        `toll` - float, tolerance for allowing early-stopping to be triggered even if total target sparsity is not met, in order to shorten training time.\n
+        `patience` - number of epoch before triggering EarlyStoppingAGP when toll is met.\n
+        `trail_epochs` - number of epoch after which train will be stopped, once early stopping have been triggered.\n
+        """
+        self.target_sparsity = target_sparsity
+        self.toll = toll
+        self.patience = patience
+        self.trail_epochs = trail_epochs
+
+        self._steps_to_trail_epochs = 0
+        self._steps_to_patience = 0
+        
+        self._is_triggered_flag = False
+        self._curr_sparsity = 0.0
+        pass
+    def is_triggered(self,):
+        """Check whether is trieggered.
+        Return:
+        -------
+        `bool` - illustrating whether or not earlystopping-agp have been triggered.\n
+        """
+        return self.is_triggered
+    def is_triggered_once(self,):
+        """Check whether is trieggered.
+        Return:
+        -------
+        `bool` - illustrating whether or not earlystopping-agp have been triggered.\n
+        """
+        if self.is_triggered:
+            return False
+        return self.is_triggered
+    
+    def check_total_sparsity_is_met(self, curr_sparsity):
+        """Check whether total sparsity is met.
+        Args:
+        -----
+        `curr_sparsity` - float, current sparsity level.\n
+        """
+        
+        if curr_sparsity >= self.target_sparsity:
+            self.is_triggered = True
+        elif curr_sparsity >= self.target_sparsity - self.toll:
+            if self._curr_sparsity == curr_sparsity:
+                self._steps_to_patience += 1
+            else:
+                self._curr_sparsity = curr_sparsity
+            if self._steps_to_patience == self.patience:
+                self.is_triggered = True
+            pass
+        else:
+            self._curr_sparsity = curr_sparsity
+        pass
+
+    def update_trail_epochs(self,):
+        """Update info about patience to let pass before stopping defenitely training.
+        Return:
+        -------
+        `int` - remaining epochs before training will be halted.\n
+        `int` - total epoch to patience.\n
+        """
+        self._steps_to_trail_epochs += 1
+        return self.trail_epochs - self._steps_to_trail_epochs, self.trail_epochs
+
+    def stop_training(self):
+        """Check wheter it is necessary to stop training.
+        Return:
+        -------
+        `bool` - illustrating whether or not it is mandatory to stop training.\n
+        """
+        if self.is_triggered():
+            if self._steps_to_trail_epochs == self.trail_epochs:
+                return True
+        return False
     pass

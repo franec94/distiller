@@ -84,6 +84,17 @@ function get_var_via_awk() {
   cat data.txt | awk 'BEGIN{tot_lines=0; acc=0;} {acc+=($1-mean)*($1-mean); tot_lines++;} END{printf("Var: %.2f\n", acc/tot_lines)} '
 }
 
+function show_curr_epoch() {
+  echo "==== Show Epochs Achieved ===="
+  curr_epoch=$(cat ${file_name} | grep -e "^.*epoch=.*$" | tail -n 1 |cut -d '=' -f 2 | cut -d "(" -f 1 | cut -d ')' -f 1)
+  target_epochs=$(cat ${file_name} | grep -e "^.*--num_epochs.*$" | tail -n 1 \
+    | awk --field-separator="--" '{for(i=0; i < NF; i++) { if($i ~ /^num_epochs/) {printf("%s\n", $i); break;}}}'\
+    | cut -d " " -f 2)
+  echo "[*] $curr_epoch / $target_epochs"
+  remaining_epochs=$( echo ${target_epochs} - ${curr_epoch} | bc -l )
+  echo "[*] Still to go $remaining_epochs"
+}
+
 function show_sparsity_details() {
   echo "==== Show Sparsity Level Achieved ===="
 
@@ -113,6 +124,8 @@ save_data_as_txt_file ${file_name}
 
 # print_raw_table ${file_name}
 
+# Show some basic infos.
+show_curr_epoch
 show_sparsity_details
 
 # Show data extraced from raw log as graphics

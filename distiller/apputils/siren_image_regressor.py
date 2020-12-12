@@ -1257,7 +1257,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
         return losses_exits_stats[args.num_exits-1]
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp: EarlyStoppingAGP = None):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     global msglogger
     global FIND_EPOCH_FOR_PRUNING

@@ -75,8 +75,13 @@ def show_table(y, y_2, labels):
     `y` - np.ndarray for y-axis coordinates, Psnr Scores.\n
     """
     # print("==> Show data stats:")
-    columns = f"{labels}".split(",")
-    y_tmp = np.array(list(zip(y, y_2)))
+    columns = f"{labels},bpp".split(",")
+    n_hf, n_hl = 64, 5
+    w, h = 256, 256
+    baseline_size = (n_hf*2 + 2) + (n_hf **2 * n_hl + n_hf * n_hl) + (n_hf + 1)
+
+    y_3 = (baseline_size - y_2 * baseline_size/100) * 32 / (w * h)
+    y_tmp = np.array(list(zip(y, y_2, y_3)))
     # data_df = pd.DataFrame(y_tmp[:np.newaxis], columns=columns)
     data_df = pd.DataFrame(y_tmp, columns=columns)
     # print(data_df.describe())
@@ -91,11 +96,11 @@ def show_table(y, y_2, labels):
     table = tabulate.tabulate(**table_data_dict)
     print(table)
     print("==> Last entry recorded:")
-    print(tabulate.tabulate(data_df.tail(1)))
-    pass
+    print(tabulate.tabulate(data_df.tail(1),headers=data_df.columns))
+    return data_df
 
 
-def plot_graphics(x, y, x_2, y_2):
+def plot_graphics(args, x, y, x_2, y_2, data_df):
     """Plot graphics related to Psrn score.
     Args
     ----
@@ -107,28 +112,86 @@ def plot_graphics(x, y, x_2, y_2):
     try:
         y_pred = compute_regression_curve(x, y)
         y_pred_2 = compute_regression_curve(x_2, y_2)
+        y_pred_3 = compute_regression_curve(x, data_df['bpp'].values)
 
-        print("==> plot_graphics...")
-        plx.scatter(x, y, rows = 17, cols = 70, \
-            equations=True, \
-            point_color='red', axes=True, \
-            point_marker='*', axes_color='')
-    
-        plx.plot(x, y_pred, rows = 17, cols = 70, \
-            equations=True, \
-            line_color='blue', axes=True, \
-            point_marker='*', axes_color='')
+        if args.show_bpp_trend:
+            plx.plot(x, data_df['bpp'].values, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='red', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.plot(x, y_pred_3, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='yellow', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.show()
+        elif args.show_psnr_trend:
+            plx.scatter(x, y, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='red', axes=True, \
+                point_marker='*', axes_color='')
         
-        plx.scatter(x_2, y_2, rows = 17, cols = 70, \
-            equations=True, \
-            point_color='pink', axes=True, \
-            point_marker='*', axes_color='')
-    
-        plx.plot(x, y_pred_2, rows = 17, cols = 70, \
-            equations=True, \
-            line_color='green', axes=True, \
-            point_marker='+', axes_color='')
-        plx.show()
+            plx.plot(x, y_pred, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='blue', axes=True, \
+                point_marker='*', axes_color='')
+            plx.show()
+            pass
+        elif args.show_psnr_vs_bpp:
+            # plx.scatter(data_df['bpp'].values, data_df['Psnr score'].values, rows = 17, cols = 70, \
+            plx.scatter(data_df['bpp'].values, y, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='red', axes=True, \
+                point_marker='*', axes_color='')
+
+            y_psnr_pred = compute_regression_curve(
+                np.array(list(data_df['bpp'].values)),
+                # np.array(list(data_df['Psnr score'].values)))
+                y
+                )
+        
+            plx.plot(data_df['bpp'].values, y_psnr_pred, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='blue', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.show()
+            pass
+        elif args.show_prune_trend:
+            plx.scatter(x_2, y_2, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='orange', axes=True, \
+                point_marker='*', axes_color='')
+        
+            plx.plot(x, y_pred_2, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='green', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.show()
+        else:
+            print("==> plot_graphics...")
+            plx.scatter(x, y, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='red', axes=True, \
+                point_marker='*', axes_color='')
+        
+            plx.plot(x, y_pred, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='blue', axes=True, \
+                point_marker='*', axes_color='')
+            
+            plx.scatter(x_2, y_2, rows = 17, cols = 70, \
+                equations=True, \
+                point_color='orange', axes=True, \
+                point_marker='*', axes_color='')
+        
+            plx.plot(x, y_pred_2, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='green', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.plot(x, y_pred_3, rows = 17, cols = 70, \
+                equations=True, \
+                line_color='yellow', axes=True, \
+                point_marker='+', axes_color='',)
+            plx.show()
     except Exception as err:
         print(f"Error: occurred when plotting data via plotext.\n{str(err)}")
         pass
@@ -166,6 +229,8 @@ def show_both_data_from_filtered_log(args):
     x, y, x_2, y_2 = read_data(args)
     # show_table(y, label='Psnr score')
     # show_table(y_2, label='Prune trend')
-    show_table(y, y_2, labels='Psnr score,Prune trend')
-    plot_graphics(x, y, x_2, y_2)
+    data_df = show_table(y, y_2, labels='Psnr score,Prune trend')
+    plot_graphics(args, x, y, x_2, y_2, data_df)
+
+    data_df.to_csv("data.csv")
     pass

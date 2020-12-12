@@ -1270,9 +1270,10 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
         if early_stopping_agp.is_triggered_once():
             msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
-        if early_stopping_agp.is_triggered():
+        is_triggered = early_stopping_agp.is_triggered()
+        if is_triggered:
             epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-            msglogger.info(f"EarlyStoppingAGP: before halting training: ({epochs_done}/{total_epochs_to_patience})")
+            msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
             pass
         pass
 
@@ -1382,16 +1383,16 @@ class EarlyStoppingAGP(object):
         -------
         `bool` - illustrating whether or not earlystopping-agp have been triggered.\n
         """
-        return self.is_triggered
+        return self._is_triggered_flag
     def is_triggered_once(self,):
         """Check whether is trieggered.
         Return:
         -------
         `bool` - illustrating whether or not earlystopping-agp have been triggered.\n
         """
-        if self.is_triggered:
+        if self._is_triggered_flag:
             return False
-        return self.is_triggered
+        return self._is_triggered_flag
     
     def check_total_sparsity_is_met(self, curr_sparsity):
         """Check whether total sparsity is met.
@@ -1401,14 +1402,14 @@ class EarlyStoppingAGP(object):
         """
         
         if curr_sparsity >= self.target_sparsity:
-            self.is_triggered = True
+            self._is_triggered_flag = True
         elif curr_sparsity >= self.target_sparsity - self.toll:
             if self._curr_sparsity == curr_sparsity:
                 self._steps_to_patience += 1
             else:
                 self._curr_sparsity = curr_sparsity
             if self._steps_to_patience == self.patience:
-                self.is_triggered = True
+                self._is_triggered_flag = True
             pass
         else:
             self._curr_sparsity = curr_sparsity

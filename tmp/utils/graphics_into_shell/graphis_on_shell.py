@@ -20,11 +20,14 @@ def main(args):
   _ = check_input_file_from_args(args)
 
   if args.show_data_from_log:
-    show_data_from_filtered_log(args)
+    if args.input_file:
+      show_data_from_filtered_log(args)
   elif args.show_data_from_tb_log:
-    show_data_from_tb_log(args)
+    if args.input_file:
+      show_data_from_tb_log(args)
     pass
-
+  if args.input_file_pruning_trend:
+    show_pruning_trend_from_filtered_log(args)
   pass
 
 if __name__ == "__main__":

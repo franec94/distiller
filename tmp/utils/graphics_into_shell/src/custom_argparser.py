@@ -10,8 +10,10 @@ def get_custom_argparser():
     """
 
     parser = argparse.ArgumentParser(description="Create text graphics from input data collected earlier within file in textual format or either format such as json, yaml, csv.")
-    parser.add_argument('--input_file', dest='input_file', type=str, \
+    parser.add_argument('--input_file', dest='input_file', type=str, default=None, \
         help='Path to input file which is stored within local file system')
+    parser.add_argument('--input_file_pruning_trend', dest='input_file_pruning_trend', type=str, default=None, \
+        help='Path to input file which is stored within local file system about pruning trend. If none no trend about pruning rate will be shown.')
     parser.add_argument('--experiment_id', dest='experiment_id',  type=str, default=None, \
         help='experiment id referring to data stored by means of tensorboard into a proper log file.'
     )
@@ -24,4 +26,5 @@ def get_custom_argparser():
     parser.add_argument('--show_stats_transposed', dest='show_stats_transposed', action='store_true', default=False, \
         help='set to show data reported within log file and extracted from it transposed for displaying reasons.'
     )
+    
     return parser

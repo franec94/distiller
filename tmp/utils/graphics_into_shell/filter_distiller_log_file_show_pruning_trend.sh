@@ -147,6 +147,7 @@ show_sparsity_details
 echo "==== Plot Psnr Trend ===="
 python3 graphis_on_shell.py \
   --input_file data.txt \
+  --input_file_pruning_trend data_sparsity.txt  \
   --show_stats_transposed --show_data_from_log
 
 exit 0

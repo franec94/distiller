@@ -134,7 +134,7 @@ class SirenRegressorCompressor(object):
         with collectors_context(self.activations_collectors["train"]) as collectors:
             loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
                                      epoch, self.compression_scheduler, 
-                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch)
+                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch, early_stopping_agp=self.early_stopping_agp)
             if verbose:
                 if epoch >= 0 and epoch % self.args.print_freq == 0:
                     if self.args.compress != None and self.args.compress != '':
@@ -1257,7 +1257,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
         return losses_exits_stats[args.num_exits-1]
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp: EarlyStoppingAGP):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp: EarlyStoppingAGP = None):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     global msglogger
     global FIND_EPOCH_FOR_PRUNING
@@ -1266,12 +1266,14 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
     policies_list = list(compression_scheduler.sched_metadata.keys())
     t, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
 
-    early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
-    if early_stopping_agp.is_triggered_once():
-        msglogger.info(f"Total sparsity: {total} has been met at epoch: {epoch}")
-    if early_stopping_agp.is_triggered():
-        epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-        msglogger.info(f"EarlyStoppingAGP before halting training: ({epochs_done}/{total_epochs_to_patience})")
+    if early_stopping_agp is not None:
+        early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
+        if early_stopping_agp.is_triggered_once():
+            msglogger.info(f"Total sparsity: {total} has been met at epoch: {epoch}")
+        if early_stopping_agp.is_triggered():
+            epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
+            msglogger.info(f"EarlyStoppingAGP before halting training: ({epochs_done}/{total_epochs_to_patience})")
+            pass
         pass
 
     is_updated = False

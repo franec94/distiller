@@ -70,9 +70,6 @@ def init_regressor_default_args(args, opt):
     args.verbose = True
     args.save_mid_ckpts = opt.save_mid_ckpts
     args.save_image_on_test = opt.save_image_on_test
-    args.qe_lapq = opt.qe_lapq
-    args.quantize_eval = opt.quantize_eval
-    args.qe_config_file = opt.qe_config_file
 
     if opt.logging_root == '':
         args.output_dir = None
@@ -96,8 +93,35 @@ def init_regressor_default_args(args, opt):
     args.evaluate = False
     if opt.evaluate and opt.train == False:
         args.evaluate = opt.evaluate
+
+    args = _config_early_stopping_sparsity(args, opt)
+    args = _config_ptq(args, opt)
     return args
 
+def _config_early_stopping_sparsity(args, opt):
+    """Update args keeping run config for holding options for employing if necessary early stopping algorithm for sparsity monitoring.
+    Args
+    ----
+    `args` - Namespace object to be correctly configurated.\n
+    `opt` - Namespace object from script used to provide or supply some arguments collected from cmd line to Regression Class args.\n
+    """
+    args.target_sparsity = opt.target_sparsity
+    args.toll_sparsity = opt.toll_sparsity
+    args.patience_sparsity = opt.patience_sparsity
+    args.trail_epochs = opt.trail_epochs
+    return args
+
+def _config_ptq(args, opt):
+    """Update args keeping run config for holding options for post train quant.
+    Args
+    ----
+    `args` - Namespace object to be correctly configurated.\n
+    `opt` - Namespace object from script used to provide or supply some arguments collected from cmd line to Regression Class args.\n
+    """
+    args.qe_lapq = opt.qe_lapq
+    args.quantize_eval = opt.quantize_eval
+    args.qe_config_file = opt.qe_config_file
+    return args
 
 def config_learner_args(args, arch, dataset, dataset_path, pretrained, adam_args, batch, epochs):
     args.arch = f"{arch}"

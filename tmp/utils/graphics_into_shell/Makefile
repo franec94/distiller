@@ -4,6 +4,7 @@
 # ============================ #
 FILTER_BASH_SCRIPT = filter_distiller_log_file.sh
 FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND = filter_distiller_log_file_show_pruning_trend.sh
+FILTER_BASH_SCRIPT_SHOW_BOTH = filter_distiller_log_file_show_both.sh
 BASH_SCRIPT = filter_distiller_log_file_tb.sh
 BASH_INTERPRETER = bash
 
@@ -23,6 +24,11 @@ show_stats_curr_run_prun_trend:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND)
 	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND)
+
+show_stats_curr_run_both_stats:
+	clear
+	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_BOTH)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BOTH)
 
 show_tb_stats_curr_run:
 	clear

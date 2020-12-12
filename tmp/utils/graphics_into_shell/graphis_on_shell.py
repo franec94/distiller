@@ -19,6 +19,10 @@ def main(args):
   """
   _ = check_input_file_from_args(args)
 
+
+  if args.show_both_same_graphics:
+    show_both_data_from_filtered_log(args)
+    return
   if args.show_data_from_log:
     if args.input_file:
       show_data_from_filtered_log(args)

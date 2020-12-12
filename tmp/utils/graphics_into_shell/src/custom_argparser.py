@@ -26,5 +26,8 @@ def get_custom_argparser():
     parser.add_argument('--show_stats_transposed', dest='show_stats_transposed', action='store_true', default=False, \
         help='set to show data reported within log file and extracted from it transposed for displaying reasons.'
     )
+    parser.add_argument('--show_both_same_graphics', dest='show_both_same_graphics', action='store_true', default=False, \
+        help='set to show data reported within log file and extracted from it transposed for displaying reasons from both Psnr and Prune trend.'
+    )
     
     return parser

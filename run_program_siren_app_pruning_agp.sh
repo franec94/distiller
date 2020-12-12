@@ -28,7 +28,7 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --evaluate \
   --verbose 0 \
   --resume-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar" \
-  --target_sparsity \
+  --target_sparsity 40.0 \
   --toll_sparsity 2.0 \
   --patience_sparsity 1000 \
   --trail_epochs 1000

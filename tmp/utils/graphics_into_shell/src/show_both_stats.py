@@ -100,6 +100,100 @@ def show_table(y, y_2, labels):
     return data_df
 
 
+def plot_graphics_into_shell_via_plotext(args, data_df):
+    x = np.arange(0, data_df.shape[0])
+    if args.show_bpp_trend:
+        plx.plot(x, data_df['bpp'].values, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.plot(x, y_pred_3, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='yellow', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.show()
+    elif args.show_psnr_trend:
+        plx.scatter(x, y, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='*', axes_color='')
+    
+        plx.plot(x, y_pred, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='blue', axes=True, \
+            point_marker='*', axes_color='')
+        plx.show()
+        pass
+    elif args.show_psnr_vs_bpp:
+        # plx.scatter(data_df['bpp'].values, data_df['Psnr score'].values, rows = 17, cols = 70, \
+        plx.scatter(data_df['bpp'].values, y, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='*', axes_color='')
+
+        y_psnr_pred = compute_regression_curve(
+            np.array(list(data_df['bpp'].values)),
+            # np.array(list(data_df['Psnr score'].values)))
+            y
+            )
+    
+        plx.plot(data_df['bpp'].values, y_psnr_pred, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='blue', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.show()
+        pass
+    elif args.show_prune_trend:
+        plx.scatter(x_2, y_2, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='orange', axes=True, \
+            point_marker='*', axes_color='')
+    
+        plx.plot(x, y_pred_2, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='green', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.show()
+    else:
+        # print("==> plot_graphics...")
+        plx.scatter(x, y, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='*', axes_color='')
+    
+        plx.plot(x, y_pred, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='blue', axes=True, \
+            point_marker='*', axes_color='')
+        
+        plx.scatter(x_2, y_2, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='orange', axes=True, \
+            point_marker='*', axes_color='')
+    
+        plx.plot(x, y_pred_2, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='green', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.plot(x, y_pred_3, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='yellow', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.show()
+        pass
+    pass
+
+
+def plot_graphics_v2(args, data_df):
+    data_df
+    y_pred = compute_regression_curve(x, y)
+    y_pred_2 = compute_regression_curve(x_2, y_2)
+    y_pred_3 = compute_regression_curve(x, data_df['bpp'].values)
+
+    plot_graphics_into_shell_via_plotext(args, data_df)
+
+    pass
+
 def plot_graphics(args, x, y, x_2, y_2, data_df):
     """Plot graphics related to Psrn score.
     Args
@@ -114,6 +208,7 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
         y_pred_2 = compute_regression_curve(x_2, y_2)
         y_pred_3 = compute_regression_curve(x, data_df['bpp'].values)
 
+    
         if args.show_bpp_trend:
             plx.plot(x, data_df['bpp'].values, rows = 17, cols = 70, \
                 equations=True, \
@@ -160,7 +255,7 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
                 equations=True, \
                 point_color='orange', axes=True, \
                 point_marker='*', axes_color='')
-        
+
             plx.plot(x, y_pred_2, rows = 17, cols = 70, \
                 equations=True, \
                 line_color='green', axes=True, \
@@ -172,7 +267,7 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
                 equations=True, \
                 point_color='red', axes=True, \
                 point_marker='*', axes_color='')
-        
+
             plx.plot(x, y_pred, rows = 17, cols = 70, \
                 equations=True, \
                 line_color='blue', axes=True, \
@@ -182,7 +277,7 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
                 equations=True, \
                 point_color='orange', axes=True, \
                 point_marker='*', axes_color='')
-        
+
             plx.plot(x, y_pred_2, rows = 17, cols = 70, \
                 equations=True, \
                 line_color='green', axes=True, \
@@ -192,6 +287,8 @@ def plot_graphics(args, x, y, x_2, y_2, data_df):
                 line_color='yellow', axes=True, \
                 point_marker='+', axes_color='',)
             plx.show()
+            pass
+        pass
     except Exception as err:
         print(f"Error: occurred when plotting data via plotext.\n{str(err)}")
         pass
@@ -229,8 +326,11 @@ def show_both_data_from_filtered_log(args):
     x, y, x_2, y_2 = read_data(args)
     # show_table(y, label='Psnr score')
     # show_table(y_2, label='Prune trend')
+    
     data_df = show_table(y, y_2, labels='Psnr score,Prune trend')
-    plot_graphics(args, x, y, x_2, y_2, data_df)
-
     data_df.to_csv("data.csv")
+
+    # plot_graphics(args, x, y, x_2, y_2, data_df)
+    plot_graphics_v2(args, data_df)
+
     pass

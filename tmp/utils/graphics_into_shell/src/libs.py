@@ -31,3 +31,4 @@ from src.show_data_from_filtered_log import show_data_from_filtered_log
 from src.show_data_from_tb_log import show_data_from_tb_log
 from src.show_pruning_trend import show_pruning_trend_from_filtered_log
 from src.show_both_stats import show_both_data_from_filtered_log
+from src.show_data_into_shell import show_stats_data_from_filtered_log

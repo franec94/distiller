@@ -145,7 +145,7 @@ show_sparsity_details
 # Show data extraced from raw log as graphics
 # by means of python3 based script.
 echo "==== Plot Psnr+Prune+BPP Trend ===="
-python3 graphis_on_shell.py \
+python3 graphics_on_shell.py \
   --input_file data.txt \
   --show_both_same_graphics \
   --input_file_pruning_trend data_sparsity.txt  \

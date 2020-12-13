@@ -93,6 +93,6 @@ echo "==== Plot Psnr Trend ===="
 experiment_id="events.out.tfevents.1607571992.iside"
 experiment_id_path="../../siren-project/results/cameramen/distiller-siren/agp_prune/${date_dir}/${experiment_id}"
 # python3 graphis_on_shell.py --input_file data.txt --show_stats_transposed --show_data_from_tb_log
-python3 graphis_on_shell.py --input_file data.txt --show_data_from_tb_log --experiment_id "${experiment_id_path}"
+python3 graphics_on_shell.py --input_file data.txt --show_data_from_tb_log --experiment_id "${experiment_id_path}"
 
 exit 0

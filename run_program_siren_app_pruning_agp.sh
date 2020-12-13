@@ -32,7 +32,7 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --toll_sparsity 2.0 \
   --patience_sparsity 1000 \
   --trail_epochs 1000 \
-  --mid_target_sparsities 5 10 20 25 30 35 40 45 50
+  --mid_target_sparsities 5 10 20 25 30 35 40
 
 # --compress ./examples/agp-pruning/siren64_5.schedule_agp.yaml \
 # --save_mid_ckpts 99999 149999 174999 199999 \

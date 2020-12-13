@@ -1487,7 +1487,7 @@ class SaveMiddlePruneRate(object):
             index = self.middle_prune_rates.index(a_prune_rate)
             self.found_middle_prune_rates[index] = True
             self.last_to_save_pos = index
-            self.prune_rate_val[index] = val
+            self.prune_rate_val[index] = a_prune_rate
             is_found = True
         else:
             pos = -1
@@ -1500,7 +1500,7 @@ class SaveMiddlePruneRate(object):
             if not self.found_middle_prune_rates[pos]:
                 self.found_middle_prune_rates[pos] = True
                 self.last_to_save_pos = pos
-                self.prune_rate_val[pos] = val
+                self.prune_rate_val[pos] = a_prune_rate
                 is_found = True
                 pass
         return is_found

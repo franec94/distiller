@@ -93,6 +93,10 @@ class SirenRegressorCompressor(object):
                 patience=self.args.patience_sparsity, trail_epochs=self.args.trail_epochs)
         else:
             self.early_stopping_agp = None
+        if self.args.mid_target_sparsities != []:
+            self.save_mid_pr = SaveMiddlePruneRate(middle_prune_rates=self.args.mid_target_sparsities)
+        else:
+            self.save_mid_pr = None
         
     
     def load_datasets(self):
@@ -133,8 +137,10 @@ class SirenRegressorCompressor(object):
 
         with collectors_context(self.activations_collectors["train"]) as collectors:
             loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
-                                     epoch, self.compression_scheduler, 
-                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch, early_stopping_agp=self.early_stopping_agp)
+                                     epoch, self.compression_scheduler,
+                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
+                                     early_stopping_agp=self.early_stopping_agp,
+                                     save_mid_pr=self.save_mid_pr)
             if verbose:
                 if epoch >= 0 and epoch % self.args.print_freq == 0:
                     if self.args.compress != None and self.args.compress != '':
@@ -182,7 +188,7 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
         self.performance_tracker.step(
             self.model,
@@ -208,7 +214,10 @@ class SirenRegressorCompressor(object):
             distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
                 scheduler=self.compression_scheduler, extras=checkpoint_extras,
                 is_best=is_best, name=self.args.name, dir=msglogger.logdir,
-                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt, is_last_epoch = is_last_epoch)
+                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt,
+                is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned,
+                save_mid_pr_obj=self.save_mid_pr
+                )
 
 
     def run_training_loop(self):
@@ -231,10 +240,16 @@ class SirenRegressorCompressor(object):
         self.performance_tracker.reset()
         for epoch in range(self.start_epoch, self.ending_epoch):
             is_last_epoch = epoch == self.ending_epoch - 1
+            is_one_to_save_pruned = False
+            if self.save_mid_pr is not None:
+                is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
+                pass
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 msglogger.info('\n')
+                pass
             loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
+
             if self.early_stopping_agp is not None:
                 if self.early_stopping_agp.stop_training():
                     self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
@@ -386,6 +401,8 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
                         help='Target patience sparsity.')
     parser_regressor.add_argument('--trail_epochs', dest='trail_epochs', type=float, default=5,
                         help='Target trail epochs sparsity.')
+    parser_regressor.add_argument('--mid_target_sparsities', nargs='+', dest='mid_target_sparsities', type=float, default=[],
+                        help='Target sparsities to save a part.')
 
     distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
     return parser_regressor
@@ -596,7 +613,7 @@ def early_exit_mode(args):
 
 
 def train(train_loader, model, criterion, optimizer, epoch,
-          compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None):
+          compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -714,7 +731,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp)
+        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
         if is_last_epoch:
             _log_training_progress()
             _log_train_epoch_pruning(args, epoch)
@@ -1257,7 +1274,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
         return losses_exits_stats[args.num_exits-1]
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     global msglogger
     global FIND_EPOCH_FOR_PRUNING
@@ -1273,8 +1290,11 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
         is_triggered = early_stopping_agp.is_triggered()
         if is_triggered:
             epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-            msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
+            # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
             pass
+        pass
+    if save_mid_pr is not None:
+        save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total)
         pass
 
     is_updated = False
@@ -1435,4 +1455,78 @@ class EarlyStoppingAGP(object):
             if self._steps_to_trail_epochs == self.trail_epochs:
                 return True
         return False
+    pass
+
+class SaveMiddlePruneRate(object):
+    """Class containing behaviour for tracking mid prune targets to save a part."""
+    def __init__(self, middle_prune_rates):
+        """Instantiate object to track mid prune rates achieved while pruning a model.
+        Args
+        ----
+        `middle_prune_rates` - list of float values to be checked as prune rate reached.\n
+        """
+        self.middle_prune_rates: list = \
+            middle_prune_rates if isinstance(middle_prune_rates, list) \
+            else list(middle_prune_rates)
+        self.found_middle_prune_rates = [False] * len(middle_prune_rates)
+        self.saved_middle_prune_rates = [False] * len(middle_prune_rates)
+        self.last_to_save_pos = -1
+        self.prune_rate_val = [-1] * len(self.middle_prune_rates)
+        pass
+    def is_rate_into_middle_prune_rates(self, a_prune_rate):
+        is_found = False
+        """Check if new target prune rate  has been reached.
+        Args
+        ----
+        `a_prune_rate` - float value to be checked as prune rate reached.\n
+        Return
+        ------
+        `found` - bool, indicating if a new prune rate has been reached.\n
+        """
+        if a_prune_rate in self.middle_prune_rates:
+            index = self.middle_prune_rates.index(a_prune_rate)
+            self.found_middle_prune_rates[index] = True
+            self.last_to_save_pos = index
+            self.prune_rate_val[index] = val
+            is_found = True
+        else:
+            pos = -1
+            for ii, val in enumerate(self.middle_prune_rates):
+                if val > a_prune_rate:
+                    pos = ii - 1
+                    break
+                pass
+            if pos == -1: return False
+            if not self.found_middle_prune_rates[pos]:
+                self.found_middle_prune_rates[pos] = True
+                self.last_to_save_pos = pos
+                self.prune_rate_val[pos] = val
+                is_found = True
+                pass
+        return is_found
+    def is_one_to_save(self,):
+        """Check wheter there is one to save.
+        Return
+        ------
+        `bool` - indicating if a new prune rate has been reached and must be saved.\n
+        """
+        pos = -1
+        for ii, val in enumerate(self.found_middle_prune_rates):
+            if val == False:
+                pos = ii - 1
+                break
+        if pos == -1 : return False
+        return not self.saved_middle_prune_rates[pos]
+    def get_rate_to_save(self,):
+        """Get last rate achieved and not yet saved a part.
+        Return
+        ------
+        `prune_rate_val` - float, indicating if a new prune rate has been reached and must be saved.\n
+        """
+        pos = self.last_to_save_pos
+        if not self.saved_middle_prune_rates[pos]:
+            self.saved_middle_prune_rates[pos] = True
+            return self.prune_rate_val[pos]
+        else:
+            return None
     pass

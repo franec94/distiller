@@ -33,7 +33,10 @@ msglogger = logging.getLogger()
 
 
 def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
-                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False, is_last_epoch = False):
+                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False,
+                    is_last_epoch = False,
+                    is_one_to_save_pruned = False,
+                    save_mid_pr_obj = None):
     """Save a pytorch training checkpoint
 
     Args:
@@ -73,6 +76,14 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     filename_final_ckpt = f'final_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_final_ckpt_epoch_{epoch}.pth.tar'
     fullpath_final_ckpt = os.path.join(dir, filename_final_ckpt)
 
+    prune_rate = None
+    if is_one_to_save_pruned and save_mid_pr_obj is not None:
+        prune_rate = save_mid_pr_obj.get_rate_to_save()
+        if prune_rate is not None:
+            filename_prune_rate_ckpt = f'pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar' if name is None else name + f'_pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar'
+            fullpath_prune_rate_ckpt = os.path.join(dir, filename_prune_rate_ckpt)
+        pass
+
     checkpoint = {'epoch': epoch, 'state_dict': model.state_dict(), 'arch': arch}
     try:
         checkpoint['is_parallel'] = model.is_parallel
@@ -103,6 +114,11 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
         shutil.copyfile(fullpath, fullpath_mid_ckpt)
     if is_last_epoch:
         shutil.copyfile(fullpath, fullpath_final_ckpt)
+    if is_one_to_save_pruned and save_mid_pr_obj is not None:
+        if prune_rate is not None:
+            shutil.copyfile(fullpath, fullpath_prune_rate_ckpt)
+        pass
+    pass
 
 def load_lean_checkpoint(model, chkpt_file, model_device=None):
     return load_checkpoint(model, chkpt_file, model_device=model_device,

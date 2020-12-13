@@ -131,5 +131,7 @@ def get_cmd_line_opts():
                         help='Target patience sparsity.')
     parser.add_argument('--trail_epochs', dest='trail_epochs', type=float, default=5,
                         help='Target trail epochs sparsity.')
+    parser.add_argument('--mid_target_sparsities', nargs='+', dest='mid_target_sparsities', type=float, default=[],
+                        help='Target sparsities to save a part.')
     opt = parser.parse_args()
     return opt, parser

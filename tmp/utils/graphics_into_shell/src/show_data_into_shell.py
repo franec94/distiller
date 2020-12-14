@@ -297,7 +297,9 @@ def show_stats_data_from_filtered_log(args: argparse.Namespace) -> None:
     # and save it.
     data_df: pd.DataFrame = create_dataframe(args=args)
     show_table_stats(data_df=data_df)
-    data_df.to_csv("data.csv")
+
+    data_dest_filepath = os.path.join(args.output_dir, 'data.csv')
+    data_df.to_csv(f"{data_dest_filepath}")
 
     # Create regression curves dataframe
     data_reg_df: pd.DataFrame = create_dataframe_reg_curves(data_df=data_df)

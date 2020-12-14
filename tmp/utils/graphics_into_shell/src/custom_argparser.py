@@ -12,6 +12,8 @@ def get_custom_argparser():
     parser = argparse.ArgumentParser(description="Create text graphics from input data collected earlier within file in textual format or either format such as json, yaml, csv.")
     parser.add_argument('--input_file', dest='input_file', type=str, default=None, \
         help='Path to input file which is stored within local file system')
+    parser.add_argument('--output_dir', dest='output_dir', type=str, default=None, \
+        help='Path to outpu dir where output results and files will be stored within local file system')
     parser.add_argument('--input_file_pruning_trend', dest='input_file_pruning_trend', type=str, default=None, \
         help='Path to input file which is stored within local file system about pruning trend. If none no trend about pruning rate will be shown.')
     parser.add_argument('--experiment_id', dest='experiment_id',  type=str, default=None, \

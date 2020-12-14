@@ -19,6 +19,15 @@ def main(args):
   """
   _ = check_input_file_from_args(args)
 
+  if not os.path.exists(args.output_dir):
+    try:
+      os.makedirs(args.output_dir)
+    except Exception as err:
+      if os.path.exists(args.output_dir) and os.path.isdir(args.output_dir):
+        print(f"Directory: {args.output_dir} already exists!")
+      pass
+    pass
+
 
   if args.show_graphics:
     # show_both_data_from_filtered_log(args)

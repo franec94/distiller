@@ -190,7 +190,7 @@ class SirenRegressorCompressor(object):
 
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
-        global 
+        global FIND_EPOCH_FOR_PRUNING
         self.performance_tracker.step(
             self.model,
             epoch,

@@ -9,9 +9,12 @@ import sys
 import collections
 
 import plotext as plx
-import termplotlib as tpl
-import terminalplot as tp
-import termplot
+try:
+    import termplotlib as tpl
+    import terminalplot as tp
+    import termplot
+except:
+    pass
 
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge

@@ -21,6 +21,7 @@ a pruning session, or for querying the pruning schedule of a sparse model.
 """
 
 import os
+import json
 import shutil
 from errno import ENOENT
 import logging
@@ -36,7 +37,7 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
                     extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False,
                     is_last_epoch = False,
                     is_one_to_save_pruned = False,
-                    save_mid_pr_obj = None):
+                    save_mid_pr_obj = None, prune_details=None):
     """Save a pytorch training checkpoint
 
     Args:
@@ -117,6 +118,19 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     if is_one_to_save_pruned and save_mid_pr_obj is not None:
         if prune_rate is not None:
             shutil.copyfile(fullpath, fullpath_prune_rate_ckpt)
+            if prune_details is not None:
+                out_file_data = os.path.join(f'{dir}', f'data_prune_rate_{prune_rate}_details.json')
+
+                msglogger.info(f"--- dump pruning data (epoch={epoch}) (pruning_rate={prune_rate})---------")
+                msglogger.info(f"Data saved to: {out_file_data}")
+                msglogger.info(str_data)
+                try:
+                    with open(out_file_data, 'w') as outfile:
+                        json.dump(prune_details, outfile)
+                except Exception as err:
+                    msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
+                    pass
+                pass
         pass
     pass
 

@@ -190,6 +190,7 @@ class SirenRegressorCompressor(object):
 
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
+        global 
         self.performance_tracker.step(
             self.model,
             epoch,
@@ -216,7 +217,7 @@ class SirenRegressorCompressor(object):
                 is_best=is_best, name=self.args.name, dir=msglogger.logdir,
                 freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt,
                 is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned,
-                save_mid_pr_obj=self.save_mid_pr
+                save_mid_pr_obj=self.save_mid_pr, prune_details=FIND_EPOCH_FOR_PRUNING
                 )
 
 
@@ -1456,6 +1457,7 @@ class EarlyStoppingAGP(object):
                 return True
         return False
     pass
+
 
 class SaveMiddlePruneRate(object):
     """Class containing behaviour for tracking mid prune targets to save a part."""

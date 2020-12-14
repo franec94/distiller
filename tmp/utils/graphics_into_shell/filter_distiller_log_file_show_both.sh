@@ -131,6 +131,9 @@ function show_sparsity_details() {
 # Data Infos.
 date_dir=$2
 file_name="$1/${date_dir}/${date_dir}.log"
+if [ ! -f "${file_name}" ] ; then
+  file_name="$1/${date_dir}.log"
+fi
 
 # Process raw log file.
 save_data_as_txt_file ${file_name}

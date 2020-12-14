@@ -146,6 +146,7 @@ show_sparsity_details
 # by means of python3 based script.
 echo "==== Plot BPP Trend ===="
 python3 graphics_on_shell.py \
+  --output_dir $3 \
   --input_file data.txt \
   --show_graphics \
   --show_psnr_vs_bpp \

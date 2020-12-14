@@ -5,8 +5,9 @@
 
 TARGET_DIR = '../../siren-project/results/cameramen/distiller-siren/agp_prune'
 TARGET_DATE = '___2020.12.14-174343'
+DIR_DEST_OUTPUT = '/content/log_analyses'
 
-ARGS = $(TARGET_DIR) $(TARGET_DATE)
+ARGS = $(TARGET_DIR) $(TARGET_DATE) ${DIR_DEST_OUTPUT}
 
 FILTER_BASH_SCRIPT = filter_distiller_log_file.sh
 FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND = filter_distiller_log_file_show_pruning_trend.sh

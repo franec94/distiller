@@ -150,6 +150,7 @@ echo "==== Plot Prune Trend ===="
 #  --show_stats_transposed --show_data_from_log
 
 python3 graphics_on_shell.py \
+  --output_dir $3 \
   --input_file data.txt \
   --show_graphics \
   --show_prune_trend \

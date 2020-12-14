@@ -146,6 +146,7 @@ show_sparsity_details
 # by means of python3 based script.
 echo "==== Plot Psnr+Prune+BPP Trend ===="
 python3 graphics_on_shell.py \
+  --output_dir $3 \
   --input_file data.txt \
   --show_graphics \
   --input_file_pruning_trend data_sparsity.txt  \

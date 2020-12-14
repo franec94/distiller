@@ -81,7 +81,7 @@ function get_var_via_awk() {
   cat data.txt | awk 'BEGIN{tot_lines=0; acc=0;} {acc+=($1-mean)*($1-mean); tot_lines++;} END{printf("Var: %.2f\n", acc/tot_lines)} '
 }
 
-date_dir="___2020.12.10-044629"
+date_dir=$1
 file_name="../../siren-project/results/cameramen/distiller-siren/agp_prune/${date_dir}/${date_dir}.log"
 
 

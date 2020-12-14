@@ -103,9 +103,9 @@ function show_curr_epoch() {
   target_epochs=$(cat ${file_name} | grep -e "^.*--num_epochs.*$" | tail -n 1 \
     | awk --field-separator="--" '{for(i=0; i < NF; i++) { if($i ~ /^num_epochs/) {printf("%s\n", $i); break;}}}'\
     | cut -d " " -f 2)
-  echo "[*] $curr_epoch / $target_epochs"
+  echo "[*] Epoch: $curr_epoch / $target_epochs"
   remaining_epochs=$( echo ${target_epochs} - ${curr_epoch} | bc -l )
-  echo "[*] Still to go $remaining_epochs"
+  echo "[*] Still to go: $remaining_epochs epochs"
 }
 
 function show_sparsity_details() {
@@ -121,7 +121,7 @@ function show_sparsity_details() {
   val_t=$(echo ${target_sparsity} | cut -d " " -f 2)
   val_r=$(echo ${reached_sparsity} | cut -d " " -f 6)
   remaining_sparsity=$( echo ${val_t} - ${val_r} | bc -l )
-  echo -e "[*] Still to go ${remaining_sparsity}"
+  echo -e "[*] Still to go: ${remaining_sparsity} sparsity"
 }
 
 # ------------------------------------------------ #
@@ -129,7 +129,8 @@ function show_sparsity_details() {
 # ------------------------------------------------ #
 
 # Data Infos.
-date_dir="___2020.12.12-190415"
+# date_dir="___2020.12.12-190415"
+date_dir=$1
 file_name="../../siren-project/results/cameramen/distiller-siren/agp_prune/${date_dir}/${date_dir}.log"
 
 # Process raw log file.

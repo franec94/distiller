@@ -2,6 +2,10 @@
 # ============================ #
 # Makefile Variables
 # ============================ #
+
+TARGET_DIR = '___2020.12.14-174343'
+ARGS = $(TARGET_DIR)
+
 FILTER_BASH_SCRIPT = filter_distiller_log_file.sh
 FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND = filter_distiller_log_file_show_pruning_trend.sh
 FILTER_BASH_SCRIPT_SHOW_BOTH = filter_distiller_log_file_show_overall.sh
@@ -20,30 +24,30 @@ PY_INTERPRETER = python3
 show_stats_psnr:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT)
-	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT) $(ARGS)
 
 show_stats_prune_trend:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND)
-	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_PRUNE_TREND) $(ARGS)
 
 show_overall_stats:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_BOTH)
-	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BOTH)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BOTH) $(ARGS)
 
 show_stats_bpp:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_BPP)
-	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BPP)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BPP) $(ARGS)
 
 show_psnr_vs_bpp:
 	clear
 	chmod u+x $(FILTER_BASH_SCRIPT_SHOW_BPP_vs_PSNR)
-	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BPP_vs_PSNR)
+	$(BASH_INTERPRETER) $(FILTER_BASH_SCRIPT_SHOW_BPP_vs_PSNR) $(ARGS)
 
 
 show_tb_stats_curr_run:
 	clear
 	chmod u+x $(BASH_SCRIPT)
-	$(BASH_INTERPRETER) $(BASH_SCRIPT)
+	$(BASH_INTERPRETER) $(BASH_SCRIPT) $(ARGS)

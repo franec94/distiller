@@ -142,7 +142,7 @@ def show_table_stats(data_df: pd.DataFrame) -> None:
     )
     table = tabulate.tabulate(**table_data_dict)
     print(table)
-    print("==> Last entry recorded:")
+    print("==> Last entry(ies) recorded:")
     print(tabulate.tabulate(data_df.tail(3),headers=data_df.columns))
     pass
 

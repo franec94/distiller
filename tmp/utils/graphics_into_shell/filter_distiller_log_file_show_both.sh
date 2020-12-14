@@ -129,8 +129,8 @@ function show_sparsity_details() {
 # ------------------------------------------------ #
 
 # Data Infos.
-date_dir="___2020.12.12-190415"
-file_name="../../siren-project/results/cameramen/distiller-siren/agp_prune/${date_dir}/${date_dir}.log"
+date_dir=$2
+file_name="$1/${date_dir}/${date_dir}.log"
 
 # Process raw log file.
 save_data_as_txt_file ${file_name}

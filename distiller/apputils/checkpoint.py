@@ -120,6 +120,7 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
             shutil.copyfile(fullpath, fullpath_prune_rate_ckpt)
             if prune_details is not None:
                 out_file_data = os.path.join(f'{dir}', f'data_prune_rate_{prune_rate}_details.json')
+                str_data = json.dumps(prune_details)
 
                 msglogger.info(f"--- dump pruning data (epoch={epoch}) (pruning_rate={prune_rate})---------")
                 msglogger.info(f"Data saved to: {out_file_data}")

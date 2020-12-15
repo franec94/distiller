@@ -8,7 +8,7 @@ import os
 import sys
 import collections
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 import plotext as plx
 try:

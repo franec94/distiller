@@ -4,6 +4,8 @@
 import argparse
 import os
 import sys
+import logging
+import auxiliary_module
 
 import plotext as plx
 try:

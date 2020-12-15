@@ -289,7 +289,7 @@ def plot_graphics(args, data_df):
     pass
 
 
-def show_stats_data_from_filtered_log(args: argparse.Namespace) -> None:
+def show_stats_data_from_filtered_log(args: argparse.Namespace, msg_logger=None) -> None:
     """Show data from log file.
     Params
     ------
@@ -298,18 +298,32 @@ def show_stats_data_from_filtered_log(args: argparse.Namespace) -> None:
 
     # Create base dataframe
     # and save it.
+    msg_logger.info(f"Creating base line dataframe, reading data from: {args.input_file} and {args.input_file_pruning_trend}...")
     data_df: pd.DataFrame = create_dataframe(args=args)
-    show_table_stats(data_df=data_df)
+    msg_logger.info(f"Task Done.")
 
+    
+    msg_logger.info(f"Saving base line dataframe.")
     data_dest_filepath = os.path.join(args.output_dir, 'data.csv')
     data_df.to_csv(f"{data_dest_filepath}")
+    msg_logger.info(f"Task Done.")
+    
+    msg_logger.info(f"Showing base line dataframe contente as overall statistics.")
+    show_table_stats(data_df=data_df)
+    msg_logger.info(f"Task Done.")
 
     # Create regression curves dataframe
-    data_reg_df: pd.DataFrame = create_dataframe_reg_curves(data_df=data_df)
+    msg_logger.info(f"Creating dataframe with regression curve data...")
+    data_reg_df: pd.DataFrame = create_dataframe_reg_curves(data_df=data_df)    
+    msg_logger.info(f"Task Done.")
 
+    msg_logger.info(f"Join by columns resulting dataframes, earlier created...")
     joined_columns = list(data_df.columns) + list(data_reg_df.columns)
     data_df = pd.concat([data_df, data_reg_df], axis=1, names=joined_columns)
+    msg_logger.info(f"Task Done.")
 
+
+    msg_logger.info(f"Plot Data...")
     plot_graphics(args, data_df)
 
     pass

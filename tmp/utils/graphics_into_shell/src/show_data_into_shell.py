@@ -302,7 +302,7 @@ def plot_via_matplotlib_module(args, data_df):
         y_pred = data_df['y_pred_psnr'].values
         x = np.arange(0, len(y_pred))
         plt.scatter(x, y, label='psnr - data points', color='red')
-        plt.line(x, y_pred, label='psnr - reg curve', color='blue')
+        plt.plot(x, y_pred, label='psnr - reg curve', color='blue')
         plt.show()
         pass
     elif args.show_psnr_vs_bpp:

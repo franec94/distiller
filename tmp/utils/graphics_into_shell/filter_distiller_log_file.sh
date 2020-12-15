@@ -134,7 +134,7 @@ file_name="$1/${date_dir}/${date_dir}.log"
 if [ ! -f "${file_name}" ] ; then
   file_name="$1/${date_dir}.log"
 fi
-
+output_dir=$3
 
 # Process raw log file.
 save_data_as_txt_file ${file_name}
@@ -149,16 +149,20 @@ show_sparsity_details
 # Show data extraced from raw log as graphics
 # by means of python3 based script.
 echo "==== Plot Psnr Trend ===="
-# python3 graphis_on_shell.py \
-#  --input_file data.txt \
-#  --show_stats_transposed --show_data_from_log
+cmd_as_str="python3 graphics_on_shell.py \n --output_dir ${output_dir} \n --input_file data.txt \n --show_graphics \n --show_psnr_trend \n --input_file_pruning_trend data_sparsity.txt  \n --show_stats_transposed --show_data_from_log"
+echo -e ${cmd_as_str}
 
 python3 graphics_on_shell.py \
-  --output_dir $3 \
+  --output_dir ${output_dir} \
   --input_file data.txt \
   --show_graphics \
   --show_psnr_trend \
   --input_file_pruning_trend data_sparsity.txt  \
   --show_stats_transposed --show_data_from_log
+if [ $? -ne 0 ] ; then
+  printf "Program ended wrongly with exit code: %d\n" $?
+else
+  printf "Program ended correctly with exit code: %d\n" $?
+fi
 
 exit 0

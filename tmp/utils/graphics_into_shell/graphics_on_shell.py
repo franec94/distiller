@@ -25,7 +25,8 @@ def get_main_logger(args):
   logger.setLevel(logging.DEBUG)
 
   # create file handler which logs even debug messages
-  fh = logging.FileHandler('graphics_logger_root.log')
+  logger_filepath = os.path,join(args.output_dir, 'graphics_logger_root.log')
+  fh = logging.FileHandler(f"{logger_filepath}")
   fh.setLevel(logging.DEBUG)
   
   # create console handler with a higher log level

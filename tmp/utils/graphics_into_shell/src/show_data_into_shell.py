@@ -294,6 +294,7 @@ def show_stats_data_from_filtered_log(args: argparse.Namespace, msg_logger=None)
     Params
     ------
     `args` - Namespace object keeping input arguments passed in to the script by user.\n
+    `msg_logger` - custom logger.\n
     """
 
     # Create base dataframe
@@ -325,5 +326,6 @@ def show_stats_data_from_filtered_log(args: argparse.Namespace, msg_logger=None)
 
     msg_logger.info(f"Plot Data...")
     plot_graphics(args, data_df)
+    msg_logger.info(f"Task Done.")
 
     pass

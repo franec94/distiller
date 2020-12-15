@@ -8,8 +8,30 @@ clear
 # src_data="/content/data.txt"
 # src_sparsity_data="/content/data_sparsity.txt"
 
+
+function check_out_cmd_args() {
+    script_basename=$(echo $0 | basename)
+    if [ $# -ne 5 ] ; then
+      script_basename
+      printf "Usage: ${script_basename} {TARGET_DIR} {TARGET_DATE} {DIR_DEST_OUTPUT} {DATA_PATH} {SPARSITY_DATA_PATH}"
+      exit -1
+    fi
+    date_dir=$2
+    file_name_1="$1/${date_dir}/${date_dir}.log"
+    if [ ! -f "${file_name_1}" ] ; then 
+      file_name_1="$1/${date_dir}.log"
+      if [ ! -f "${file_name_2}" ] ; then 
+        printf "Both ${file_name_1} and ${file_name_2} do not exist!"
+        exit -2
+      fi
+    fi   
+}
+
+check_out_cmd_args $@
+
 src_data=$4
 src_sparsity_data=$5
+
 
 function save_data_as_txt_file() {
   local file_name=$1

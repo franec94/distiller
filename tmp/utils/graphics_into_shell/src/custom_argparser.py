@@ -19,6 +19,11 @@ def get_custom_argparser():
     parser.add_argument('--experiment_id', dest='experiment_id',  type=str, default=None, \
         help='experiment id referring to data stored by means of tensorboard into a proper log file.'
     )
+
+    parser.add_argument('--show_data_from_log', dest='show_not_via_plotex', action='store_true', default=False, \
+        help='set to show data reported within log file and extracted from it.'
+    )
+
     parser.add_argument('--show_data_from_log', dest='show_data_from_log', action='store_true', default=False, \
         help='set to show data reported within log file and extracted from it.'
     )

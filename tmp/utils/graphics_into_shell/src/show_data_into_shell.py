@@ -8,6 +8,8 @@ import os
 import sys
 import collections
 
+import matplotlib as plt
+
 import plotext as plx
 try:
     import termplotlib as tpl
@@ -242,6 +244,96 @@ def show_prune_rate_data(data_df):
     pass
 
 
+def plot_via_plotex_module(args, data_df):
+    """Plot graphics related to Psrn score, Prune Rate and Bpp via plotex.
+    Args
+    ----
+    `args` - Namespace object keeping input arguments passed in to the script by user.\n
+    `data_df` - pd.DataFrame with data.\n
+    """
+    if args.show_bpp_trend:
+        show_bpp_data(data_df)
+        plx.show()
+        pass
+    elif args.show_psnr_trend:
+        show_psnr_data(data_df)
+        plx.show()
+        pass
+    elif args.show_psnr_vs_bpp:
+        x, y = np.array(list(data_df['bpp'].values)), np.array(list(data_df['Psnr Score'].values))
+        y_psnr_pred = compute_regression_curve(x, y)
+
+        # plx.scatter(data_df['bpp'].values, data_df['Psnr score'].values, rows = 17, cols = 70, \
+        plx.scatter(x, y, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='*', axes_color='')
+        plx.plot(x, y_psnr_pred, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='blue', axes=True, \
+            point_marker='+', axes_color='',)
+        plx.show()
+        pass
+    elif args.show_prune_trend:
+        show_prune_rate_data(data_df)
+        plx.show()
+        pass
+    else:
+        show_psnr_data(data_df)
+        show_prune_rate_data(data_df)
+        show_bpp_data(data_df)
+        plx.show()
+        pass
+    pass
+
+def plot_via_matplotlib_module(args, data_df):
+    """Plot graphics related to Psrn score, Prune Rate and Bpp via matplotlib.
+    Args
+    ----
+    `args` - Namespace object keeping input arguments passed in to the script by user.\n
+    `data_df` - pd.DataFrame with data.\n
+    """
+    if args.show_bpp_trend:
+        # show_bpp_data(data_df)
+        # plt.show()
+        pass
+    elif args.show_psnr_trend:
+        y = data_df['Psnr Score'].values
+        y_pred = data_df['y_pred_psnr'].values
+        x = mp.arange(0, len(y_pred))
+        plt.scatter(x, y, label='psnr - data points', color='red')
+        plt.line(x, y_pred, label='psnr - reg curve', color='blue')
+        plt.show()
+        pass
+    elif args.show_psnr_vs_bpp:
+        """
+        x, y = np.array(list(data_df['bpp'].values)), np.array(list(data_df['Psnr Score'].values))
+        y_psnr_pred = compute_regression_curve(x, y)
+
+        # plx.scatter(data_df['bpp'].values, data_df['Psnr score'].values, rows = 17, cols = 70, \
+        plx.scatter(x, y, rows = 17, cols = 70, \
+            equations=True, \
+            point_color='red', axes=True, \
+            point_marker='*', axes_color='')
+        plx.plot(x, y_psnr_pred, rows = 17, cols = 70, \
+            equations=True, \
+            line_color='blue', axes=True, \
+            point_marker='+', axes_color='',)
+        plt.show()"""
+        pass
+    elif args.show_prune_trend:
+        # show_prune_rate_data(data_df)
+        # plt.show()
+        pass
+    else:
+        # show_psnr_data(data_df)
+        # show_prune_rate_data(data_df)
+        # show_bpp_data(data_df)
+        # plx.show()
+        pass
+    pass
+
+
 def plot_graphics(args, data_df):
     """Plot graphics related to Psrn score, Prune Rate and Bpp.
     Args
@@ -249,39 +341,13 @@ def plot_graphics(args, data_df):
     `args` - Namespace object keeping input arguments passed in to the script by user.\n
     `data_df` - pd.DataFrame with data.\n
     """
+    
     try:
-        if args.show_bpp_trend:
-            show_bpp_data(data_df)
-            plx.show()
-        elif args.show_psnr_trend:
-            show_psnr_data(data_df)
-            plx.show()
-            pass
-        elif args.show_psnr_vs_bpp:
-            x, y = np.array(list(data_df['bpp'].values)), np.array(list(data_df['Psnr Score'].values))
-            y_psnr_pred = compute_regression_curve(x, y)
-
-            # plx.scatter(data_df['bpp'].values, data_df['Psnr score'].values, rows = 17, cols = 70, \
-            plx.scatter(x, y, rows = 17, cols = 70, \
-                equations=True, \
-                point_color='red', axes=True, \
-                point_marker='*', axes_color='')
-            plx.plot(x, y_psnr_pred, rows = 17, cols = 70, \
-                equations=True, \
-                line_color='blue', axes=True, \
-                point_marker='+', axes_color='',)
-            plx.show()
-            pass
-        elif args.show_prune_trend:
-            show_prune_rate_data(data_df)
-            plx.show()
+        if not args.show_not_via_plotex:
+            plot_via_plotex_module(data_df)
         else:
-            show_psnr_data(data_df)
-            show_prune_rate_data(data_df)
-            show_bpp_data(data_df)
-            plx.show()
-        pass
-
+            plot_via_matplotlib_module(data_df)
+            pass
     except Exception as err:
         print(f"Error: occurred when plotting data via plotext.\n{str(err)}")
         pass

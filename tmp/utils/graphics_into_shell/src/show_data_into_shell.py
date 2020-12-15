@@ -300,7 +300,7 @@ def plot_via_matplotlib_module(args, data_df):
     elif args.show_psnr_trend:
         y = data_df['Psnr Score'].values
         y_pred = data_df['y_pred_psnr'].values
-        x = mp.arange(0, len(y_pred))
+        x = np.arange(0, len(y_pred))
         plt.scatter(x, y, label='psnr - data points', color='red')
         plt.line(x, y_pred, label='psnr - reg curve', color='blue')
         plt.show()
@@ -344,9 +344,9 @@ def plot_graphics(args, data_df):
     
     try:
         if not args.show_not_via_plotex:
-            plot_via_plotex_module(data_df)
+            plot_via_plotex_module(args, data_df)
         else:
-            plot_via_matplotlib_module(data_df)
+            plot_via_matplotlib_module(args, data_df)
             pass
     except Exception as err:
         print(f"Error: occurred when plotting data via plotext.\n{str(err)}")

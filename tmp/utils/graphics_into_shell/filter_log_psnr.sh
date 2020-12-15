@@ -10,7 +10,7 @@ clear
 
 
 function check_out_cmd_args() {
-    script_basename=$(echo $0 | basename)
+    script_basename=$(basename $0)
     if [ $# -ne 5 ] ; then
       script_basename
       printf "Usage: ${script_basename} {TARGET_DIR} {TARGET_DATE} {DIR_DEST_OUTPUT} {DATA_PATH} {SPARSITY_DATA_PATH}"

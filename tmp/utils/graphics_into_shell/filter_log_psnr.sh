@@ -188,7 +188,7 @@ python3 graphics_on_shell.py \
   --show_psnr_trend \
   --show_stats_transposed --show_data_from_log
 exit_code=$?
-if [ exit_cod -ne 0 ] ; then
+if [ exit_code -ne 0 ] ; then
   printf "Program ended wrongly with exit code: %d\n" exit_code
 else
   printf "Program ended correctly with exit code: %d\n" exit_code

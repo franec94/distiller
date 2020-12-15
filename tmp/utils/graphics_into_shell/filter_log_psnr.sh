@@ -152,7 +152,7 @@ show_sparsity_details
 # Show data extraced from raw log as graphics
 # by means of python3 based script.
 echo "==== Plot Psnr Trend ===="
-cmd_as_str="python3 graphics_on_shell.py \n --output_dir ${output_dir} \n --input_file data.txt \n --show_graphics \n --show_psnr_trend \n --input_file_pruning_trend data_sparsity.txt  \n --show_stats_transposed --show_data_from_log"
+cmd_as_str="python3 graphics_on_shell.py \n --output_dir ${output_dir} \n --input_file ${src_data} \n --input_file_pruning_trend ${src_sparsity_data}  \n --show_graphics \n --show_psnr_trend \n --show_stats_transposed --show_data_from_log"
 echo -e ${cmd_as_str}
 
 python3 graphics_on_shell.py \

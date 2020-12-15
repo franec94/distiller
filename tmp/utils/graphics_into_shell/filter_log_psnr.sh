@@ -19,7 +19,7 @@ function check_out_cmd_args() {
     date_dir=$2
     file_name_1="$1/${date_dir}/${date_dir}.log"
     if [ ! -f "${file_name_1}" ] ; then 
-      file_name_1="$1/${date_dir}.log"
+      file_name_2="$1/${date_dir}.log"
       if [ ! -f "${file_name_2}" ] ; then 
         printf "Both ${file_name_1} and ${file_name_2} do not exist!"
         exit -2

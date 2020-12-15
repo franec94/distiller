@@ -5,8 +5,11 @@ clear
 # Functions Section
 # ------------------------------------------------ #
 
-src_data="/content/data.txt"
-src_sparsity_data="/content/data_sparsity.txt"
+# src_data="/content/data.txt"
+# src_sparsity_data="/content/data_sparsity.txt"
+
+src_data=$4
+src_sparsity_data=$5
 
 function save_data_as_txt_file() {
   local file_name=$1

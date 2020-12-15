@@ -323,9 +323,12 @@ def show_stats_data_from_filtered_log(args: argparse.Namespace, msg_logger=None)
     data_df = pd.concat([data_df, data_reg_df], axis=1, names=joined_columns)
     msg_logger.info(f"Task Done.")
 
-
-    msg_logger.info(f"Plot Data...")
-    plot_graphics(args, data_df)
-    msg_logger.info(f"Task Done.")
-
+    try:
+        msg_logger.info(f"Plot Data...")
+        plot_graphics(args, data_df)
+        msg_logger.info(f"Task Done.")
+    except Exception as err:
+        msg_logger.info(f"An erro occurs when attempting to plot data.")
+        msg_logger.info(f"Error details:\n{str(err)}")
+        pass
     pass

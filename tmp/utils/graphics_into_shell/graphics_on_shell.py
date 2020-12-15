@@ -49,23 +49,28 @@ def main(args):
   -------
   `args` - plain python dictionary, obtained from parsing argparse.ArgumentParser instance, which keeps input arguments passed in to the script by user.\n
   """
-  root_msg_logger = get_main_logger(args)
-  root_msg_logger.info(f"Cmnd Line args -> {str(args)}")
-  
-  root_msg_logger.info()
-  _ = check_input_file_from_args(args)
-  
 
   if not os.path.exists(args.output_dir):
     try:
-      root_msg_logger.info(f"Creating output dir -> {str(args.output_dir)}")
+      print(f"Creating output dir -> {str(args.output_dir)}")
       os.makedirs(args.output_dir)
     except Exception as err:
       if os.path.exists(args.output_dir) and os.path.isdir(args.output_dir):
-        # print(f"Directory: {args.output_dir} already exists!")
-        root_msg_logger.info(f"Directory: {args.output_dir} already exists!")
+        print(f"Directory: {args.output_dir} already exists!")
       pass
     pass
+
+  root_msg_logger = get_main_logger(args)
+  root_msg_logger.info(f"Cmnd Line args -> {str(args)}")
+
+  root_msg_logger.info(f"Check exists file: {args.input_file}")
+  _ = check_input_file_from_args(args)
+  root_msg_logger.info(f"File {args.input_file}: exists!")
+
+  root_msg_logger.info(f"Check exists file: {args.input_file_pruning_trend}")
+  _ = check_input_prune_file_from_args(args)
+  root_msg_logger.info(f"File {args.input_file_pruning_trend}: exists!")
+
   if args.show_graphics:
     # show_both_data_from_filtered_log(args)
     show_stats_data_from_filtered_log(args, msg_logger=root_msg_logger)

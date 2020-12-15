@@ -31,3 +31,11 @@ def check_input_file_from_args(args) -> None:
     return is_right_file
   return False
 
+def check_input_prune_file_from_args(args) -> None:
+  """Check input filename provided by Namespace instance, retrieved from parsed input arguments."""
+  filename: str = args.input_file_pruning_trend
+  if filename:
+    is_right_file = check_input_file(filename=filename)
+    return is_right_file
+  return False
+

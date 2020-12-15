@@ -31,7 +31,7 @@ import tabulate
 # ============================================== #
 
 from src.custom_argparser import get_custom_argparser
-from src.check_input_args import check_input_file, check_input_file_from_args
+from src.check_input_args import check_input_file, check_input_file_from_args, check_input_prune_file_from_args
 from src.show_data_from_filtered_log import show_data_from_filtered_log
 from src.show_data_from_tb_log import show_data_from_tb_log
 from src.show_pruning_trend import show_pruning_trend_from_filtered_log

@@ -1193,7 +1193,7 @@ def predict_image(test_loader, model, criterion, loggers=None, activations_colle
     return lossses
 
 
-def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1):
+def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch=-1):
     def _log_validation_progress():
         if not _is_earlyexit(args):
             stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])

@@ -499,7 +499,7 @@ def _init_learner(args):
                          parallel=not args.load_serialized, device_ids=args.gpus)
     
     target_device = "cuda" if next(model.parameters()).is_cuda else "cpu"
-    target_device_id = next(network.parameters()).device
+    target_device_id = next(model.parameters()).device
     msglogger.warning(f'Model has been loaded to device={target_device}, with id number={target_device_id}')
     compression_scheduler = None
 

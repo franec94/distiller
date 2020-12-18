@@ -161,22 +161,20 @@ class SirenRegressorCompressor(object):
     def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Train for one epoch"""
         # self.load_datasets()
-
-        with collectors_context(self.activations_collectors["train"]) as collectors:
-            loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
-                                     epoch, self.compression_scheduler,
-                                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
-                                     early_stopping_agp=self.early_stopping_agp,
-                                     save_mid_pr=self.save_mid_pr)
-            if verbose:
-                if epoch >= 0 and epoch % self.args.print_freq == 0:
-                    if self.args.compress != None and self.args.compress != '':
-                        distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
-            distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger],
-                                                collector=collectors["sparsity"])
-            if self.args.masks_sparsity:
-                msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, 
-                                                                    self.compression_scheduler))
+        loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
+                                    epoch, self.compression_scheduler,
+                                    loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
+                                    early_stopping_agp=self.early_stopping_agp,
+                                    save_mid_pr=self.save_mid_pr)
+        if verbose:
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
+                if self.args.compress != None and self.args.compress != '':
+                    distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
+        distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger],
+                                            collector=collectors["sparsity"])
+        if self.args.masks_sparsity:
+            msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, 
+                                                                self.compression_scheduler))
         return loss
 
 
@@ -265,23 +263,24 @@ class SirenRegressorCompressor(object):
         self.load_datasets()
 
         self.performance_tracker.reset()
-        for epoch in range(self.start_epoch, self.ending_epoch):
-            is_last_epoch = epoch == self.ending_epoch - 1
-            is_one_to_save_pruned = False
-            if self.save_mid_pr is not None:
-                is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
-            if epoch >= 0 and epoch % self.args.print_freq == 0:
-                msglogger.info('\n')
-            # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
-            loss = self.train_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
-            if validate:
-                loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
+        with collectors_context(self.activations_collectors["train"]) as collectors:
+            for epoch in range(self.start_epoch, self.ending_epoch):
+                is_last_epoch = epoch == self.ending_epoch - 1
+                is_one_to_save_pruned = False
+                if self.save_mid_pr is not None:
+                    is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
+                if epoch >= 0 and epoch % self.args.print_freq == 0:
+                    msglogger.info('\n')
+                # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
+                loss = self.train_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
+                if validate:
+                    loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
+                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
 
-            if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
-                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
-                break
-        return self.performance_tracker.perf_scores_history
+                if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
+                    self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
+                    break
+            return self.performance_tracker.perf_scores_history
 
 
     def validate(self, epoch=-1, is_last_epoch = False):

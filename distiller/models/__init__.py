@@ -157,7 +157,7 @@ def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args
     _set_model_input_shape_attr(model, arch, dataset, pretrained, cadene)
     model.arch = arch
     model.dataset = dataset
-    if device == 'cuda'
+    if device == 'cuda':
         return model.cuda()
     return model.to(device)
 

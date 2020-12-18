@@ -181,16 +181,14 @@ class SirenRegressorCompressor(object):
 
 
     def train_validate_with_scheduling(self, epoch, validate=True, verbose=True, is_last_epoch = False):
-        if self.compression_scheduler:
-            self.compression_scheduler.on_epoch_begin(epoch)
+        # if self.compression_scheduler: self.compression_scheduler.on_epoch_begin(epoch)
 
         loss = self.train_one_epoch(epoch, verbose, is_last_epoch = is_last_epoch)
         if validate:
             loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose, is_last_epoch = is_last_epoch)
 
-        if self.compression_scheduler:
-            self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
-                                                    metrics={'min': loss,})
+        # if self.compression_scheduler: self.compression_scheduler.on_epoch_end(epoch, self.optimizer, metrics={'min': loss,})
+
         return loss, psnr_score, ssim_score
 
 
@@ -727,8 +725,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             inputs, target = inputs.to(args.device), target.to(args.device)
 
         # Execute the forward phase, compute the output and measure loss
-        if compression_scheduler:
-            compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
+        # if compression_scheduler: compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
 
         output, _ = model(inputs)
 
@@ -736,6 +733,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         # Record loss
         losses[OBJECTIVE_LOSS_KEY].add(loss.item())
 
+        """
         if compression_scheduler:
             # Before running the backward phase, we allow the scheduler to modify the loss
             # (e.g. add regularization loss)
@@ -750,28 +748,28 @@ def train(train_loader, model, criterion, optimizer, epoch,
                 losses[lc.name].add(lc.value.item())
         else:
             losses[OVERALL_LOSS_KEY].add(loss.item())
-
+        """
+        losses[OVERALL_LOSS_KEY].add(loss.item())
         # Compute the gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
-        if compression_scheduler:
-            compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
+
+        # if compression_scheduler: compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
         optimizer.step()
-        if compression_scheduler:
-            compression_scheduler.on_minibatch_end(epoch, train_step, steps_per_epoch, optimizer)
+        # if compression_scheduler: compression_scheduler.on_minibatch_end(epoch, train_step, steps_per_epoch, optimizer)
 
         # measure elapsed time
         batch_time.add(time.time() - end)
         steps_completed = (train_step+1)
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-        _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
+        # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
         if is_last_epoch:
             _log_training_progress()
-            _log_train_epoch_pruning(args, epoch)
+            # _log_train_epoch_pruning(args, epoch)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             _log_training_progress()
-            _log_train_epoch_pruning(args, epoch)
+            # _log_train_epoch_pruning(args, epoch)
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:

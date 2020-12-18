@@ -489,6 +489,10 @@ def _init_learner(args):
     # Create the model
     model = create_model(args.pretrained, args.dataset, args.arch,
                          parallel=not args.load_serialized, device_ids=args.gpus)
+    
+    target_device = "cuda" if next(model.parameters()).is_cuda else "cpu"
+    target_device_id = next(network.parameters()).device
+    msglogger.warning(f'Model has been loaded to device={target_device}, with id number={target_device_id}')
     compression_scheduler = None
 
     # TODO(barrh): args.deprecated_resume is deprecated since v0.3.1

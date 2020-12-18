@@ -128,6 +128,7 @@ def _config_ptq(args, opt):
 
 
 def config_learner_args(args, arch, dataset, dataset_path, pretrained, adam_args, batch, epochs):
+    """config learner args"""
     args.arch = f"{arch}"
     args.dataset = f"{dataset}"
     args.data = ""

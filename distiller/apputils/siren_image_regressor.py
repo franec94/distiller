@@ -244,10 +244,8 @@ class SirenRegressorCompressor(object):
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None:
                 is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
-                pass
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 msglogger.info('\n')
-                pass
             loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
 
@@ -522,7 +520,7 @@ def _init_learner(args):
                                     weight_decay=args.weight_decay)
         msglogger.debug('Optimizer Type(2): %s', type(optimizer))
         msglogger.debug('Optimizer Args(2): %s', optimizer.defaults)
-        pass
+        
 
     if args.compress:
         # The main use-case for this sample application is CNN compression. Compression
@@ -1304,11 +1302,11 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
         if is_triggered:
             epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
             # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
-            pass
-        pass
+            
+        
     if save_mid_pr is not None:
         save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total)
-        pass
+        
 
     is_updated = False
 
@@ -1350,10 +1348,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
                         # Update existing layer if satisfyes sparsity constraint
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 2, TOLL] # record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
                         FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-                    pass
-                pass
-            pass
-        pass
     try:
         if is_updated:
             out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
@@ -1362,8 +1356,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
                 json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
-        pass
-    pass
 
 
 def _log_train_epoch_pruning(args, epoch):
@@ -1384,8 +1376,6 @@ def _log_train_epoch_pruning(args, epoch):
             json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
-        pass
-    pass
 
 
 class EarlyStoppingAGP(object):
@@ -1409,7 +1399,7 @@ class EarlyStoppingAGP(object):
         
         self._is_triggered_flag = False
         self._curr_sparsity = 0.0
-        pass
+
     def is_triggered(self,):
         """Check whether is trieggered.
         Return:
@@ -1443,10 +1433,8 @@ class EarlyStoppingAGP(object):
                 self._curr_sparsity = curr_sparsity
             if self._steps_to_patience == self.patience:
                 self._is_triggered_flag = True
-            pass
         else:
             self._curr_sparsity = curr_sparsity
-        pass
 
     def update_trail_epochs(self,):
         """Update info about patience to let pass before stopping defenitely training.
@@ -1468,7 +1456,6 @@ class EarlyStoppingAGP(object):
             if self._steps_to_trail_epochs == self.trail_epochs:
                 return True
         return False
-    pass
 
 
 class SaveMiddlePruneRate(object):
@@ -1486,7 +1473,7 @@ class SaveMiddlePruneRate(object):
         self.saved_middle_prune_rates = [False] * len(middle_prune_rates)
         self.last_to_save_pos = -1
         self.prune_rate_val = [-1] * len(self.middle_prune_rates)
-        pass
+
     def is_rate_into_middle_prune_rates(self, a_prune_rate):
         is_found = False
         """Check if new target prune rate  has been reached.
@@ -1509,14 +1496,12 @@ class SaveMiddlePruneRate(object):
                 if val > a_prune_rate:
                     pos = ii - 1
                     break
-                pass
             if pos == -1: return False
             if not self.found_middle_prune_rates[pos]:
                 self.found_middle_prune_rates[pos] = True
                 self.last_to_save_pos = pos
                 self.prune_rate_val[pos] = a_prune_rate
                 is_found = True
-                pass
         return is_found
     def is_one_to_save(self,):
         """Check wheter there is one to save.
@@ -1543,4 +1528,3 @@ class SaveMiddlePruneRate(object):
             return self.prune_rate_val[pos]
         else:
             return None
-    pass

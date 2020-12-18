@@ -71,10 +71,9 @@ class SparsityAccuracyTracker(TrainingPerformanceTracker):
 class SparsityMSETracker(TrainingPerformanceTracker):
     """A performance tracker which prioritizes non-zero parameters.
 
-    Sort the performance history using the count of non-zero parameters
-    as main sort key, then sort by top1, top5 and and finally epoch number.
+    Sort the performance history using the 'mse', 'params_nnz_cnt' as count of non-zero parameters, and finally 'epoch' as epoch number.
 
-    Expects 'top1' and 'top5' to appear in the kwargs.
+    Expects 'mse', 'psnr_score', and 'ssim_score' to appear in the kwargs.
     """
     def step(self, model, epoch, **kwargs):
         assert all(score in kwargs.keys() for score in ('mse', 'psnr_score', 'ssim_score'))

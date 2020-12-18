@@ -174,7 +174,6 @@ def main(opt):
         # Finally run results on the test set
         if opt.evaluate:
             return app.test()
-        pass
     return
 
     
@@ -213,7 +212,6 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
             image_regressor_ptq_lapq(
                 model, criterion, pylogger, args,
                 scheduler=compression_scheduler, save_as_pytorch_model=True)
-            pass
         else:
             test_loader = load_test_data(args)
             distiller.apputils.siren_image_regressor.evaluate_model(test_loader, model, criterion, pylogger,

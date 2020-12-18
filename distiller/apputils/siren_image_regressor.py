@@ -470,6 +470,12 @@ def _config_determinism(args):
 
 def _config_compute_device(args):
     global msglogger
+    args.device = 'cuda:0'
+    torch.cuda.set_device('cuda:0')
+    msglogger.info(f"Selected device: cuda, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
+    
+    """
+    global msglogger
     if args.cpu or not torch.cuda.is_available():
         msglogger.info(f"Selected device: cpu, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
         # Set GPU index to -1 if using CPU
@@ -491,7 +497,8 @@ def _config_compute_device(args):
             msglogger.info(f"Selected device: cuda, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
             msglogger.info(f"Selected device: cuda, selected gpu_id={args.gpus[0]}")
             torch.cuda.set_device(args.gpus[0])
-
+    """
+    return 
 
 def _init_learner(args):
     # Create the model
@@ -707,7 +714,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     for train_step, (inputs, target) in enumerate(train_loader):
         # Measure data loading time
         data_time.add(time.time() - end)
-        if args.device == 'cuda':
+        if args.device == 'cuda' or args.device == 'cuda:0' or args.device.startswith('cuda'):
             # inputs, target = inputs.to(args.device), target.to(args.device)
             inputs, target = inputs.cuda(), target.cuda()
         else:
@@ -863,7 +870,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     end = time.time()
     with torch.no_grad():
         for validation_step, (inputs, target) in enumerate(data_loader):
-            if args.device == 'cuda':
+            if args.device == 'cuda' or args.device == 'cuda:0' or args.device.startswith('cuda'):
                 inputs, target = inputs.cuda(), target.cuda()
             else:
                 inputs, target = inputs.to(args.device), target.to(args.device)

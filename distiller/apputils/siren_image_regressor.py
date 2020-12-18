@@ -866,7 +866,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             batch_time.add(time.time() - end)
             end = time.time()
 
-            # steps_completed = (validation_step+1)
+            steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
                 _log_validation_progress()

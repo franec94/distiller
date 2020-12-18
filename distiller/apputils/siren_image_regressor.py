@@ -1282,7 +1282,7 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
                 _log_validation_progress()
 
     if args.wandb_logging:
-        wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean}, 'ssim': metrices['ssim'].mea})
+        wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean, 'ssim': metrices['ssim'].mea})
     if not _is_earlyexit(args):
         # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
         if is_last_epoch:

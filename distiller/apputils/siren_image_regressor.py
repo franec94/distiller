@@ -160,7 +160,7 @@ class SirenRegressorCompressor(object):
 
     def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Train for one epoch"""
-        self.load_datasets()
+        # self.load_datasets()
 
         with collectors_context(self.activations_collectors["train"]) as collectors:
             loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
@@ -272,7 +272,10 @@ class SirenRegressorCompressor(object):
                 is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 msglogger.info('\n')
-            loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
+            # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
+            loss = self.train_one_epoch(epoch, verbose=self.verbose, is_last_epoch = is_last_epoch)
+            if validate:
+                loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=self.verbose, is_last_epoch = is_last_epoch)
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
 
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():

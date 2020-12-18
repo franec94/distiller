@@ -106,6 +106,7 @@ class SirenRegressorCompressor(object):
         # reached while pruning a model.
         if self.args.mid_target_sparsities != []:
             self.save_mid_pr = SaveMiddlePruneRate(middle_prune_rates=self.args.mid_target_sparsities)
+            msglogger.info(f"Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
         else:
             self.save_mid_pr = None
         
@@ -1309,7 +1310,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
             
         
     if save_mid_pr is not None:
-        save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total)
+        save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch)
 
     policies_list = list(compression_scheduler.sched_metadata.keys())
     if policies_list == []: return
@@ -1472,6 +1473,8 @@ class SaveMiddlePruneRate(object):
         ----
         `middle_prune_rates` - list of float values to be checked as prune rate reached.\n
         """
+        global msglogger
+        self.msglogger = msglogger
         self.middle_prune_rates: list = \
             middle_prune_rates if isinstance(middle_prune_rates, list) \
             else list(middle_prune_rates)
@@ -1480,7 +1483,7 @@ class SaveMiddlePruneRate(object):
         self.last_to_save_pos = -1
         self.prune_rate_val = [-1] * len(self.middle_prune_rates)
 
-    def is_rate_into_middle_prune_rates(self, a_prune_rate):
+    def is_rate_into_middle_prune_rates(self, a_prune_rate, epoch=-1):
         is_found = False
         """Check if new target prune rate  has been reached.
         Args
@@ -1496,6 +1499,7 @@ class SaveMiddlePruneRate(object):
             self.last_to_save_pos = index
             self.prune_rate_val[index] = a_prune_rate
             is_found = True
+            msglogger.info(f"Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
         else:
             pos = -1
             for ii, val in enumerate(self.middle_prune_rates):
@@ -1508,6 +1512,8 @@ class SaveMiddlePruneRate(object):
                 self.last_to_save_pos = pos
                 self.prune_rate_val[pos] = a_prune_rate
                 is_found = True
+        if is_found:
+            self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")
         return is_found
     def is_one_to_save(self,):
         """Check wheter there is one to save.

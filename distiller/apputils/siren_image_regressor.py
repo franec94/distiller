@@ -414,6 +414,9 @@ def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
                         help='Target trail epochs sparsity.')
     parser_regressor.add_argument('--mid_target_sparsities', nargs='+', dest='mid_target_sparsities', type=float, default=[],
                         help='Target sparsities to save a part.')
+    parser_regressor.add_argument("--wandb_logging", required=False, action="store_true", default=False, dest='wandb_logging',
+        help="Flag for enabling model's performance, metrics via wandb API."
+    )
 
     distiller.quantization.add_post_train_quant_args(parser_regressor, add_lapq_args=include_ptq_lapq_args)
     return parser_regressor
@@ -436,6 +439,11 @@ def _init_logger(args, script_dir):
         msglogger.logdir)
     msglogger.debug("Distiller: %s", distiller.__version__)
     return msglogger.logdir
+
+def _init_wandb(args):
+    global msglogger
+    if args.wandb_logging:
+        wandb.init(project='siren-run')
 
 
 def _config_determinism(args):
@@ -1273,6 +1281,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
             if epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress()
 
+    if args.wandb_logging:
+        wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean}, 'ssim': metrices['ssim'].mea)
     if not _is_earlyexit(args):
         # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
         if is_last_epoch:

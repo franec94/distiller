@@ -73,6 +73,9 @@ def get_cmd_line_opts():
     parser.add_argument("--evaluate", required=False, action="store_true", default=False, dest='evaluate',
         help="Flag for evaluating model after training"
     )
+    parser.add_argument("--wandb_logging", required=False, action="store_true", default=False, dest='wandb_logging',
+        help="Flag for enabling model's performance, metrics via wandb API."
+    )
     parser.add_argument('--dynamic_quant', required=False, nargs='+', type=str, default=[], dest='dynamic_quant',
         help='Set it to enable dynamic quantization training. (Default: empty list, Allowed: [qint8, float16])'
     )

@@ -158,7 +158,7 @@ class SirenRegressorCompressor(object):
         return cls(cls.mock_args(), '')
 
 
-    def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
+    def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False, collectors = None):
         """Train for one epoch"""
         # self.load_datasets()
         loss = train(self.train_loader, self.model, self.criterion, self.optimizer, 
@@ -272,7 +272,7 @@ class SirenRegressorCompressor(object):
                 if epoch >= 0 and epoch % self.args.print_freq == 0:
                     msglogger.info('\n')
                 # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
-                loss = self.train_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
+                loss = self.train_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch, collectors=collectors)
                 if validate:
                     loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
                 self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)

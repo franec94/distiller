@@ -57,8 +57,6 @@ class SirenRegressorCompressor(object):
         - Regressor training, verification and testing
     """
     def __init__(self, args, script_dir):
-        # Configure instance of such a class to work properly downstream while training is performed,
-        # as well as validation or test when also these are requested.
         try:
             self.args = copy.deepcopy(args)
         except:
@@ -84,26 +82,17 @@ class SirenRegressorCompressor(object):
         self.train_loader, self.val_loader, self.test_loader = (None, None, None)
         self.activations_collectors = create_activation_stats_collectors(
             self.model, *self.args.activation_stats)
-        
-        # Create an object to record scores and mentrics while training a model base on siren net.
         try:
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
         except Exception as _:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
         
-        # Check whether to setup an object to keep track
-        # when it's time to stop training since target sparsity level
-        # has been reached.
         if self.args.target_sparsity is not None:
             self.early_stopping_agp = EarlyStoppingAGP(
                 target_sparsity=self.args.target_sparsity, toll=self.args.toll_sparsity,
                 patience=self.args.patience_sparsity, trail_epochs=self.args.trail_epochs)
         else:
             self.early_stopping_agp = None
-        
-        # Check whether to setup an object to keep track
-        # when it's necessary to save a middle prune level
-        # reached while pruning a model.
         if self.args.mid_target_sparsities != []:
             self.save_mid_pr = SaveMiddlePruneRate(middle_prune_rates=self.args.mid_target_sparsities)
         else:
@@ -213,24 +202,23 @@ class SirenRegressorCompressor(object):
         is_best = epoch == best_score.epoch
         checkpoint_extras = {'current_mse': mse,
                              'current_psnr_score': psnr_score,
+                             'current_psnr_score': ssim_score,
                              'best_mse': best_score.mse,
                              'best_psnr_score': best_score.psnr_score,
                              'best_ssim_score': best_score.ssim_score,
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
             is_mid_ckpt = False
-            if hasattr(self.args, "save_mid_ckpts") \
-                and isinstance(self.args.save_mid_ckpts, list) \
-                and len(self.args.save_mid_ckpts) != 0:
-                is_mid_ckpt = epoch in self.args.save_mid_ckpts
-            distiller.apputils.save_checkpoint(
-                epoch=epoch, arch=self.args.arch, model=self.model, optimizer=self.optimizer, \
-                scheduler=self.compression_scheduler, extras=checkpoint_extras, \
-                name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
-                is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
-                is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=FIND_EPOCH_FOR_PRUNING \
-            )
+            if hasattr(self.args, "save_mid_ckpts"):
+                if isinstance(self.args.save_mid_ckpts, list) and len(self.args.save_mid_ckpts) != 0:
+                    is_mid_ckpt = epoch in self.args.save_mid_ckpts
+            distiller.apputils.save_checkpoint(epoch, self.args.arch, self.model, optimizer=self.optimizer,
+                scheduler=self.compression_scheduler, extras=checkpoint_extras,
+                is_best=is_best, name=self.args.name, dir=msglogger.logdir,
+                freq_ckpt=self.args.print_freq, is_mid_ckpt = is_mid_ckpt,
+                is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned,
+                save_mid_pr_obj=self.save_mid_pr, prune_details=FIND_EPOCH_FOR_PRUNING
+                )
 
 
     def run_training_loop(self):
@@ -261,9 +249,10 @@ class SirenRegressorCompressor(object):
             loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
 
-            if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
-                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
-                break
+            if self.early_stopping_agp is not None:
+                if self.early_stopping_agp.stop_training():
+                    self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
+                    break
         return self.performance_tracker.perf_scores_history
 
 
@@ -690,6 +679,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
 
     # Switch to train mode
     model.train()
+    acc_stats = []
     end = time.time()
     for train_step, (inputs, target) in enumerate(train_loader):
         # Measure data loading time
@@ -842,7 +832,8 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     batch_size = data_loader.batch_size
 
     total_steps = total_samples / batch_size
-    # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
+    if epoch >= 0 and epoch % args.print_freq == 0:
+        msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to evaluation mode
     model.eval()
@@ -1230,7 +1221,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
     batch_size = data_loader.batch_size
 
     total_steps = total_samples / batch_size
-    # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
+    if epoch >= 0 and epoch % args.print_freq == 0:
+        msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to evaluation mode
     model.eval()
@@ -1296,8 +1288,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
     global FIND_EPOCH_FOR_PRUNING
     global TOLL
 
-    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
-
     if early_stopping_agp is not None:
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
         if early_stopping_agp.is_triggered_once():
@@ -1306,16 +1296,15 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
         if is_triggered:
             epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
             # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
-            
-        
     if save_mid_pr is not None:
         save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total)
 
-    policies_list = list(compression_scheduler.sched_metadata.keys())
-    if policies_list == []: return
-    
-   
     is_updated = False
+    policies_list = list(compression_scheduler.sched_metadata.keys())
+    if len(policies_list) == 0: return
+
+    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+
     for policy in policies_list:
         sched_metadata = compression_scheduler.sched_metadata[policy]
         if not hasattr(policy, 'pruner') : continue
@@ -1357,7 +1346,6 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
     try:
         if is_updated:
             out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-            # str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
             with open(out_file_data, 'w') as outfile:
                 json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
     except Exception as err:

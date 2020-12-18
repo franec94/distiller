@@ -65,8 +65,7 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
 
     filename = 'checkpoint.pth.tar' if name is None else name + '_checkpoint.pth.tar'
     fullpath = os.path.join(dir, filename)
-    if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0:
-        msglogger.info("Saving checkpoint to: %s" % fullpath)
+    # if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0: msglogger.info("Saving checkpoint to: %s" % fullpath)
 
     checkpoint = {'epoch': epoch, 'state_dict': model.state_dict(), 'arch': arch}
     try:

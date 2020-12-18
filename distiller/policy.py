@@ -177,7 +177,7 @@ class PruningPolicy(ScheduledTrainingPolicy):
         return param
 
     def on_epoch_begin(self, model, zeros_mask_dict, meta, **kwargs):
-        msglogger.debug("Pruner {} is about to prune".format(self.pruner.name))
+        # msglogger.debug("Pruner {} is about to prune".format(self.pruner.name))
         self.is_last_epoch = meta['current_epoch'] == (meta['ending_epoch'] - 1)
         if self.levels is not None:
             self.pruner.levels = self.levels

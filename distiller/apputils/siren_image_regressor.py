@@ -821,10 +821,8 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
 
     """Execute the validation/test loop."""
     losses = {'objective_loss': tnt.AverageValueMeter()}
-    metrices = {
-        'psnr': [],
-        'ssim': []
-    }
+    metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    # metrices = { 'psnr': [], 'ssim': [] }
 
     if _is_earlyexit(args):
         # for Early Exit, we have a list of errors and losses for each of the exits.
@@ -848,7 +846,10 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     end = time.time()
     with torch.no_grad():
         for validation_step, (inputs, target) in enumerate(data_loader):
-            inputs, target = inputs.to(args.device), target.to(args.device)
+            if args.device == 'cuda':
+                inputs, target = inputs.cuda(), target.cuda()
+            else:
+                inputs, target = inputs.to(args.device), target.to(args.device)
             # compute output from model
             output, _ = model(inputs)
 
@@ -857,10 +858,9 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
                 loss = criterion(output, target)
                 # measure accuracy and record loss
                 losses['objective_loss'].add(loss.item())
-                val_psnr, val_mssim = compute_desired_metrices(
-                    model_output = output, gt = target, data_range=1.)
-                metrices['psnr'].append(val_psnr)
-                metrices['ssim'].append(val_mssim)
+                val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
+                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
             else:
                 earlyexit_validate_loss(output, target, criterion, args)
 
@@ -868,7 +868,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             batch_time.add(time.time() - end)
             end = time.time()
 
-            steps_completed = (validation_step+1)
+            # steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
                 _log_validation_progress()
@@ -876,21 +876,22 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
                 _log_validation_progress()
 
     if not _is_earlyexit(args):
-        metrices['psnr'] = np.array(metrices['psnr'])
-        metrices['ssim'] = np.array(metrices['ssim'])
+        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
         if is_last_epoch:
             msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-
-        # if args.evaluate and test_mode_on:
-        if test_mode_on:
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        elif test_mode_on:
+            # if args.evaluate and test_mode_on:
             msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-
-        return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
     else:
         losses_exits_stats = earlyexit_validate_stats(args)
         return losses_exits_stats[args.num_exits-1]
@@ -1209,10 +1210,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
 
     """Execute the validation/test loop for saving image."""
     losses = {'objective_loss': tnt.AverageValueMeter()}
-    metrices = {
-        'psnr': [],
-        'ssim': []
-    }
+    metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    # metrices = { 'psnr': [], 'ssim': [] }
 
     if _is_earlyexit(args):
         # for Early Exit, we have a list of errors and losses for each of the exits.
@@ -1252,8 +1251,8 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
                 losses['objective_loss'].add(loss.item())
                 val_psnr, val_mssim = compute_desired_metrices(
                     model_output = output, gt = target, data_range=1.)
-                metrices['psnr'].append(val_psnr)
-                metrices['ssim'].append(val_mssim)
+                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
             else:
                 earlyexit_validate_loss(output, target, criterion, args)
 
@@ -1267,17 +1266,22 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
                 _log_validation_progress()
 
     if not _is_earlyexit(args):
-        metrices['psnr'] = np.array(metrices['psnr'])
-        metrices['ssim'] = np.array(metrices['ssim'])
-        if epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-
-        if args.evaluate and epoch == -1:
-            msglogger.info('==> Loss: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-
-        return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
+        if is_last_epoch:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        elif epoch >= 0 and epoch % args.print_freq == 0:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        elif test_mode_on:
+            # if args.evaluate and test_mode_on:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
     else:
         losses_exits_stats = earlyexit_validate_stats(args)
         return losses_exits_stats[args.num_exits-1]

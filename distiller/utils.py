@@ -509,10 +509,11 @@ def log_training_progress(stats_dict, params_dict, epoch, steps_completed, total
     if not isinstance(loggers, list):
         loggers = [loggers]
     for logger in loggers:
+        # logger.log_weights_distribution(params_dict, steps_completed)
         logger.log_training_progress(stats_dict, epoch,
                                      steps_completed,
                                      total_steps, freq=log_freq)
-        logger.log_weights_distribution(params_dict, steps_completed)
+        
 
 
 def log_activation_statistics(epoch, phase, loggers, collector):

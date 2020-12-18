@@ -143,6 +143,7 @@ def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args
                                                                      arch, dataset))
     if torch.cuda.is_available() and device_ids != -1:
         device = 'cuda'
+        msglogger.info(f"=> Model will be put on {device} !")
         """
         if parallel:
             if arch.startswith('alexnet') or arch.startswith('vgg'):

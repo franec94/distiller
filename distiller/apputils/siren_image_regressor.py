@@ -451,7 +451,9 @@ def _config_determinism(args):
 
 
 def _config_compute_device(args):
+    global msglogger
     if args.cpu or not torch.cuda.is_available():
+        msglogger.info(f"Selected device: cpu, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
         # Set GPU index to -1 if using CPU
         args.device = 'cpu'
         args.gpus = -1
@@ -468,6 +470,8 @@ def _config_compute_device(args):
                     raise ValueError('ERROR: GPU device ID {0} requested, but only {1} devices available'
                                      .format(dev_id, available_gpus))
             # Set default device in case the first one on the list != 0
+            msglogger.info(f"Selected device: cuda, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
+            msglogger.info(f"Selected device: cuda, selected gpu_id={args.gpus[0]}")
             torch.cuda.set_device(args.gpus[0])
 
 
@@ -685,7 +689,11 @@ def train(train_loader, model, criterion, optimizer, epoch,
     for train_step, (inputs, target) in enumerate(train_loader):
         # Measure data loading time
         data_time.add(time.time() - end)
-        inputs, target = inputs.to(args.device), target.to(args.device)
+        if args.device == 'cuda':
+            # inputs, target = inputs.to(args.device), target.to(args.device)
+            inputs, target = inputs.cuda(), target.cuda()
+        else:
+            inputs, target = inputs.to(args.device), target.to(args.device)
 
         # Execute the forward phase, compute the output and measure loss
         if compression_scheduler:

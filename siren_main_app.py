@@ -99,6 +99,7 @@ def init_regressor_default_args(args, opt):
     args = _config_ptq(args, opt)
     return args
 
+
 def _config_early_stopping_sparsity(args, opt):
     """Update args keeping run config for holding options for employing if necessary early stopping algorithm for sparsity monitoring.
     Args
@@ -112,6 +113,7 @@ def _config_early_stopping_sparsity(args, opt):
     args.trail_epochs = opt.trail_epochs
     return args
 
+
 def _config_ptq(args, opt):
     """Update args keeping run config for holding options for post train quant.
     Args
@@ -123,6 +125,7 @@ def _config_ptq(args, opt):
     args.quantize_eval = opt.quantize_eval
     args.qe_config_file = opt.qe_config_file
     return args
+
 
 def config_learner_args(args, arch, dataset, dataset_path, pretrained, adam_args, batch, epochs):
     args.arch = f"{arch}"

@@ -1521,11 +1521,14 @@ class SaveMiddlePruneRate(object):
         ------
         `bool` - indicating if a new prune rate has been reached and must be saved.\n
         """
-        pos = -1
+        # pos = -1
+        """
         for ii, val in enumerate(self.found_middle_prune_rates):
             if val == False:
                 pos = ii - 1
                 break
+        """
+        pos = self.last_to_save_pos
         if pos == -1 : return False
         return not self.saved_middle_prune_rates[pos]
     def get_rate_to_save(self,):

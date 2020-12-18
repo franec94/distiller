@@ -61,8 +61,10 @@ class SirenRegressorCompressor(object):
         # as well as validation or test when also these are requested.
         try:
             self.args = copy.deepcopy(args)
+            msglogger.info(f"self.args copied by means of deepcopy")
         except:
             self.args = args
+            msglogger.info(f"self.args copied by means assignment")
         self.test_mode_on = False
         self.args = self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
@@ -82,14 +84,25 @@ class SirenRegressorCompressor(object):
         # Define loss function (criterion)
         self.criterion = nn.MSELoss().to(self.args.device)
         self.train_loader, self.val_loader, self.test_loader = (None, None, None)
+
+        assert self.train_loader == self.val_loader and self.val_loader == self.test_loader, "Error self.train_loader != self.val_loader"
+        assert self.train_loader == self.test_loader, "Error self.train_loader != self.test_loader"
+        assert self.val_loader == self.test_loader, "Error self.val_loader != self.test_loader"
+
         self.activations_collectors = create_activation_stats_collectors(
             self.model, *self.args.activation_stats)
+        if self.activations_collectors is None:
+            msglogger.info(f"self.activations_collectors is None")
+        else:
+            msglogger.info(f"self.activations_collectors is not None")
         
         # Create an object to record scores and mentrics while training a model base on siren net.
         try:
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
+            msglogger.info(f"SparsityMSETracker is not None (not via except)")
         except Exception as _:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
+            msglogger.info(f"SparsityMSETracker is not None (via except)")
         
         # Check whether to setup an object to keep track
         # when it's time to stop training since target sparsity level
@@ -100,6 +113,7 @@ class SirenRegressorCompressor(object):
                 patience=self.args.patience_sparsity, trail_epochs=self.args.trail_epochs)
         else:
             self.early_stopping_agp = None
+            msglogger.info(f"EarlyStoppingAGP is None")
         
         # Check whether to setup an object to keep track
         # when it's necessary to save a middle prune level
@@ -109,6 +123,7 @@ class SirenRegressorCompressor(object):
             msglogger.info(f"Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
         else:
             self.save_mid_pr = None
+            msglogger.info(f"SaveMiddlePruneRate is None")
         
     
     def load_datasets(self):
@@ -642,10 +657,6 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
     return loaders
 
 
-def early_exit_mode(args):
-    return hasattr(args, 'earlyexit_lossweights') and args.earlyexit_lossweights
-
-
 def train(train_loader, model, criterion, optimizer, epoch,
           compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None):
     """Training-with-compression loop for one epoch.
@@ -698,11 +709,6 @@ def train(train_loader, model, criterion, optimizer, epoch,
     batch_time = tnt.AverageValueMeter()
     data_time = tnt.AverageValueMeter()
 
-    # For Early Exit, we define statistics for each exit, so
-    # `exiterrors` is analogous to `classerr` in the non-Early Exit case
-    if early_exit_mode(args):
-        args.exiterrors = []
-
     total_samples = len(train_loader.sampler)
     batch_size = train_loader.batch_size
     steps_per_epoch = math.ceil(total_samples / batch_size)
@@ -724,15 +730,9 @@ def train(train_loader, model, criterion, optimizer, epoch,
         if compression_scheduler:
             compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
 
-        if not hasattr(args, 'kd_policy') or args.kd_policy is None:
-            output, _ = model(inputs)
-        else:
-            output, _ = args.kd_policy.forward(inputs)
+        output, _ = model(inputs)
 
-        if not early_exit_mode(args):
-            loss = criterion(output, target)
-        else:
-            loss = earlyexit_loss(output, target, criterion, args)
+        loss = criterion(output, target)
         # Record loss
         losses[OBJECTIVE_LOSS_KEY].add(loss.item())
 
@@ -816,11 +816,6 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     return losses
 
 
-# Temporary patch until we refactor early-exit handling
-def _is_earlyexit(args):
-    return hasattr(args, 'earlyexit_thresholds') and args.earlyexit_thresholds
-
-
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False):
     """Validate model on validation set or test set, depending on which time instant it is called.
     Return
@@ -833,13 +828,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     global TARGET_TOTAL_SPARSITY
 
     def _log_validation_progress():
-        if not _is_earlyexit(args):
-            stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
-        else:
-            stats_dict = OrderedDict()
-            for exitnum in range(args.num_exits):
-                la_string = 'LossAvg' + str(exitnum)
-                stats_dict[la_string] = args.losses_exits[exitnum].mean
+        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         stats = ('Performance/Validation/', stats_dict)
         distiller.log_training_progress(stats, None, epoch, steps_completed,
                                         total_steps, args.print_freq, loggers)
@@ -847,15 +836,6 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     """Execute the validation/test loop."""
     losses = {'objective_loss': tnt.AverageValueMeter()}
     metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
-    # metrices = { 'psnr': [], 'ssim': [] }
-
-    if _is_earlyexit(args):
-        # for Early Exit, we have a list of errors and losses for each of the exits.
-        args.exiterrors = []
-        args.losses_exits = []
-        for exitnum in range(args.num_exits):
-            args.losses_exits.append(tnt.AverageValueMeter())
-        args.exit_taken = [0] * args.num_exits
 
     batch_time = tnt.AverageValueMeter()
     total_samples = len(data_loader.sampler)
@@ -877,16 +857,13 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             # compute output from model
             output, _ = model(inputs)
 
-            if not _is_earlyexit(args):
-                # compute loss
-                loss = criterion(output, target)
-                # measure accuracy and record loss
-                losses['objective_loss'].add(loss.item())
-                val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
-                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
-                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
-            else:
-                earlyexit_validate_loss(output, target, criterion, args)
+            # compute loss
+            loss = criterion(output, target)
+            # measure accuracy and record loss
+            losses['objective_loss'].add(loss.item())
+            val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
+            # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+            metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
 
             # measure elapsed time
             batch_time.add(time.time() - end)
@@ -899,134 +876,22 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             elif epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress()
 
-    if not _is_earlyexit(args):
-        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
-        if is_last_epoch:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif test_mode_on:
-            # if args.evaluate and test_mode_on:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
-        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
-    else:
-        losses_exits_stats = earlyexit_validate_stats(args)
-        return losses_exits_stats[args.num_exits-1]
-
-
-def inception_training_loss(output, target, criterion, args):
-    """Compute weighted loss for Inception networks as they have auxiliary classifiers
-
-    Auxiliary classifiers were added to inception networks to tackle the vanishing gradient problem
-    They apply softmax to outputs of one or more intermediate inception modules and compute auxiliary
-    loss over same labels.
-    Note that auxiliary loss is purely used for training purposes, as they are disabled during inference.
-
-    GoogleNet has 2 auxiliary classifiers, hence two 3 outputs in total, output[0] is main classifier output,
-    output[1] is aux2 classifier output and output[2] is aux1 classifier output and the weights of the
-    aux losses are weighted by 0.3 according to the paper (C. Szegedy et al., "Going deeper with convolutions,"
-    2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), Boston, MA, 2015, pp. 1-9.)
-
-    All other versions of Inception networks have only one auxiliary classifier, and the auxiliary loss
-    is weighted by 0.4 according to PyTorch documentation
-    # From https://discuss.pytorch.org/t/how-to-optimize-inception-model-with-auxiliary-classifiers/7958
-    """
-    weighted_loss = 0
-    if args.arch == 'googlenet':
-        # DEFAULT, aux classifiers are NOT included in PyTorch Pretrained googlenet model as they are NOT trained,
-        # they are only present if network is trained from scratch. If you need to fine tune googlenet (e.g. after
-        # pruning a pretrained model), then you have to explicitly enable aux classifiers when creating the model
-        # DEFAULT, in case of pretrained model, output length is 1, so loss will be calculated in main training loop
-        # instead of here, as we enter this function only if output is a tuple (len>1)
-        # TODO: Enable user to feed some input to add aux classifiers for pretrained googlenet model
-        outputs, aux2_outputs, aux1_outputs = output    # extract all 3 outputs
-        loss0 = criterion(outputs, target)
-        loss1 = criterion(aux1_outputs, target)
-        loss2 = criterion(aux2_outputs, target)
-        weighted_loss = loss0 + 0.3*loss1 + 0.3*loss2
-    else:
-        outputs, aux_outputs = output    # extract two outputs
-        loss0 = criterion(outputs, target)
-        loss1 = criterion(aux_outputs, target)
-        weighted_loss = loss0 + 0.4*loss1
-    return weighted_loss
-
-
-def earlyexit_loss(output, target, criterion, args):
-    """Compute the weighted sum of the exits losses
-
-    Note that the last exit is the original exit of the model (i.e. the
-    exit that traverses the entire network.
-    """
-    weighted_loss = 0
-    sum_lossweights = sum(args.earlyexit_lossweights)
-    assert sum_lossweights < 1
-    for exitnum in range(args.num_exits-1):
-        if output[exitnum] is None:
-            continue
-        exit_loss = criterion(output[exitnum], target)
-        weighted_loss += args.earlyexit_lossweights[exitnum] * exit_loss
-        args.exiterrors[exitnum].add(output[exitnum].detach(), target)
-    # handle final exit
-    weighted_loss += (1.0 - sum_lossweights) * criterion(output[args.num_exits-1], target)
-    args.exiterrors[args.num_exits-1].add(output[args.num_exits-1].detach(), target)
-    return weighted_loss
-
-
-def earlyexit_validate_loss(output, target, criterion, args):
-    # We need to go through each sample in the batch itself - in other words, we are
-    # not doing batch processing for exit criteria - we do this as though it were batch size of 1,
-    # but with a grouping of samples equal to the batch size.
-    # Note that final group might not be a full batch - so determine actual size.
-    this_batch_size = target.size(0)
-    earlyexit_validate_criterion = nn.CrossEntropyLoss(reduce=False).to(args.device)
-
-    for exitnum in range(args.num_exits):
-        # calculate losses at each sample separately in the minibatch.
-        args.loss_exits[exitnum] = earlyexit_validate_criterion(output[exitnum], target)
-        # for batch_size > 1, we need to reduce this down to an average over the batch
-        args.losses_exits[exitnum].add(torch.mean(args.loss_exits[exitnum]).cpu())
-
-    for batch_index in range(this_batch_size):
-        earlyexit_taken = False
-        # take the exit using CrossEntropyLoss as confidence measure (lower is more confident)
-        for exitnum in range(args.num_exits - 1):
-            if args.loss_exits[exitnum][batch_index] < args.earlyexit_thresholds[exitnum]:
-                # take the results from early exit since lower than threshold
-                args.exiterrors[exitnum].add(torch.tensor(np.array(output[exitnum].data[batch_index].cpu(), ndmin=2)),
-                                             torch.full([1], target[batch_index], dtype=torch.long))
-                args.exit_taken[exitnum] += 1
-                earlyexit_taken = True
-                break                    # since exit was taken, do not affect the stats of subsequent exits
-        # this sample does not exit early and therefore continues until final exit
-        if not earlyexit_taken:
-            exitnum = args.num_exits - 1
-            args.exiterrors[exitnum].add(torch.tensor(np.array(output[exitnum].data[batch_index].cpu(), ndmin=2)),
-                                         torch.full([1], target[batch_index], dtype=torch.long))
-            args.exit_taken[exitnum] += 1
-
-
-def earlyexit_validate_stats(args):
-    # Print some interesting summary stats for number of data points that could exit early
-    losses_exits_stats = [0] * args.num_exits
-    sum_exit_stats = 0
-    for exitnum in range(args.num_exits):
-        if args.exit_taken[exitnum]:
-            sum_exit_stats += args.exit_taken[exitnum]
-            msglogger.info("Exit %d: %d", exitnum, args.exit_taken[exitnum])
-            losses_exits_stats[exitnum] += args.losses_exits[exitnum].mean
-    for exitnum in range(args.num_exits):
-        if args.exit_taken[exitnum]:
-            msglogger.info("Percent Early Exit %d: %.3f", exitnum,
-                           (args.exit_taken[exitnum]*100.0) / sum_exit_stats)
-    return losses_exits_stats
+    # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
+    if is_last_epoch:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    elif epoch >= 0 and epoch % args.print_freq == 0:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    elif test_mode_on:
+        # if args.evaluate and test_mode_on:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+    return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
 
 
 def _convert_ptq_to_pytorch(model, args):
@@ -1221,13 +1086,7 @@ def predict_image(test_loader, model, criterion, loggers=None, activations_colle
 
 def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch=-1):
     def _log_validation_progress():
-        if not _is_earlyexit(args):
-            stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
-        else:
-            stats_dict = OrderedDict()
-            for exitnum in range(args.num_exits):
-                la_string = 'LossAvg' + str(exitnum)
-                stats_dict[la_string] = args.losses_exits[exitnum].mean
+        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         stats = ('Performance/Validation/', stats_dict)
         distiller.log_training_progress(stats, None, epoch, steps_completed,
                                         total_steps, args.print_freq, loggers)
@@ -1236,14 +1095,6 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
     losses = {'objective_loss': tnt.AverageValueMeter()}
     metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
     # metrices = { 'psnr': [], 'ssim': [] }
-
-    if _is_earlyexit(args):
-        # for Early Exit, we have a list of errors and losses for each of the exits.
-        args.exiterrors = []
-        args.losses_exits = []
-        for exitnum in range(args.num_exits):
-            args.losses_exits.append(tnt.AverageValueMeter())
-        args.exit_taken = [0] * args.num_exits
 
     batch_time = tnt.AverageValueMeter()
     total_samples = len(data_loader.sampler)
@@ -1267,17 +1118,14 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
             arr_image = output.cpu().view(sidelenght).detach().numpy()
             np.savetxt(predicted_image_path, arr_image)
 
-            if not _is_earlyexit(args):
-                # compute loss
-                loss = criterion(output, target)
-                # measure accuracy and record loss
-                losses['objective_loss'].add(loss.item())
-                val_psnr, val_mssim = compute_desired_metrices(
-                    model_output = output, gt = target, data_range=1.)
-                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
-                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
-            else:
-                earlyexit_validate_loss(output, target, criterion, args)
+            # compute loss
+            loss = criterion(output, target)
+            # measure accuracy and record loss
+            losses['objective_loss'].add(loss.item())
+            val_psnr, val_mssim = compute_desired_metrices(
+                model_output = output, gt = target, data_range=1.)
+            # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+            metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
 
             # measure elapsed time
             batch_time.add(time.time() - end)
@@ -1290,26 +1138,22 @@ def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1
 
     if args.wandb_logging:
         wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean, 'ssim': metrices['ssim'].mea})
-    if not _is_earlyexit(args):
-        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
-        if is_last_epoch:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif test_mode_on:
-            # if args.evaluate and test_mode_on:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
-        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
-    else:
-        losses_exits_stats = earlyexit_validate_stats(args)
-        return losses_exits_stats[args.num_exits-1]
+    # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
+    if is_last_epoch:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    elif epoch >= 0 and epoch % args.print_freq == 0:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    elif test_mode_on:
+        # if args.evaluate and test_mode_on:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+    return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
 
 
 def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):

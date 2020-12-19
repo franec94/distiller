@@ -467,15 +467,15 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
         # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
         sidelenght = output.size()[1]
 
-        arr_gt = gt.cpu().view(sidelenght).detach().numpy()
+        arr_gt = target.cpu().view(sidelenght).detach().numpy()
         arr_gt = (arr_gt / 2.) + 0.5
 
         arr_output = output.cpu().view(sidelenght).detach().numpy()
         arr_output = (arr_output / 2.) + 0.5
         arr_output = np.clip(arr_output, a_min=0., a_max=1.)
 
-        val_psnr = psnr(arr_gt, arr_output,data_range=data_range)
-        val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
+        val_psnr = psnr(arr_gt, arr_output,data_range=1.)
+        val_mssim = ssim(arr_gt, arr_output,data_range=1.)
         # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
         metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
         # else: earlyexit_validate_loss(output, target, criterion, args)

@@ -658,6 +658,7 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
 
 
 def _log_training_progress(
+    args, model,
     losses,
     epoch, steps_completed,
     # steps_per_epoch, args.print_freq,
@@ -777,6 +778,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         if is_last_epoch:
             #_log_training_progress()
             _log_training_progress(
+                args, model,
                 losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
@@ -786,6 +788,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             # _log_training_progress()
             # _log_train_epoch_pruning(args, epoch)
             _log_training_progress(
+                args, model,
                 losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,

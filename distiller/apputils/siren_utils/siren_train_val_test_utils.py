@@ -267,6 +267,8 @@ def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
     # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
     _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr, msglogger=msglogger)
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
+        _, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
+        msglogger.info(f"Total Sparsity Achieved: {total}")
         _log_training_progress()
         _log_train_epoch_pruning(args, epoch, msglogger)
     end = time.time()

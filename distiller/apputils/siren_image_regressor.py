@@ -385,7 +385,7 @@ class SirenRegressorCompressor(object):
     def test(self):
         self.test_mode_on = True
         self.load_datasets()
-        result_test = distiller.apputils.siren_utils.siren_train_val_test_utils.test(self.test_loader, self.model, self.criterion,
+        result_test = test(self.test_loader, self.model, self.criterion,
                     self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on, msglogger=msglogger)
         self.test_mode_on = False
         return result_test

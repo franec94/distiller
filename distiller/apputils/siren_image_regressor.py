@@ -840,7 +840,7 @@ def _log_validation_progress(
                 losses,
                 epoch, steps_completed,
                 # steps_per_epoch, args.print_freq,
-                steps_per_epoch, print_freq,
+                total_steps, print_freq,
                 loggers):
     stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
     stats = ('Performance/Validation/', stats_dict)
@@ -900,14 +900,14 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             if is_last_epoch:
                 _log_validation_progress(
                 losses,
-                steps_per_epoch, args.print_freq,
-                steps_per_epoch, print_freq,
+                epoch, steps_completed,
+                total_steps, args.print_freq,
                 loggers)
             elif epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress(
                 losses,
                 epoch, steps_completed,
-                steps_per_epoch, args.print_freq,
+                total_steps, args.print_freq,
                 loggers)
 
     # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])

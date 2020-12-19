@@ -37,6 +37,9 @@ from skimage.metrics import mean_squared_error
 
 from distiller.pruning.automated_gradual_pruner import AutomatedGradualPruner
 
+TOLL = 2
+PRUNE_DETAILS = dict()
+
 
 # ----------------------------------------------------------------------------------------------- #
 # Utils Section
@@ -67,89 +70,59 @@ def earlyexit_loss(output, target, criterion, args):
     return weighted_loss
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None, msglogger = None):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
-    global msglogger
-    global FIND_EPOCH_FOR_PRUNING
+    # global msglogger
+    global PRUNE_DETAILS
     global TOLL
-
     _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
 
-    if early_stopping_agp is not None:
+    if early_stopping_agp:
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
+        # is_triggered = early_stopping_agp.is_triggered()
+        # if is_triggered:
+        # epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
+        # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
         if early_stopping_agp.is_triggered_once():
             msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
-        is_triggered = early_stopping_agp.is_triggered()
-        if is_triggered:
-            epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-            # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
-            
-        
-    if save_mid_pr is not None:
+    if save_mid_pr:
         save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch)
-
+    
     policies_list = list(compression_scheduler.sched_metadata.keys())
     if policies_list == []: return
     
-   
-    is_updated = False
     for policy in policies_list:
-        sched_metadata = compression_scheduler.sched_metadata[policy]
+        # sched_metadata = compression_scheduler.sched_metadata[policy]
         if not hasattr(policy, 'pruner') : continue
         pruner = policy.pruner
-        if isinstance(pruner, AutomatedGradualPruner):
-            
+        if isinstance(pruner, AutomatedGradualPruner):  
             final_sparsity = pruner.agp_pr.final_sparsity
-
-            keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
-            pruner_name = str(pruner).split(" ")[0].split(".")[-1]
-
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
-                
-                if len(FIND_EPOCH_FOR_PRUNING.keys()) == 0 or param_name not in FIND_EPOCH_FOR_PRUNING.keys():
-                    is_updated = True
-                    # Insert new layer
-                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
-                    FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-                
-                elif float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
-                    is_updated = True
-                    # Update existing layer  
-                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
-                    FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-                
-                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL):
-                    is_updated = True
-                    if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
+                    if param_name not in PRUNE_DETAILS.keys():
+                        # Check and eventually Insert new layer
+                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
+                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
+                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
+                    elif float(PRUNE_DETAILS[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                        # Update if necessary insert new layer
+                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
-                        FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-                if data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
-                    is_updated = True
-                    if float(FIND_EPOCH_FOR_PRUNING[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
-                        # Update existing layer if satisfyes sparsity constraint
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 2, TOLL] # record_data = [str(epoch), str(param_name), pruner_name, str(data_tmp_dict["Fine (%)"])]
-                        FIND_EPOCH_FOR_PRUNING[param_name] = dict(zip(keys, record_data))
-    try:
-        if is_updated:
-            out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-            # str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
-            with open(out_file_data, 'w') as outfile:
-                json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
-    except Exception as err:
-        msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
+                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
 
 
-def _log_train_epoch_pruning(args, epoch):
+def _log_train_epoch_pruning(args, epoch, msglogger):
     """Log to json file information and data about when pruning take places per layer."""
     global FIND_EPOCH_FOR_PRUNING
-    global msglogger
+    # global msglogger
 
-    if FIND_EPOCH_FOR_PRUNING == {}: return
+    if PRUNE_DETAILS == {}: return
 
     out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-    str_data = json.dumps(FIND_EPOCH_FOR_PRUNING)
+    str_data = json.dumps(PRUNE_DETAILS)
 
     msglogger.info(f"--- dump pruning data (epoch={epoch}) ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
@@ -234,8 +207,9 @@ def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
     # Execute the forward phase, compute the output and measure loss
     compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
 
-    if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs)
-    else: output, _ = args.kd_policy.forward(inputs)
+    # if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs)
+    # else: output, _ = args.kd_policy.forward(inputs)
+    output, _ = model(inputs)
 
     if not early_exit_mode(args): loss = criterion(output, target)
     else: loss = earlyexit_loss(output, target, criterion, args)
@@ -272,10 +246,10 @@ def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
     steps_completed = (train_step+1)
 
     # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-    # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
+    _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr, msglogger=msglogger)
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
         _log_training_progress()
-        _log_train_epoch_pruning(args, epoch)
+        _log_train_epoch_pruning(args, epoch, msglogger)
     end = time.time()
     #return acc_stats
     # NOTE: this breaks previous behavior, which returned a history of (top1, top5) values
@@ -333,8 +307,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
 
     # For Early Exit, we define statistics for each exit, so
     # `exiterrors` is analogous to `classerr` in the non-Early Exit case
-    if early_exit_mode(args):
-        args.exiterrors = []
+    # if early_exit_mode(args): args.exiterrors = []
 
     total_samples = len(train_loader.sampler)
     batch_size = train_loader.batch_size
@@ -355,8 +328,9 @@ def train(train_loader, model, criterion, optimizer, epoch,
     else:
         output, _ = args.kd_policy.forward(inputs)
 
-    if not early_exit_mode(args): loss = criterion(output, target)
-    else: loss = earlyexit_loss(output, target, criterion, args)
+    # if not early_exit_mode(args): loss = criterion(output, target)
+    # else: loss = earlyexit_loss(output, target, criterion, args)
+    loss = criterion(output, target)
     
     # Record loss
     losses[OBJECTIVE_LOSS_KEY].add(loss.item())
@@ -439,6 +413,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
     # metrices = { 'psnr': [], 'ssim': [] }
 
+    """
     if _is_earlyexit(args):
         # for Early Exit, we have a list of errors and losses for each of the exits.
         args.exiterrors = []
@@ -446,6 +421,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
         for exitnum in range(args.num_exits):
             args.losses_exits.append(tnt.AverageValueMeter())
         args.exit_taken = [0] * args.num_exits
+    """
 
     batch_time = tnt.AverageValueMeter()
     total_samples = len(data_loader.sampler)
@@ -467,16 +443,26 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
         # compute output from model
         output, _ = model(inputs)
 
-        if not _is_earlyexit(args):
-            # compute loss
-            loss = criterion(output, target)
-            # measure accuracy and record loss
-            losses['objective_loss'].add(loss.item())
-            val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
-            # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
-            metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
-        else:
-            earlyexit_validate_loss(output, target, criterion, args)
+        # if not _is_earlyexit(args):
+        # compute loss
+        loss = criterion(output, target)
+        # measure accuracy and record loss
+        losses['objective_loss'].add(loss.item())
+        # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
+        sidelenght = output.size()[1]
+
+        arr_gt = gt.cpu().view(sidelenght).detach().numpy()
+        arr_gt = (arr_gt / 2.) + 0.5
+
+        arr_output = model_output.cpu().view(sidelenght).detach().numpy()
+        arr_output = (arr_output / 2.) + 0.5
+        arr_output = np.clip(arr_output, a_min=0., a_max=1.)
+
+        val_psnr = psnr(arr_gt, arr_output,data_range=data_range)
+        val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
+        # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+        metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
+        # else: earlyexit_validate_loss(output, target, criterion, args)
 
         # measure elapsed time
         batch_time.add(time.time() - end)
@@ -486,8 +472,116 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
         if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
             _log_validation_progress()    
 
+    # if not _is_earlyexit(args):
+    if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    elif test_mode_on:
+        # if args.evaluate and test_mode_on:
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+            # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+    # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
+    # else:
+    #    losses_exits_stats = earlyexit_validate_stats(args)
+    #    return losses_exits_stats[args.num_exits-1]
+    return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
+
+
+def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):
+    """Model Test"""
+    msglogger.info('--- predict data ---------------------')
+    if args is None:
+        args = SirenRegressorCompressor.mock_args()
+    if activations_collectors is None:
+        activations_collectors = create_activation_stats_collectors(model, None)
+
+    with collectors_context(activations_collectors["test"]) as collectors:
+        lossses = _save_predicted_image(test_loader, model, criterion, loggers, args)
+        distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
+        save_collectors_data(collectors, msglogger.logdir)
+    return lossses
+
+
+def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch=-1):
+    def _log_validation_progress():
+        if not _is_earlyexit(args):
+            stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        else:
+            stats_dict = OrderedDict()
+            for exitnum in range(args.num_exits):
+                la_string = 'LossAvg' + str(exitnum)
+                stats_dict[la_string] = args.losses_exits[exitnum].mean
+        stats = ('Performance/Validation/', stats_dict)
+        distiller.log_training_progress(stats, None, epoch, steps_completed,
+                                        total_steps, args.print_freq, loggers)
+
+    """Execute the validation/test loop for saving image."""
+    losses = {'objective_loss': tnt.AverageValueMeter()}
+    metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    # metrices = { 'psnr': [], 'ssim': [] }
+
+    if _is_earlyexit(args):
+        # for Early Exit, we have a list of errors and losses for each of the exits.
+        args.exiterrors = []
+        args.losses_exits = []
+        for exitnum in range(args.num_exits):
+            args.losses_exits.append(tnt.AverageValueMeter())
+        args.exit_taken = [0] * args.num_exits
+
+    batch_time = tnt.AverageValueMeter()
+    total_samples = len(data_loader.sampler)
+    batch_size = data_loader.batch_size
+
+    total_steps = total_samples / batch_size
+    # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
+
+    # Switch to evaluation mode
+    model.eval()
+
+    end = time.time()
+    with torch.no_grad():
+        for validation_step, (inputs, target) in enumerate(data_loader):
+            inputs, target = inputs.to(args.device), target.to(args.device)
+            # compute output from model
+            output, _ = model(inputs)
+
+            predicted_image_path = os.path.join(args.output_dir, 'predicted_image.txt')
+            sidelenght = output.size()[1]
+            arr_image = output.cpu().view(sidelenght).detach().numpy()
+            np.savetxt(predicted_image_path, arr_image)
+
+            if not _is_earlyexit(args):
+                # compute loss
+                loss = criterion(output, target)
+                # measure accuracy and record loss
+                losses['objective_loss'].add(loss.item())
+                val_psnr, val_mssim = compute_desired_metrices(
+                    model_output = output, gt = target, data_range=1.)
+                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
+                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
+            else:
+                earlyexit_validate_loss(output, target, criterion, args)
+
+            # measure elapsed time
+            batch_time.add(time.time() - end)
+            end = time.time()
+
+            steps_completed = (validation_step+1)
+            # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+            if epoch >= 0 and epoch % args.print_freq == 0:
+                _log_validation_progress()
+
+    if args.wandb_logging:
+        wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean, 'ssim': metrices['ssim'].mea})
     if not _is_earlyexit(args):
-        if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
+        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
+        if is_last_epoch:
+            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+        elif epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                 # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                 losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)

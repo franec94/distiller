@@ -43,12 +43,10 @@ import distiller.apputils.siren_utils.siren_train_val_test_utils
 # Logger handle
 msglogger = logging.getLogger()
 
-ONE_SHOT_MATCH_SPARSITY = True
-TOLL = 2.0
-TARGET_TOTAL_SPARSITY = 30.0
-FIND_EPOCH_FOR_PRUNING = dict()
 
-
+# ----------------------------------------------------------------------------------------------- #
+# SirenRegressorCompressor: Class Definition
+# ----------------------------------------------------------------------------------------------- #
 class SirenRegressorCompressor(object):
     """Base class for applications that want to compress image regressor.
 
@@ -207,7 +205,6 @@ class SirenRegressorCompressor(object):
 
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
-        global FIND_EPOCH_FOR_PRUNING
         self.performance_tracker.step(
             self.model,
             epoch,
@@ -225,9 +222,7 @@ class SirenRegressorCompressor(object):
                              'best_epoch': best_score.epoch}
         if msglogger.logdir:
             is_mid_ckpt = False
-            if hasattr(self.args, "save_mid_ckpts") \
-                and isinstance(self.args.save_mid_ckpts, list) \
-                and len(self.args.save_mid_ckpts) != 0:
+            if self.args.save_mid_ckpts != []:
                 is_mid_ckpt = epoch in self.args.save_mid_ckpts
             distiller.apputils.save_checkpoint(
                 epoch=epoch, arch=self.args.arch, model=self.model, optimizer=self.optimizer, \
@@ -235,7 +230,7 @@ class SirenRegressorCompressor(object):
                 name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
                 is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
                 is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=FIND_EPOCH_FOR_PRUNING \
+                save_mid_pr_obj=self.save_mid_pr, prune_details=PRUNE_DETAILS\
             )
 
 
@@ -388,6 +383,9 @@ class SirenRegressorCompressor(object):
         return result_test
 
 
+# ----------------------------------------------------------------------------------------------- #
+# SirenRegressorCompressor: Util Functions
+# ----------------------------------------------------------------------------------------------- #
 def create_activation_stats_collectors(model, *phases):
     """Create objects that collect activation statistics.
 
@@ -688,32 +686,6 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
                     score.mse, score.psnr_score, score.ssim_score, score.sparsity, -score.params_nnz_cnt, score.epoch)
 
 
-def compute_desired_metrices(model_output, gt, data_range=1.):
-    """Compute PSNR and SSIM scores.
-    Params:
-    -------
-    `model_output` - output produced by a Pytorch model\n
-    `gt` - reference data\n
-    `data_range` - int, range of input data\n
-
-    Return:
-    -------
-    `val_psnr, val_mssim` - scores from metrices PSNR, and SSIM
-    """
-
-    sidelenght = model_output.size()[1]
-
-    arr_gt = gt.cpu().view(sidelenght).detach().numpy()
-    arr_gt = (arr_gt / 2.) + 0.5
-
-    arr_output = model_output.cpu().view(sidelenght).detach().numpy()
-    arr_output = (arr_output / 2.) + 0.5
-    arr_output = np.clip(arr_output, a_min=0., a_max=1.)
-
-    val_psnr = psnr(arr_gt, arr_output,data_range=data_range)
-    val_mssim = ssim(arr_gt, arr_output,data_range=data_range)
-    return val_psnr, val_mssim
-
 # ----------------------------------------------------------------------------------------------- #
 # Under-test functions
 # ----------------------------------------------------------------------------------------------- #
@@ -733,117 +705,12 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
             model = _convert_ptq_to_pytorch(model, args)
     else:
         quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
-    return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
+    return distiller.apputils.siren_utils.siren_train_val_test_utils.predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
 
 
-def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):
-    """Model Test"""
-    msglogger.info('--- predict data ---------------------')
-    if args is None:
-        args = SirenRegressorCompressor.mock_args()
-    if activations_collectors is None:
-        activations_collectors = create_activation_stats_collectors(model, None)
-
-    with collectors_context(activations_collectors["test"]) as collectors:
-        lossses = _save_predicted_image(test_loader, model, criterion, loggers, args)
-        distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
-        save_collectors_data(collectors, msglogger.logdir)
-    return lossses
-
-
-def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch=-1):
-    def _log_validation_progress():
-        if not _is_earlyexit(args):
-            stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
-        else:
-            stats_dict = OrderedDict()
-            for exitnum in range(args.num_exits):
-                la_string = 'LossAvg' + str(exitnum)
-                stats_dict[la_string] = args.losses_exits[exitnum].mean
-        stats = ('Performance/Validation/', stats_dict)
-        distiller.log_training_progress(stats, None, epoch, steps_completed,
-                                        total_steps, args.print_freq, loggers)
-
-    """Execute the validation/test loop for saving image."""
-    losses = {'objective_loss': tnt.AverageValueMeter()}
-    metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
-    # metrices = { 'psnr': [], 'ssim': [] }
-
-    if _is_earlyexit(args):
-        # for Early Exit, we have a list of errors and losses for each of the exits.
-        args.exiterrors = []
-        args.losses_exits = []
-        for exitnum in range(args.num_exits):
-            args.losses_exits.append(tnt.AverageValueMeter())
-        args.exit_taken = [0] * args.num_exits
-
-    batch_time = tnt.AverageValueMeter()
-    total_samples = len(data_loader.sampler)
-    batch_size = data_loader.batch_size
-
-    total_steps = total_samples / batch_size
-    # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
-
-    # Switch to evaluation mode
-    model.eval()
-
-    end = time.time()
-    with torch.no_grad():
-        for validation_step, (inputs, target) in enumerate(data_loader):
-            inputs, target = inputs.to(args.device), target.to(args.device)
-            # compute output from model
-            output, _ = model(inputs)
-
-            predicted_image_path = os.path.join(args.output_dir, 'predicted_image.txt')
-            sidelenght = output.size()[1]
-            arr_image = output.cpu().view(sidelenght).detach().numpy()
-            np.savetxt(predicted_image_path, arr_image)
-
-            if not _is_earlyexit(args):
-                # compute loss
-                loss = criterion(output, target)
-                # measure accuracy and record loss
-                losses['objective_loss'].add(loss.item())
-                val_psnr, val_mssim = compute_desired_metrices(
-                    model_output = output, gt = target, data_range=1.)
-                # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
-                metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
-            else:
-                earlyexit_validate_loss(output, target, criterion, args)
-
-            # measure elapsed time
-            batch_time.add(time.time() - end)
-            end = time.time()
-
-            steps_completed = (validation_step+1)
-            # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-            if epoch >= 0 and epoch % args.print_freq == 0:
-                _log_validation_progress()
-
-    if args.wandb_logging:
-        wandb.log({"loss": losses['objective_loss'].mean, 'psnr': losses['psnr'].mean, 'ssim': metrices['ssim'].mea})
-    if not _is_earlyexit(args):
-        # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
-        if is_last_epoch:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif epoch >= 0 and epoch % args.print_freq == 0:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        elif test_mode_on:
-            # if args.evaluate and test_mode_on:
-            msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-        # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
-        return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
-    else:
-        losses_exits_stats = earlyexit_validate_stats(args)
-        return losses_exits_stats[args.num_exits-1]
-
-
+# ----------------------------------------------------------------------------------------------- #
+# Under-test Classes
+# ----------------------------------------------------------------------------------------------- #
 class EarlyStoppingAGP(object):
     """Class defining EarlyStoppingAGP behaviour."""
     def __init__(self, target_sparsity, toll=2.0, patience=5, trail_epochs=5):
@@ -934,13 +801,14 @@ class SaveMiddlePruneRate(object):
         """
         global msglogger
         self.msglogger = msglogger
-        self.middle_prune_rates: list = \
+        self.middle_prune_rates = \
             middle_prune_rates if isinstance(middle_prune_rates, list) \
             else list(middle_prune_rates)
-        self.found_middle_prune_rates = [False] * len(middle_prune_rates)
-        self.saved_middle_prune_rates = [False] * len(middle_prune_rates)
-        self.last_to_save_pos = -1
-        self.prune_rate_val = [-1] * len(self.middle_prune_rates)
+        self.middle_prune_rates = iter(self.middle_prune_rates)
+        self.found_middle_prune_rates = False
+        self.saved_middle_prune_rates = False
+        self.prune_rate_val = -1
+        self.curr_val = next(self.middle_prune_rates)
 
     def is_rate_into_middle_prune_rates(self, a_prune_rate, epoch=-1):
         is_found = False
@@ -952,53 +820,30 @@ class SaveMiddlePruneRate(object):
         ------
         `found` - bool, indicating if a new prune rate has been reached.\n
         """
-        if a_prune_rate in self.middle_prune_rates:
-            index = self.middle_prune_rates.index(a_prune_rate)
-            self.found_middle_prune_rates[index] = True
-            self.last_to_save_pos = index
-            self.prune_rate_val[index] = a_prune_rate
-            is_found = True
-            msglogger.info(f"Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
-        else:
-            pos = -1
-            for ii, val in enumerate(self.middle_prune_rates):
-                if val > a_prune_rate:
-                    pos = ii - 1
-                    break
-            if pos == -1: return False
-            if not self.found_middle_prune_rates[pos]:
-                self.found_middle_prune_rates[pos] = True
-                self.last_to_save_pos = pos
-                self.prune_rate_val[pos] = a_prune_rate
-                is_found = True
-        if is_found:
-            self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")
-        return is_found
+        while self.curr_val:
+            if a_prune_rate >= self.curr_val:
+                self.curr_val = next(self.middle_prune_rates, None)
+                self.prune_rate_val = a_prune_rate
+                self.found_middle_prune_rates = True
+                self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")
+                return True
+            self.curr_val = next(self.middle_prune_rates, None)
+        return False
     def is_one_to_save(self,):
         """Check wheter there is one to save.
         Return
         ------
         `bool` - indicating if a new prune rate has been reached and must be saved.\n
         """
-        # pos = -1
-        """
-        for ii, val in enumerate(self.found_middle_prune_rates):
-            if val == False:
-                pos = ii - 1
-                break
-        """
-        pos = self.last_to_save_pos
-        if pos == -1 : return False
-        return not self.saved_middle_prune_rates[pos]
+        return self.found_middle_prune_rates
     def get_rate_to_save(self,):
         """Get last rate achieved and not yet saved a part.
         Return
         ------
         `prune_rate_val` - float, indicating if a new prune rate has been reached and must be saved.\n
         """
-        pos = self.last_to_save_pos
-        if not self.saved_middle_prune_rates[pos]:
-            self.saved_middle_prune_rates[pos] = True
-            return self.prune_rate_val[pos]
-        else:
-            return None
+        if self.found_middle_prune_rates and not self.saved_middle_prune_rates:
+            self.saved_middle_prune_rates = True
+            self.found_middle_prune_rates = False
+            return self.prune_rate_val
+        return None

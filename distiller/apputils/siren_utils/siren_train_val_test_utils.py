@@ -290,8 +290,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     if epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('\n')
             msglogger.info('--- train (epoch=%d)-----------', epoch)
-    else:
-        msglogger.info('--- train ---------------------')
+    # else: msglogger.info('--- train ---------------------')
 
     def _log_training_progress():
         # Log some statistics

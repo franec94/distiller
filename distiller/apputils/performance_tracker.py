@@ -90,7 +90,7 @@ class SparsityMSETracker(TrainingPerformanceTracker):
         self.perf_scores_history.sort(
             key=operator.attrgetter('mse', 'params_nnz_cnt', 'epoch'),
             reverse=False)
-        if self.tot < self.max_len:
+        if self.tot >= self.max_len:
             self.perf_scores_history.pop()
         else:
             self.tot += 1

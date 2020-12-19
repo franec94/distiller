@@ -224,13 +224,15 @@ class SirenRegressorCompressor(object):
             is_mid_ckpt = False
             if self.args.save_mid_ckpts != []:
                 is_mid_ckpt = epoch in self.args.save_mid_ckpts
+            
+            prune_details = distiller.apputils.siren_utils.siren_train_val_test_utils.get_prune_detail()
             distiller.apputils.save_checkpoint(
                 epoch=epoch, arch=self.args.arch, model=self.model, optimizer=self.optimizer, \
                 scheduler=self.compression_scheduler, extras=checkpoint_extras, \
                 name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
                 is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
                 is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=PRUNE_DETAILS\
+                save_mid_pr_obj=self.save_mid_pr, prune_details=prune_details \
             )
 
 
@@ -264,7 +266,7 @@ class SirenRegressorCompressor(object):
             with collectors_context(self.activations_collectors["valid"]) as collectors:
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
                 loss, psnr_score, ssim_score = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
+                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
@@ -310,7 +312,7 @@ class SirenRegressorCompressor(object):
             with collectors_context(self.activations_collectors["valid"]) as collectors:
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
                 loss, psnr_score, ssim_score = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
+                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
@@ -371,14 +373,14 @@ class SirenRegressorCompressor(object):
     def validate(self, epoch=-1, is_last_epoch = False):
         # self.load_datasets()
         return distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion,
-                        [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
+                        [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
 
 
     def test(self):
         self.test_mode_on = True
         self.load_datasets()
         result_test = distiller.apputils.siren_utils.siren_train_val_test_utils.test(self.test_loader, self.model, self.criterion,
-                    self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on)
+                    self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on, msglogger=msglogger)
         self.test_mode_on = False
         return result_test
 
@@ -546,21 +548,6 @@ def earlyexit_validate_loss(output, target, criterion, args):
             args.exit_taken[exitnum] += 1
 
 
-def earlyexit_validate_stats(args):
-    # Print some interesting summary stats for number of data points that could exit early
-    losses_exits_stats = [0] * args.num_exits
-    sum_exit_stats = 0
-    for exitnum in range(args.num_exits):
-        if args.exit_taken[exitnum]:
-            sum_exit_stats += args.exit_taken[exitnum]
-            msglogger.info("Exit %d: %d", exitnum, args.exit_taken[exitnum])
-            losses_exits_stats[exitnum] += args.losses_exits[exitnum].mean
-    for exitnum in range(args.num_exits):
-        if args.exit_taken[exitnum]:
-            msglogger.info("Percent Early Exit %d: %.3f", exitnum,
-                           (args.exit_taken[exitnum]*100.0) / sum_exit_stats)
-    return losses_exits_stats
-
 
 def _convert_ptq_to_pytorch(model, args):
     msglogger.info('Converting Distiller PTQ model to PyTorch quantization API')
@@ -577,7 +564,7 @@ def evaluate_model(test_loader, model, criterion, loggers, activations_collector
     # You can optionally quantize the model to 8-bit integer before evaluation.
     # For example:
     # python3 compress_classifier.py --arch resnet20_cifar  ../data.cifar10 -p=50 --resume-from=checkpoint.pth.tar --evaluate
-
+    global msglogger
     if not isinstance(loggers, list):
         loggers = [loggers]
 
@@ -585,7 +572,7 @@ def evaluate_model(test_loader, model, criterion, loggers, activations_collector
         # Handle case where a post-train quantized model was loaded, and user wants to convert it to PyTorch
         if args.qe_convert_pytorch:
             model = _convert_ptq_to_pytorch(model, args)
-        return test(test_loader, model, criterion, loggers, activations_collectors, args=args)
+        return distiller.apputils.siren_utils.siren_train_val_test_utils.test(test_loader, model, criterion, loggers, activations_collectors, args=args, msglogger=msglogger)
     else:
         return quantize_and_test_model(test_loader, model, criterion, args, loggers,
                                        scheduler=scheduler, save_flag=True)
@@ -601,6 +588,8 @@ def quantize_and_test_model(test_loader, model, criterion, args, loggers=None, s
     scheduler - pass scheduler to store it in checkpoint
     save_flag - defaults to save both quantization statistics and checkpoint.
     """
+    global msglogger
+
     if hasattr(model, 'quantizer_metadata') and \
             model.quantizer_metadata['type'] == distiller.quantization.PostTrainLinearQuantizer:
         raise RuntimeError('Trying to invoke post-training quantization on a model that has already been post-'
@@ -628,7 +617,7 @@ def quantize_and_test_model(test_loader, model, criterion, args, loggers=None, s
     if args.qe_convert_pytorch:
         qe_model = _convert_ptq_to_pytorch(qe_model, args_qe)
 
-    test_res = test(test_loader, qe_model, criterion, loggers, args=args_qe)
+    test_res = distiller.apputils.siren_utils.siren_train_val_test_utils.test(test_loader, qe_model, criterion, loggers, args=args_qe, msglogger=msglogger)
 
     if save_flag:
         checkpoint_name = 'quantized'
@@ -699,6 +688,8 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
     # For example:
     # python3 compress_classifier.py --arch resnet20_cifar  ../data.cifar10 -p=50 --resume-from=checkpoint.pth.tar --evaluate
 
+    global msglogger
+
     if not isinstance(loggers, list):
         loggers = [loggers]
 
@@ -708,7 +699,7 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
             model = _convert_ptq_to_pytorch(model, args)
     else:
         quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
-    return distiller.apputils.siren_utils.siren_train_val_test_utils.predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args)
+    return distiller.apputils.siren_utils.siren_train_val_test_utils.predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args, msglogger=msglogger)
 
 
 # ----------------------------------------------------------------------------------------------- #

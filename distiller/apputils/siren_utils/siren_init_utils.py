@@ -207,7 +207,7 @@ def _init_logger(args, script_dir, msglogger):
 
 
 def _init_wandb(args, msglogger = None):
-     """Config wandb access for registering training progresses storing them to cloud by means of wandb API.
+    """Config wandb access for registering training progresses storing them to cloud by means of wandb API.
     Args:
     -----
     `args` - Namespace compliant python object with details needed to determine how data will be stored via wandb API to cloud storage.\n

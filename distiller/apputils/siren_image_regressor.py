@@ -213,25 +213,23 @@ class SirenRegressorCompressor(object):
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
         global FIND_EPOCH_FOR_PRUNING
-        """
         self.performance_tracker.step(
             self.model,
             epoch,
             mse=mse,
             psnr_score=psnr_score, ssim_score=ssim_score)
-        """
-        # if epoch >= 0 and epoch % self.args.print_freq == 0: _log_best_scores(self.performance_tracker, msglogger)
-        # best_score = self.performance_tracker.best_scores()[0]
-        """is_best = epoch == best_score.epoch
+        if epoch >= 0 and epoch % self.args.print_freq == 0: _log_best_scores(self.performance_tracker, msglogger)
+        best_score = self.performance_tracker.best_scores()[0]
+        is_best = epoch == best_score.epoch
         checkpoint_extras = {'current_mse': mse,
                              'current_psnr_score': psnr_score,
                              'best_mse': best_score.mse,
                              'best_psnr_score': best_score.psnr_score,
                              'best_ssim_score': best_score.ssim_score,
                              'best_epoch': best_score.epoch}
-        """
-        is_best = False
-        checkpoint_extras = {}
+        
+        # is_best = False
+        # checkpoint_extras = {}
         if msglogger.logdir:
             is_mid_ckpt = False
             if hasattr(self.args, "save_mid_ckpts") \

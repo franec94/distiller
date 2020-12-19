@@ -29,6 +29,7 @@ class TrainingPerformanceTracker(object):
     def __init__(self, num_best_scores):
         self.perf_scores_history = []
         self.max_len = num_best_scores
+        self.tot = 0
 
     def reset(self):
         self.perf_scores_history = []
@@ -89,4 +90,8 @@ class SparsityMSETracker(TrainingPerformanceTracker):
         self.perf_scores_history.sort(
             key=operator.attrgetter('mse', 'params_nnz_cnt', 'epoch'),
             reverse=False)
+        if self.tot < self.max_len:
+            self.perf_scores_history.pop()
+        else:
+            self.tot += 1
 

@@ -389,6 +389,25 @@ class SirenRegressorCompressor(object):
 # ----------------------------------------------------------------------------------------------- #
 # SirenRegressorCompressor: Util Functions
 # ----------------------------------------------------------------------------------------------- #
+def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None, test_mode_on = True, msglogger = None):
+
+    """Model Test.
+    Return
+    ------
+    `losses` - list python object keeping MSE, PSNR and SSIM scores in that precise order.\n
+    """
+    msglogger.info('--- test ---------------------')
+    if args is None:
+        args = SirenRegressorCompressor.mock_args()
+    if activations_collectors is None:
+        activations_collectors = create_activation_stats_collectors(model, None)
+
+    with collectors_context(activations_collectors["test"]) as collectors:
+        losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
+        distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
+        save_collectors_data(collectors, msglogger.logdir)
+    return losses
+
 def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     return distiller.apputils.siren_utils.siren_init_utils.init_regressor_compression_arg_parser(include_ptq_lapq_args=include_ptq_lapq_args)
 
@@ -573,7 +592,7 @@ def evaluate_model(test_loader, model, criterion, loggers, activations_collector
         # Handle case where a post-train quantized model was loaded, and user wants to convert it to PyTorch
         if args.qe_convert_pytorch:
             model = _convert_ptq_to_pytorch(model, args)
-        return distiller.apputils.siren_utils.siren_train_val_test_utils.test(test_loader, model, criterion, loggers, activations_collectors, args=args, msglogger=msglogger)
+        return test(test_loader, model, criterion, loggers, activations_collectors, args=args, msglogger=msglogger)
     else:
         return quantize_and_test_model(test_loader, model, criterion, args, loggers,
                                        scheduler=scheduler, save_flag=True)

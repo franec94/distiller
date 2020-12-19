@@ -379,27 +379,7 @@ def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoc
     """Model validation"""
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: msglogger.info('--- validate (epoch=%d)-----------', epoch)
     else: msglogger.info('--- validate ---------------------')
-    return _validate(val_loader, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch)
-
-
-def test(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None, test_mode_on = True, msglogger = None):
-
-    """Model Test.
-    Return
-    ------
-    `losses` - list python object keeping MSE, PSNR and SSIM scores in that precise order.\n
-    """
-    msglogger.info('--- test ---------------------')
-    if args is None:
-        args = SirenRegressorCompressor.mock_args()
-    if activations_collectors is None:
-        activations_collectors = create_activation_stats_collectors(model, None)
-
-    with collectors_context(activations_collectors["test"]) as collectors:
-        losses = _validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on)
-        distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
-        save_collectors_data(collectors, msglogger.logdir)
-    return losses
+    return _validate(val_loader, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
 
 
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):

@@ -144,15 +144,13 @@ def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args
     if torch.cuda.is_available() and device_ids != -1:
         device = 'cuda'
         msglogger.info(f"=> Model will be put on {device} !")
-        """
+        
         if parallel:
             if arch.startswith('alexnet') or arch.startswith('vgg'):
                 model.features = torch.nn.DataParallel(model.features, device_ids=device_ids)
             else:
                 model = torch.nn.DataParallel(model, device_ids=device_ids)
-        """
-        # model.is_parallel = parallel
-        model.is_parallel = False
+        model.is_parallel = parallel
     else:
         device = 'cpu'
         model.is_parallel = False
@@ -161,8 +159,6 @@ def create_model(pretrained, dataset, arch, parallel=True, device_ids=None, args
     _set_model_input_shape_attr(model, arch, dataset, pretrained, cadene)
     model.arch = arch
     model.dataset = dataset
-    if device == 'cuda':
-        return model.cuda()
     return model.to(device)
 
 

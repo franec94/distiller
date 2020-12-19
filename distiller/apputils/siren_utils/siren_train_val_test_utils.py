@@ -86,8 +86,8 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
         if early_stopping_agp.is_triggered_once():
             msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
     if save_mid_pr:
-        save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch)
-        msglogger.info(f"(SaveMiddlePruneRate) Mid sparsity: {total} has been met at epoch: {epoch}")
+        if save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch):
+            msglogger.info(f"(SaveMiddlePruneRate) Mid sparsity: {total} has been met at epoch: {epoch}")
     
     policies_list = list(compression_scheduler.sched_metadata.keys())
     if policies_list == []: return

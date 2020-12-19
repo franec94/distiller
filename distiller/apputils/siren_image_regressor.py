@@ -218,16 +218,18 @@ class SirenRegressorCompressor(object):
             epoch,
             mse=mse,
             psnr_score=psnr_score, ssim_score=ssim_score)
-        if epoch >= 0 and epoch % self.args.print_freq == 0:
-            _log_best_scores(self.performance_tracker, msglogger)
-        best_score = self.performance_tracker.best_scores()[0]
-        is_best = epoch == best_score.epoch
+        # if epoch >= 0 and epoch % self.args.print_freq == 0: _log_best_scores(self.performance_tracker, msglogger)
+        # best_score = self.performance_tracker.best_scores()[0]
+        """is_best = epoch == best_score.epoch
         checkpoint_extras = {'current_mse': mse,
                              'current_psnr_score': psnr_score,
                              'best_mse': best_score.mse,
                              'best_psnr_score': best_score.psnr_score,
                              'best_ssim_score': best_score.ssim_score,
                              'best_epoch': best_score.epoch}
+        """
+        is_best = False
+        checkpoint_extras = {}
         if msglogger.logdir:
             is_mid_ckpt = False
             if hasattr(self.args, "save_mid_ckpts") \
@@ -898,17 +900,15 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
-                _log_validation_progress(
-                losses,
-                epoch, steps_completed,
-                total_steps, args.print_freq,
-                loggers)
+                _log_validation_progress(losses,
+                    epoch, steps_completed,
+                    total_steps, args.print_freq,
+                    loggers)
             elif epoch >= 0 and epoch % args.print_freq == 0:
-                _log_validation_progress(
-                losses,
-                epoch, steps_completed,
-                total_steps, args.print_freq,
-                loggers)
+                _log_validation_progress(losses,
+                    epoch, steps_completed,
+                    total_steps, args.print_freq,
+                    loggers)
 
     # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
     if is_last_epoch:

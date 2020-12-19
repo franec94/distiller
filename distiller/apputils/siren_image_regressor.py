@@ -349,7 +349,8 @@ class SirenRegressorCompressor(object):
 
         if self.compression_scheduler:
             msglogger.info("=> Running with scheduler")
-            self.run_training_loop_with_scheduler()
+            # self.run_training_loop_with_scheduler()
+            self.run_plain_training_loop()
             return self.performance_tracker.perf_scores_history
         """
         for epoch in range(self.start_epoch, self.ending_epoch):

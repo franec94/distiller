@@ -87,6 +87,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
             msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
     if save_mid_pr:
         save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch)
+        msglogger.info(f"(SaveMiddlePruneRate) Mid sparsity: {total} has been met at epoch: {epoch}")
     
     policies_list = list(compression_scheduler.sched_metadata.keys())
     if policies_list == []: return
@@ -134,7 +135,9 @@ def _log_train_epoch_pruning(args, epoch, msglogger):
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
 
+
 def get_prune_detail(): return PRUNE_DETAILS
+
 
 def earlyexit_validate_stats(args, msglogger):
     # Print some interesting summary stats for number of data points that could exit early

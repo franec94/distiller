@@ -160,7 +160,8 @@ class SirenRegressorCompressor(object):
             
             distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
-            if self.args.compress and epoch >= 0 and epoch % self.args.print_freq == 0:
+            # if self.args.compress and epoch >= 0 and epoch % self.args.print_freq == 0:
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
                 distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
             if self.args.masks_sparsity:
                 msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, 

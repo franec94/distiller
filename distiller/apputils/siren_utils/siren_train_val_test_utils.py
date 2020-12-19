@@ -413,12 +413,14 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     global TARGET_TOTAL_SPARSITY
 
     def _log_validation_progress():
-        #if not _is_earlyexit(args): #stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         # else:
-        stats_dict = OrderedDict()
+        """ stats_dict = OrderedDict()
         for exitnum in range(args.num_exits):
             la_string = 'LossAvg' + str(exitnum)
             stats_dict[la_string] = args.losses_exits[exitnum].mean
+        """
         stats = ('Performance/Validation/', stats_dict)
         distiller.log_training_progress(stats, None, epoch, steps_completed,
                                         total_steps, args.print_freq, loggers)
@@ -521,12 +523,14 @@ def predict_image(test_loader, model, criterion, loggers=None, activations_colle
 
 def _save_predicted_image(data_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch=-1, msglogger = None):
     def _log_validation_progress():
+        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         # if not _is_earlyexit(args): stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         # else:
-        stats_dict = OrderedDict()
+        """stats_dict = OrderedDict()
         for exitnum in range(args.num_exits):
             la_string = 'LossAvg' + str(exitnum)
             stats_dict[la_string] = args.losses_exits[exitnum].mean
+        """
         stats = ('Performance/Validation/', stats_dict)
         distiller.log_training_progress(stats, None, epoch, steps_completed,
                                         total_steps, args.print_freq, loggers)

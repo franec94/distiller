@@ -365,7 +365,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
         _log_training_progress()
-        _log_train_epoch_pruning(args, epoch)
+        _log_train_epoch_pruning(args, epoch, msglogger)
     end = time.time()
     #return acc_stats
     # NOTE: this breaks previous behavior, which returned a history of (top1, top5) values

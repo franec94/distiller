@@ -332,6 +332,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     # Switch to train mode
     model.train()
     end = time.time()
+    train_step = 0
     inputs, target = next(iter(train_loader))
     # for train_step, (inputs, target) in enumerate(train_loader):
     # Measure data loading time

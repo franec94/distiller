@@ -779,6 +779,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
 
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
         # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
+        """
         if is_last_epoch:
             #_log_training_progress()
             _log_training_progress(
@@ -803,7 +804,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
                 # _log_training_progress()
                 _log_train_epoch_pruning(args, epoch)
                 ONE_SHOT_MATCH_SPARSITY = False
-
+        """
+        pass
         end = time.time()
     #return acc_stats
     # NOTE: this breaks previous behavior, which returned a history of (top1, top5) values
@@ -901,6 +903,7 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
 
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
+            """
             if is_last_epoch:
                 _log_validation_progress(losses,
                     epoch, steps_completed,
@@ -911,7 +914,8 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
                     epoch, steps_completed,
                     total_steps, args.print_freq,
                     loggers)
-
+            """
+            pass
     # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
     if is_last_epoch:
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \

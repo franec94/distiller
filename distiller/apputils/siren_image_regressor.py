@@ -662,7 +662,7 @@ def _log_training_progress(
     epoch, steps_completed,
     # steps_per_epoch, args.print_freq,
     steps_per_epoch, print_freq,
-    loggers):
+    loggers, optimizer, batch_time):
     # Log some statistics
 
     # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
@@ -677,7 +677,8 @@ def _log_training_progress(
     distiller.log_training_progress(stats,
                                     params,
                                     epoch, steps_completed,
-                                    steps_per_epoch, args.print_freq,
+                                    # steps_per_epoch, args.print_freq,
+                                    steps_per_epoch, print_freq,
                                     loggers)
 
 def train(train_loader, model, criterion, optimizer, epoch,
@@ -779,7 +780,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
                 losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
-                loggers)
+                loggers, optimizer, batch_time)
             # _log_train_epoch_pruning(args, epoch)
         elif epoch >= 0 and epoch % args.print_freq == 0:
             # _log_training_progress()
@@ -788,7 +789,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
                 losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
-                loggers)
+                loggers, optimizer, batch_time)
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
@@ -841,7 +842,8 @@ def _log_validation_progress(
     stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
     stats = ('Performance/Validation/', stats_dict)
     distiller.log_training_progress(stats, None, epoch, steps_completed,
-                                    total_steps, args.print_freq, loggers)
+                                    # total_steps, args.print_freq, loggers)
+                                    total_steps, print_freq, loggers)
 
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False):
     """Validate model on validation set or test set, depending on which time instant it is called.

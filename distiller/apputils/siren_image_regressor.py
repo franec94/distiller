@@ -386,6 +386,9 @@ class SirenRegressorCompressor(object):
 # ----------------------------------------------------------------------------------------------- #
 # SirenRegressorCompressor: Util Functions
 # ----------------------------------------------------------------------------------------------- #
+def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
+    return distiller.apputils.siren_utils.siren_init_utils.init_regressor_compression_arg_parser(include_ptq_lapq_args=include_ptq_lapq_args)
+
 def create_activation_stats_collectors(model, *phases):
     """Create objects that collect activation statistics.
 

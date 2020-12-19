@@ -838,14 +838,15 @@ class SaveMiddlePruneRate(object):
         ------
         `found` - bool, indicating if a new prune rate has been reached.\n
         """
-        while self.curr_val:
-            if a_prune_rate >= self.curr_val:
+        if a_prune_rate >= self.curr_val:
+            while self.curr_val:
+                if a_prune_rate < self.curr_val:
+                    self.curr_val = next(self.middle_prune_rates, None)
+                    self.prune_rate_val = a_prune_rate
+                    self.found_middle_prune_rates = True
+                    self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")
+                    return True
                 self.curr_val = next(self.middle_prune_rates, None)
-                self.prune_rate_val = a_prune_rate
-                self.found_middle_prune_rates = True
-                self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")
-                return True
-            self.curr_val = next(self.middle_prune_rates, None)
         return False
     def is_one_to_save(self,):
         """Check wheter there is one to save.

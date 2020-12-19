@@ -657,7 +657,7 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
     return loaders
 
 
-def _log_training_progress(stats,
+def _log_training_progress(
     params, losses,
     epoch, steps_completed,
     # steps_per_epoch, args.print_freq,
@@ -775,7 +775,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
         if is_last_epoch:
             #_log_training_progress()
-            _log_training_progress(stats,
+            _log_training_progress(
                 params, losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
@@ -784,7 +784,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         elif epoch >= 0 and epoch % args.print_freq == 0:
             # _log_training_progress()
             # _log_train_epoch_pruning(args, epoch)
-            _log_training_progress(stats,
+            _log_training_progress(
                 params, losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
@@ -792,7 +792,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
-                _log_training_progress()
+                # _log_training_progress()
                 _log_train_epoch_pruning(args, epoch)
                 ONE_SHOT_MATCH_SPARSITY = False
 
@@ -832,7 +832,7 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
         save_collectors_data(collectors, msglogger.logdir)
     return losses
 
-def _log_validation_progress(stats,
+def _log_validation_progress(
                 params, losses,
                 epoch, steps_completed,
                 # steps_per_epoch, args.print_freq,
@@ -853,12 +853,6 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     """
     global ONE_SHOT_MATCH_SPARSITY
     global TARGET_TOTAL_SPARSITY
-
-    def _log_validation_progress():
-        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
-        stats = ('Performance/Validation/', stats_dict)
-        distiller.log_training_progress(stats, None, epoch, steps_completed,
-                                        total_steps, args.print_freq, loggers)
 
     """Execute the validation/test loop."""
     losses = {'objective_loss': tnt.AverageValueMeter()}
@@ -899,13 +893,13 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
-                _log_validation_progress(stats,
+                _log_validation_progress(
                 params, losses,
                 steps_per_epoch, args.print_freq,
                 steps_per_epoch, print_freq,
                 loggers)
             elif epoch >= 0 and epoch % args.print_freq == 0:
-                _log_validation_progress(stats,
+                _log_validation_progress(
                 params, losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,

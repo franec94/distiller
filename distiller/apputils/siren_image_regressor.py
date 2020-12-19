@@ -61,10 +61,10 @@ class SirenRegressorCompressor(object):
         # as well as validation or test when also these are requested.
         try:
             self.args = copy.deepcopy(args)
-            msglogger.info(f"self.args copied by means of deepcopy")
+            msglogger.info(f"=> self.args copied by means of deepcopy")
         except:
             self.args = args
-            msglogger.info(f"self.args copied by means assignment")
+            msglogger.info(f"=> self.args copied by means assignment")
         self.test_mode_on = False
         self.args = self._infer_implicit_args(self.args)
         self.logdir = _init_logger(self.args, script_dir)
@@ -92,17 +92,17 @@ class SirenRegressorCompressor(object):
         self.activations_collectors = create_activation_stats_collectors(
             self.model, *self.args.activation_stats)
         if self.activations_collectors is None:
-            msglogger.info(f"self.activations_collectors is None")
+            msglogger.info(f"=> self.activations_collectors is None")
         else:
-            msglogger.info(f"self.activations_collectors is not None")
+            msglogger.info(f"=> self.activations_collectors is not None")
         
         # Create an object to record scores and mentrics while training a model base on siren net.
         try:
             self.performance_tracker = distiller.apputils.SparsityMSETracker(self.args.num_best_scores)
-            msglogger.info(f"SparsityMSETracker is not None (not via except)")
+            msglogger.info(f"=> SparsityMSETracker is not None (not via except)")
         except Exception as _:
             self.performance_tracker = SparsityMSETracker(self.args.num_best_scores)
-            msglogger.info(f"SparsityMSETracker is not None (via except)")
+            msglogger.info(f"=> SparsityMSETracker is not None (via except)")
         
         # Check whether to setup an object to keep track
         # when it's time to stop training since target sparsity level
@@ -113,17 +113,17 @@ class SirenRegressorCompressor(object):
                 patience=self.args.patience_sparsity, trail_epochs=self.args.trail_epochs)
         else:
             self.early_stopping_agp = None
-            msglogger.info(f"EarlyStoppingAGP is None")
+            msglogger.info(f"=> EarlyStoppingAGP is None")
         
         # Check whether to setup an object to keep track
         # when it's necessary to save a middle prune level
         # reached while pruning a model.
         if self.args.mid_target_sparsities != []:
             self.save_mid_pr = SaveMiddlePruneRate(middle_prune_rates=self.args.mid_target_sparsities)
-            msglogger.info(f"Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
+            msglogger.info(f"=> Created SaveMiddlePruneRate from: {str(self.args.mid_target_sparsities)}")
         else:
             self.save_mid_pr = None
-            msglogger.info(f"SaveMiddlePruneRate is None")
+            msglogger.info(f"=> SaveMiddlePruneRate is None")
         
     
     def load_datasets(self):
@@ -522,7 +522,7 @@ def _init_learner(args):
     
     target_device = "cuda" if next(model.parameters()).is_cuda else "cpu"
     target_device_id = next(model.parameters()).device
-    msglogger.warning(f'Model has been loaded to device={target_device}, with id number={target_device_id}')
+    msglogger.warning(f'=> Model has been loaded to device={target_device}, with id number={target_device_id}')
     compression_scheduler = None
 
     # TODO(barrh): args.deprecated_resume is deprecated since v0.3.1
@@ -657,6 +657,29 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
     return loaders
 
 
+def _log_training_progress(stats,
+    params, losses,
+    epoch, steps_completed,
+    # steps_per_epoch, args.print_freq,
+    steps_per_epoch, print_freq,
+    loggers):
+    # Log some statistics
+
+    # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+    stats_dict = OrderedDict()
+    for loss_name, meter in losses.items():
+        stats_dict[loss_name] = meter.mean
+    stats_dict['LR'] = optimizer.param_groups[0]['lr']
+    stats_dict['Time'] = batch_time.mean
+    stats = ('Performance/Training/', stats_dict)
+
+    params = model.named_parameters() if args.log_params_histograms else None
+    distiller.log_training_progress(stats,
+                                    params,
+                                    epoch, steps_completed,
+                                    steps_per_epoch, args.print_freq,
+                                    loggers)
+
 def train(train_loader, model, criterion, optimizer, epoch,
           compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None):
     """Training-with-compression loop for one epoch.
@@ -682,23 +705,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
     else:
         msglogger.info('--- train ---------------------')
 
-    def _log_training_progress():
-        # Log some statistics
 
-        # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
-        stats_dict = OrderedDict()
-        for loss_name, meter in losses.items():
-            stats_dict[loss_name] = meter.mean
-        stats_dict['LR'] = optimizer.param_groups[0]['lr']
-        stats_dict['Time'] = batch_time.mean
-        stats = ('Performance/Training/', stats_dict)
-
-        params = model.named_parameters() if args.log_params_histograms else None
-        distiller.log_training_progress(stats,
-                                        params,
-                                        epoch, steps_completed,
-                                        steps_per_epoch, args.print_freq,
-                                        loggers)
 
     OVERALL_LOSS_KEY = 'Overall Loss'
     OBJECTIVE_LOSS_KEY = 'Objective Loss'
@@ -767,11 +774,21 @@ def train(train_loader, model, criterion, optimizer, epoch,
         # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
         # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr)
         if is_last_epoch:
-            _log_training_progress()
+            #_log_training_progress()
+            _log_training_progress(stats,
+                params, losses,
+                epoch, steps_completed,
+                steps_per_epoch, args.print_freq,
+                loggers)
             # _log_train_epoch_pruning(args, epoch)
         elif epoch >= 0 and epoch % args.print_freq == 0:
-            _log_training_progress()
+            # _log_training_progress()
             # _log_train_epoch_pruning(args, epoch)
+            _log_training_progress(stats,
+                params, losses,
+                epoch, steps_completed,
+                steps_per_epoch, args.print_freq,
+                loggers)
         elif ONE_SHOT_MATCH_SPARSITY:
             t, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
             if total >= TARGET_TOTAL_SPARSITY:
@@ -815,6 +832,16 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
         save_collectors_data(collectors, msglogger.logdir)
     return losses
 
+def _log_validation_progress(stats,
+                params, losses,
+                epoch, steps_completed,
+                # steps_per_epoch, args.print_freq,
+                steps_per_epoch, print_freq,
+                loggers):
+    stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+    stats = ('Performance/Validation/', stats_dict)
+    distiller.log_training_progress(stats, None, epoch, steps_completed,
+                                    total_steps, args.print_freq, loggers)
 
 def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False):
     """Validate model on validation set or test set, depending on which time instant it is called.
@@ -872,9 +899,17 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             steps_completed = (validation_step+1)
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
-                _log_validation_progress()
+                _log_validation_progress(stats,
+                params, losses,
+                steps_per_epoch, args.print_freq,
+                steps_per_epoch, print_freq,
+                loggers)
             elif epoch >= 0 and epoch % args.print_freq == 0:
-                _log_validation_progress()
+                _log_validation_progress(stats,
+                params, losses,
+                epoch, steps_completed,
+                steps_per_epoch, args.print_freq,
+                loggers)
 
     # metrices['psnr'] = np.array(metrices['psnr']); metrices['ssim'] = np.array(metrices['ssim'])
     if is_last_epoch:

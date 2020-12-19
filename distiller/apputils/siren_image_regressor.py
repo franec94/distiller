@@ -239,6 +239,7 @@ class SirenRegressorCompressor(object):
     def run_training_loop_with_scheduler(self,):
         global msglogger
         for epoch in range(self.start_epoch, self.ending_epoch):
+            is_last_epoch = epoch == self.ending_epoch - 1
             # ---------------------- train_validate_with_scheduling ---------------------- #
             self.compression_scheduler.on_epoch_begin(epoch)
             
@@ -282,7 +283,6 @@ class SirenRegressorCompressor(object):
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
                 metrics={'min': loss,})
             
-            is_last_epoch = epoch == self.ending_epoch - 1
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
@@ -295,6 +295,7 @@ class SirenRegressorCompressor(object):
     def run_plain_training_loop(self,):
         global msglogger
         for epoch in range(self.start_epoch, self.ending_epoch):
+            is_last_epoch = epoch == self.ending_epoch - 1
             # ---------------------- train_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["train"]) as collectors:

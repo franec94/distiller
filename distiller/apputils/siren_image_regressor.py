@@ -211,8 +211,7 @@ class SirenRegressorCompressor(object):
             epoch,
             mse=mse,
             psnr_score=psnr_score, ssim_score=ssim_score)
-        if epoch >= 0 and epoch % self.args.print_freq == 0:
-            _log_best_scores(self.performance_tracker, msglogger)
+        # if epoch >= 0 and epoch % self.args.print_freq == 0: _log_best_scores(self.performance_tracker, msglogger)
         best_score = self.performance_tracker.best_scores()[0]
         is_best = epoch == best_score.epoch
         checkpoint_extras = {'current_mse': mse,
@@ -256,20 +255,23 @@ class SirenRegressorCompressor(object):
                         early_stopping_agp=self.early_stopping_agp,
                         save_mid_pr=self.save_mid_pr, msglogger=msglogger)
                 
-                distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger],
-                                                    collector=collectors["sparsity"])
+                distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger], \
+                    collector=collectors["sparsity"])
                 # if self.args.compress and epoch >= 0 and epoch % self.args.print_freq == 0:
                 if epoch >= 0 and epoch % self.args.print_freq == 0:
-                    distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
+                    # distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
+                    distiller.log_weights_sparsity(self.model, epoch, [self.tflogger])
                 if self.args.masks_sparsity:
-                    msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, 
-                                                                        self.compression_scheduler))
+                    msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, \
+                        self.compression_scheduler))
             # ---------------------- validate_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                loss, psnr_score, ssim_score = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+                loss, psnr_score, ssim_score = \
+                    distiller.apputils.siren_utils.siren_train_val_test_utils.validate( \
+                        self.val_loader, self.model, self.criterion, \
+                        [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)

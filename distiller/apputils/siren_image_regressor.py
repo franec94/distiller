@@ -841,7 +841,7 @@ class SaveMiddlePruneRate(object):
         if a_prune_rate >= self.curr_val:
             while self.curr_val:
                 if a_prune_rate < self.curr_val:
-                    self.curr_val = next(self.middle_prune_rates, None)
+                    # self.curr_val = next(self.middle_prune_rates, None)
                     self.prune_rate_val = a_prune_rate
                     self.found_middle_prune_rates = True
                     self.msglogger.info(f"Found new intermediate Prune rate achieved: prune_rate={a_prune_rate}, epoch={epoch}")

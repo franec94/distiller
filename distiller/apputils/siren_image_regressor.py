@@ -823,7 +823,6 @@ class SaveMiddlePruneRate(object):
             else list(middle_prune_rates)
         self.middle_prune_rates = iter(self.middle_prune_rates)
         self.found_middle_prune_rates = False
-        self.saved_middle_prune_rates = False
         self.prune_rate_val = -1
         self.curr_val = next(self.middle_prune_rates)
 
@@ -859,8 +858,7 @@ class SaveMiddlePruneRate(object):
         ------
         `prune_rate_val` - float, indicating if a new prune rate has been reached and must be saved.\n
         """
-        if self.found_middle_prune_rates and not self.saved_middle_prune_rates:
-            self.saved_middle_prune_rates = True
+        if self.found_middle_prune_rates:
             self.found_middle_prune_rates = False
             return self.prune_rate_val
         return None

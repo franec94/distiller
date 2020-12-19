@@ -109,6 +109,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
                         PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
                     elif float(PRUNE_DETAILS[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         # Update if necessary insert new layer
+                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                         keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
                         PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
@@ -116,8 +117,8 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
 
 def _log_train_epoch_pruning(args, epoch, msglogger):
     """Log to json file information and data about when pruning take places per layer."""
-    global FIND_EPOCH_FOR_PRUNING
     # global msglogger
+    global PRUNE_DETAILS
 
     if PRUNE_DETAILS == {}: return
 
@@ -129,7 +130,7 @@ def _log_train_epoch_pruning(args, epoch, msglogger):
     msglogger.info(str_data)
     try:
         with open(out_file_data, 'w') as outfile:
-            json.dump(FIND_EPOCH_FOR_PRUNING, outfile)
+            json.dump(PRUNE_DETAILS, outfile)
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
 

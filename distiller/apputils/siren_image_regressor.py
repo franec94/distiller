@@ -658,7 +658,7 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
 
 
 def _log_training_progress(
-    params, losses,
+    losses,
     epoch, steps_completed,
     # steps_per_epoch, args.print_freq,
     steps_per_epoch, print_freq,
@@ -776,7 +776,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
         if is_last_epoch:
             #_log_training_progress()
             _log_training_progress(
-                params, losses,
+                losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
                 loggers)
@@ -785,7 +785,7 @@ def train(train_loader, model, criterion, optimizer, epoch,
             # _log_training_progress()
             # _log_train_epoch_pruning(args, epoch)
             _log_training_progress(
-                params, losses,
+                losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
                 loggers)
@@ -833,7 +833,7 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     return losses
 
 def _log_validation_progress(
-                params, losses,
+                losses,
                 epoch, steps_completed,
                 # steps_per_epoch, args.print_freq,
                 steps_per_epoch, print_freq,
@@ -894,13 +894,13 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
             # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
             if is_last_epoch:
                 _log_validation_progress(
-                params, losses,
+                losses,
                 steps_per_epoch, args.print_freq,
                 steps_per_epoch, print_freq,
                 loggers)
             elif epoch >= 0 and epoch % args.print_freq == 0:
                 _log_validation_progress(
-                params, losses,
+                losses,
                 epoch, steps_completed,
                 steps_per_epoch, args.print_freq,
                 loggers)

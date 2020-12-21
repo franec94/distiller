@@ -306,7 +306,8 @@ def train_via_scheduler(
     compression_scheduler.on_minibatch_end(epoch, 0, steps_per_epoch, optimizer)
 
     # measure elapsed time
-    batch_time.add(time.time() - end)
+    # batch_time.add(time.time() - end)
+    batch_time = time.time() - end
     return losses[OVERALL_LOSS_KEY], batch_time
 
 

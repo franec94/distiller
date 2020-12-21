@@ -266,14 +266,13 @@ def train_via_scheduler(
     model.train()
     end = time.time()
 
+    # [On Mini-batch Begin] => Distiller framework operats by means of scheduler instance
+    # as main orchestrator of the model's compression process.
     compression_scheduler.on_minibatch_begin(epoch, 0, steps_per_epoch, optimizer)
 
-    # if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs)
-    # else: output, _ = args.kd_policy.forward(inputs)
+    # if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs) # else: output, _ = args.kd_policy.forward(inputs)
     output, _ = model(inputs)
-
-    # if not early_exit_mode(args): loss = criterion(output, target)
-    # else: loss = earlyexit_loss(output, target, criterion, args)
+    # if not early_exit_mode(args): loss = criterion(output, target) # else: loss = earlyexit_loss(output, target, criterion, args)
     loss = criterion(output, target)
     # Record loss
     losses[OBJECTIVE_LOSS_KEY].add(loss.item())
@@ -295,13 +294,18 @@ def train_via_scheduler(
             losses[lc.name] = tnt.AverageValueMeter()
         losses[lc.name].add(lc.value.item())
 
-    # Compute the gradient and do SGD step
+    # Compute the gradient and do SGD/Adam/(whatever optim tech chosen) step
     optimizer.zero_grad()
     loss.backward()
     
+    # [Before Optim Step] => Distiller framework operats by means of scheduler instance
+    # as main orchestrator of the model's compression process.
     # compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
     compression_scheduler.before_parameter_optimization(epoch, 0, steps_per_epoch, optimizer)
     optimizer.step()
+    
+    # [On Mini-batch End] => Distiller framework operats by means of scheduler instance
+    # as main orchestrator of the model's compression process.
     # compression_scheduler.on_minibatch_end(epoch, train_step, steps_per_epoch, optimizer)
     compression_scheduler.on_minibatch_end(epoch, 0, steps_per_epoch, optimizer)
 

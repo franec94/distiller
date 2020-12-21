@@ -271,6 +271,9 @@ class SirenRegressorCompressor(object):
 
 
     def run_training_loop_with_scheduler(self,):
+        """Train/Val process carried out by means of a scheduler instance that manages all operations
+        needed for correctly taking care of model's compression workflow.
+        """
         global msglogger
         """
         def _log_training_progress(loggers=[self.tflogger]):
@@ -315,6 +318,7 @@ class SirenRegressorCompressor(object):
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers)
         """
+        # ---------------------- Prepare data ---------------------- #
         prune_details = {}
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
@@ -330,32 +334,44 @@ class SirenRegressorCompressor(object):
         
         loggers = [self.tflogger, self.pylogger]
 
+        # ---------------------- Loop: train_validate_with_scheduling ---------------------- #
         for epoch in range(self.start_epoch, self.ending_epoch):
             # is_last_epoch = epoch == self.ending_epoch - 1
 
-            # ---------------------- train_validate_with_scheduling ---------------------- #
+            # [On Epoch Begin] => Distiller framework operats by means of scheduler instance
+            # as main orchestrator of the model's compression process.
             self.compression_scheduler.on_epoch_begin(epoch)
             
             # ---------------------- train_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["train"]) as collectors:
                 losses, batch_time = \
-                    distiller.apputils.siren_utils.siren_train_val_test_utils.train_via_scheduler( # self.train_loader,
+                    distiller.apputils.siren_utils.siren_train_val_test_utils.train_via_scheduler(
+                        # self.train_loader,
+                        # loggers=[self.tflogger, self.pylogger], is_last_epoch = is_last_epoch, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, msglogger=msglogger, args=self.args,
                         inputs, target, total_samples, batch_size, \
                         self.model, \
                         self.criterion, self.optimizer, \
-                        # loggers=[self.tflogger, self.pylogger], is_last_epoch = is_last_epoch, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, msglogger=msglogger, args=self.args,
                         epoch, self.compression_scheduler)
                 
-                distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger], \
+                # Train: log activation/weigth-sparsity stats 
+                # ------------------------------------------#
+                distiller.log_activation_statistics(
+                    epoch, \
+                    "train", \
+                    loggers=[self.tflogger], \
                     collector=collectors["sparsity"])
+                distiller.log_weights_sparsity(
+                    self.model, \
+                    epoch, \
+                    [self.tflogger])
                 # if self.args.compress and epoch >= 0 and epoch % self.args.print_freq == 0:
-                if epoch >= 0 and epoch % self.args.print_freq == 0:
-                    # distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
-                    distiller.log_weights_sparsity(self.model, epoch, [self.tflogger])
+                # if epoch >= 0 and epoch % self.args.print_freq == 0: # distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
                 if self.args.masks_sparsity:
-                    msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, \
-                        self.compression_scheduler))
+                    msglogger.info( \
+                        distiller.masks_sparsity_tbl_summary( \
+                            self.model, \
+                            self.compression_scheduler))
             
             # ---------------------- validate_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
@@ -389,16 +405,30 @@ class SirenRegressorCompressor(object):
                     # val_mssim = ssim(arr_gt, arr_output,data_range=1.)
                     psnr_score = psnr(arr_gt, arr_output,data_range=1.)
                     ssim_score = ssim(arr_gt, arr_output,data_range=1.)
-                distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
-                                                    collector=collectors["sparsity"])
+                
+                # Val: log activation/weigth-sparsity stats 
+                # ------------------------------------------#
+                distiller.log_activation_statistics(
+                    epoch, \
+                    "valid", \
+                    loggers=[self.tflogger], \
+                    collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
 
-            self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
+            # [On Epoch End] => Distiller framework operats by means of scheduler instance
+            # as main orchestrator of the model's compression process.
+            self.compression_scheduler.on_epoch_end( \
+                epoch, \
+                self.optimizer, \
                 metrics={'min': loss,})
 
-            # ---------------------- save stats ---------------------- #
-            prune_details = _check_pruning_met_layers_sparse(
-                self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, prune_details=prune_details)
+            # ---------------------- save/show scores (Mse, Psnr, Ssim) ---------------------- #
+            prune_details = _check_pruning_met_layers_sparse( \
+                self.compression_scheduler, \
+                self.model, epoch, \
+                self.args, early_stopping_agp=self.early_stopping_agp, \
+                save_mid_pr=self.save_mid_pr, \
+                prune_details=prune_details)
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
@@ -462,10 +492,12 @@ class SirenRegressorCompressor(object):
             # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score,  prune_details=prune_details)
 
+            # Check whether to early halt training - when desired overall sparsity level is met.
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
                 # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
                 break
-            
+        
+        # ---------------------- Save last cycle run data ---------------------- #
         # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True, prune_details=prune_details)
         old_name = str(self.args.name)
         self.args.name = "final_epoch"

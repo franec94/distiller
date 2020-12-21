@@ -234,7 +234,7 @@ class SirenRegressorCompressor(object):
         # Update the list of top scores achieved so far, and save the checkpoint
 
         is_one_to_save_pruned = False
-        if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
+        # if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
 
         self.performance_tracker.step(
             self.model,
@@ -427,12 +427,14 @@ class SirenRegressorCompressor(object):
                 metrics={'min': loss,})
 
             # ---------------------- save/show scores (Mse, Psnr, Ssim) ---------------------- #
+            """
             prune_details = _check_pruning_met_layers_sparse( \
                 self.compression_scheduler, \
                 self.model, epoch, \
                 self.args, early_stopping_agp=self.early_stopping_agp, \
                 save_mid_pr=self.save_mid_pr, \
                 prune_details=prune_details)
+            """
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')

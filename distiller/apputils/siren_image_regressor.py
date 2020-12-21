@@ -973,19 +973,24 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
             for param_name in pruner.params_names:
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
-                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
-                    if param_name not in prune_details.keys():
-                        # Check and eventually Insert new layer
-                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
-                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
-                        prune_details[param_name] = dict(zip(keys, record_data))
-                    elif float(prune_details[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                if param_name not in prune_details.keys():
+                    # Check and eventually Insert new layer
+                    pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                    keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
+                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
+                    prune_details[param_name] = dict(zip(keys, record_data))
+                elif data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
+                    if float(prune_details[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         # Update if necessary insert new layer
                         pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                         keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
                         prune_details[param_name] = dict(zip(keys, record_data))
+                else:
+                    pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                    keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
+                    record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
+                    prune_details[param_name] = dict(zip(keys, record_data))
     return prune_details
 
 

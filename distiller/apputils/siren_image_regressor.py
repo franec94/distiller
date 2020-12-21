@@ -369,7 +369,7 @@ class SirenRegressorCompressor(object):
                 self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr)
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
                 # ---------------------- log train data ---------------------- #
-                msglogger.info('\n')
+                # msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d)-----------', epoch)
                 # _log_training_progress(loggers=[self.tflogger, self.pylogger])
                 stats_dict = OrderedDict()
@@ -388,7 +388,7 @@ class SirenRegressorCompressor(object):
                 msglogger.info(f"Total Sparsity Achieved: {total}")
                 
                 # ---------------------- log val data ---------------------- #
-                msglogger.info('\n')
+                # msglogger.info('\n')
                 msglogger.info('--- validation (epoch=%d)-----------', epoch)
                 # _log_validation_progress(loggers=[self.tflogger, self.pylogger])
                 """msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \

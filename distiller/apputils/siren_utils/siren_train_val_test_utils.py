@@ -308,7 +308,7 @@ def train_via_scheduler(
     # measure elapsed time
     # batch_time.add(time.time() - end)
     batch_time = time.time() - end
-    return losses[OVERALL_LOSS_KEY], batch_time
+    return losses, batch_time
 
 
 def train( #train_loader

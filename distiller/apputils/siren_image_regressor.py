@@ -229,7 +229,7 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, prune_details = {}):
         # Update the list of top scores achieved so far, and save the checkpoint
 
         is_one_to_save_pruned = False
@@ -261,7 +261,7 @@ class SirenRegressorCompressor(object):
                 name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
                 is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
                 is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=PRUNE_DETAILS \
+                save_mid_pr_obj=self.save_mid_pr, prune_details=prune_details \
             )
 
 
@@ -310,6 +310,7 @@ class SirenRegressorCompressor(object):
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers)
         """
+        prune_details = {}
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
 
@@ -392,7 +393,7 @@ class SirenRegressorCompressor(object):
 
             # ---------------------- save stats ---------------------- #
             _check_pruning_met_layers_sparse(
-                self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr)
+                self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, prune_details=prune_details)
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
@@ -408,7 +409,7 @@ class SirenRegressorCompressor(object):
                 distiller.log_training_progress(stats, params, # epoch, steps_completed,
                     epoch, 1, math.ceil(total_samples / batch_size),
                     self.args.print_freq, loggers=loggers)
-                _log_train_epoch_pruning(self.args, epoch)
+                _log_train_epoch_pruning(self.args, epoch, prune_details=prune_details)
 
                 _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
                 msglogger.info(f"Total Sparsity Achieved: {total}")
@@ -917,35 +918,35 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
 # ----------------------------------------------------------------------------------------------- #
 # Under-test functions
 # ----------------------------------------------------------------------------------------------- #
-def _log_train_epoch_pruning(args, epoch):
+def _log_train_epoch_pruning(args, epoch, prune_details = {}):
     """Log to json file information and data about when pruning take places per layer."""
     # global msglogger
     # global PRUNE_DETAILS
     global msglogger
 
-    if PRUNE_DETAILS == {}: return
+    if prune_details == {}: return
 
     out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-    str_data = json.dumps(PRUNE_DETAILS)
+    str_data = json.dumps(prune_details)
 
     msglogger.info(f"--- dump pruning data (epoch={epoch}) ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
     msglogger.info(str_data)
     try:
         with open(out_file_data, 'w') as outfile:
-            json.dump(PRUNE_DETAILS, outfile)
+            json.dump(prune_details, outfile)
     except Exception as err:
         msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None, prune_details={}):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     # global msglogger
     # global PRUNE_DETAILS
     global TOLL
     global msglogger
 
-    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True, prune_details = {})
 
     if early_stopping_agp:
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
@@ -972,18 +973,18 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
                 data_tmp = df[df["Name"] == param_name].values[0]
                 data_tmp_dict = dict(zip(list(df.columns), data_tmp))
                 if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
-                    if param_name not in PRUNE_DETAILS.keys():
+                    if param_name not in prune_details.keys():
                         # Check and eventually Insert new layer
                         pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                         keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
-                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
-                    elif float(PRUNE_DETAILS[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                        prune_details[param_name] = dict(zip(keys, record_data))
+                    elif float(prune_details[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
                         # Update if necessary insert new layer
                         pruner_name = str(pruner).split(" ")[0].split(".")[-1]
                         keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
-                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
+                        prune_details[param_name] = dict(zip(keys, record_data))
 
 
 def save_predicted_data(test_loader, model, criterion, loggers, activations_collectors=None, args=None, scheduler=None):

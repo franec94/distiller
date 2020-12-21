@@ -305,8 +305,8 @@ class SirenRegressorCompressor(object):
         inputs, target = next(iter(self.train_loader))
         inputs, target = inputs.to(self.args.device), target.to(self.args.device)
 
-        total_samples_val = len(self.val_loader.sampler)
-        batch_size_val = self.val_loader.batch_size
+        # total_samples_val = len(self.val_loader.sampler)
+        # batch_size_val = self.val_loader.batch_size
 
         inputs_val, target_val = next(iter(self.val_loader))
         inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)

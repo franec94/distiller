@@ -264,7 +264,7 @@ class SirenRegressorCompressor(object):
 
     def run_training_loop_with_scheduler(self,):
         global msglogger
-
+        """
         def _log_training_progress(loggers=[self.tflogger]):
             # Log some statistics
 
@@ -282,23 +282,23 @@ class SirenRegressorCompressor(object):
                                             epoch, 1,
                                             math.ceil(total_samples / batch_size), self.args.print_freq,
                                             loggers=loggers)
+        """
 
-        
+        """
         def _log_validation_progress(loggers=[self.tflogger]):
             # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
             # stats_dict = OrderedDict([('Loss', loss)])
             #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
             # else:
             # stats_dict = OrderedDict()
-            """for exitnum in range(args.num_exits):
+            for exitnum in range(args.num_exits):
                 la_string = 'LossAvg' + str(exitnum)
                 stats_dict[la_string] = args.losses_exits[exitnum].mean
-            """
-            """
+        
             stats = ('Performance/Validation/', stats_dict)
             distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
                                             total_samples_val / batch_size_val, self.args.print_freq, [self.pylogger])
-            """
+            
             stats = ('Performance/Validation/',
                 OrderedDict([('Loss', loss), # vloss
                     ('PSNR', psnr_score), # vpsnr
@@ -306,8 +306,7 @@ class SirenRegressorCompressor(object):
                 ]))
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers)
-            
-
+        """
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
 
@@ -319,9 +318,11 @@ class SirenRegressorCompressor(object):
 
         inputs_val, target_val = next(iter(self.val_loader))
         inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)
+        loggers = [self.tflogger, self.pylogger]
 
         for epoch in range(self.start_epoch, self.ending_epoch):
             is_last_epoch = epoch == self.ending_epoch - 1
+
             # ---------------------- train_validate_with_scheduling ---------------------- #
             self.compression_scheduler.on_epoch_begin(epoch)
             
@@ -345,6 +346,7 @@ class SirenRegressorCompressor(object):
                 if self.args.masks_sparsity:
                     msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, \
                         self.compression_scheduler))
+            
             # ---------------------- validate_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
@@ -366,26 +368,63 @@ class SirenRegressorCompressor(object):
             _check_pruning_met_layers_sparse(
                 self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr)
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
+                # ---------------------- log train data ---------------------- #
                 msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d)-----------', epoch)
-                _log_training_progress(loggers=[self.tflogger, self.pylogger])
+                # _log_training_progress(loggers=[self.tflogger, self.pylogger])
+                stats_dict = OrderedDict()
+                for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
+                stats_dict['LR'] = self.optimizer.param_groups[0]['lr']
+                stats_dict['Time'] = batch_time # batch_time.mean
+                stats = ('Performance/Training/', stats_dict)
+
+                params = self.model.named_parameters() if self.args.log_params_histograms else None
+                distiller.log_training_progress(stats, params, # epoch, steps_completed,
+                    epoch, 1, math.ceil(total_samples / batch_size),
+                    self.args.print_freq, loggers=loggers)
                 _log_train_epoch_pruning(self.args, epoch)
 
                 _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
                 msglogger.info(f"Total Sparsity Achieved: {total}")
                 
+                # ---------------------- log val data ---------------------- #
                 msglogger.info('\n')
                 msglogger.info('--- validation (epoch=%d)-----------', epoch)
-                # _log_validation_progress()
+                # _log_validation_progress(loggers=[self.tflogger, self.pylogger])
                 """msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
                 """
-                _log_validation_progress(loggers=[self.tflogger, self.pylogger])
-            else:
-                _log_training_progress()
                 _log_validation_progress()
+                OrderedDict([('Loss', loss), # vloss
+                    ('PSNR', psnr_score), # vpsnr
+                    ('SSIM', ssim_score), # vssim
+                ]))
+                distiller.log_training_progress(stats, None, epoch, steps_completed=0,
+                                            total_steps=1, log_freq=1, loggers=loggers)
+            else:
+                # _log_training_progress(); _log_validation_progress()
+                # ---------------------- log train data ---------------------- #
+                stats_dict = OrderedDict()
+                for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
+                stats_dict['LR'] = self.optimizer.param_groups[0]['lr']
+                stats_dict['Time'] = batch_time # batch_time.mean
+                stats = ('Performance/Training/', stats_dict)
+
+                params = self.model.named_parameters() if self.args.log_params_histograms else None
+                distiller.log_training_progress(stats, params, # epoch, steps_completed,
+                    epoch, 1, math.ceil(total_samples / batch_size),
+                    self.args.print_freq, loggers=loggers[0])
+                
+                # ---------------------- log val data ---------------------- #
+                stats = ('Performance/Validation/',
+                    OrderedDict([('Loss', loss), # vloss
+                    ('PSNR', psnr_score), # vpsnr
+                    ('SSIM', ssim_score), # vssim
+                ]))
+                distiller.log_training_progress(stats, None, epoch, steps_completed=0,
+                                            total_steps=1, log_freq=1, loggers=loggers[0])
 
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()

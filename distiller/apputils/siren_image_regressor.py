@@ -364,20 +364,21 @@ class SirenRegressorCompressor(object):
             _check_pruning_met_layers_sparse(
                 self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr)
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
-                _log_train_epoch_pruning(self.args, epoch)
                 msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d)-----------', epoch)
+                _log_training_progress()
+                _log_train_epoch_pruning(self.args, epoch)
 
                 _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
                 msglogger.info(f"Total Sparsity Achieved: {total}")
                 
                 msglogger.info('\n')
                 msglogger.info('--- validation (epoch=%d)-----------', epoch)
-
+                _log_validation_progress()
                 msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
-                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-                # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-                loss, psnr_score, ssim_score)
+                    # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                    # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+                    loss, psnr_score, ssim_score)
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)

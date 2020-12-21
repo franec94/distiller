@@ -89,8 +89,8 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
     checkpoint['extras'] = extras
     if freq_ckpt is not None and epoch >= 0 and epoch % freq_ckpt == 0:
         torch.save(checkpoint, fullpath)
-    else:
-        torch.save(checkpoint, fullpath)
+    # else: torch.save(checkpoint, fullpath)
+    
     if is_best:
         # Save new best result into dedicated ckpt.
         filename_best = 'best.pth.tar' if name is None else name + '_best.pth.tar'

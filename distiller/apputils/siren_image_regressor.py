@@ -229,9 +229,13 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False):
         # Update the list of top scores achieved so far, and save the checkpoint
         global PRUNE_DETAILS
+
+        is_one_to_save_pruned = False
+        if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
+        
         self.performance_tracker.step(
             self.model,
             epoch,
@@ -425,10 +429,8 @@ class SirenRegressorCompressor(object):
                 ]))
                 distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers[0])
-
-            is_one_to_save_pruned = False
-            if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
+            
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
 
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
                 self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
@@ -486,7 +488,7 @@ class SirenRegressorCompressor(object):
             distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=[self.tflogger])
             is_last_epoch = epoch == self.ending_epoch - 1
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=False)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
         
         
     def run_training_loop(self):

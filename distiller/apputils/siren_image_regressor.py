@@ -423,7 +423,7 @@ class SirenRegressorCompressor(object):
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
                 """
-                OrderedDict([('Loss', loss), # vloss
+                stats = OrderedDict([('Loss', loss), # vloss
                     ('PSNR', psnr_score), # vpsnr
                     ('SSIM', ssim_score), # vssim
                 ])
@@ -452,10 +452,10 @@ class SirenRegressorCompressor(object):
                 distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers[0])
             
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, prune_details=prune_details)
 
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
-                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
+                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True, prune_details=prune_details)
                 break
 
 

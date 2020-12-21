@@ -423,7 +423,6 @@ class SirenRegressorCompressor(object):
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
                 """
-                _log_validation_progress()
                 OrderedDict([('Loss', loss), # vloss
                     ('PSNR', psnr_score), # vpsnr
                     ('SSIM', ssim_score), # vssim

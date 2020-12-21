@@ -235,7 +235,7 @@ class SirenRegressorCompressor(object):
 
         is_one_to_save_pruned = False
         if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
-        
+
         self.performance_tracker.step(
             self.model,
             epoch,
@@ -355,12 +355,34 @@ class SirenRegressorCompressor(object):
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
+                """
                 loss, psnr_score, ssim_score = \
                     distiller.apputils.siren_utils.siren_train_val_test_utils.validate( \
                         # self.val_loader, self.model, self.criterion, \
                         # inputs_val, target_val, total_samples_val, batch_size_val, self.model, self.criterion, \
                         # [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                         inputs_val, target_val, self.model, self.criterion)
+                """
+                self.model.eval()
+
+                # end = time.time()
+                with torch.no_grad():
+                    output, _ = model(inputs)
+                    # objective_loss = criterion(output, target).item()
+                    loss = self.criterion(output, target).item()
+                    
+                    sidelenght = output.size()[1]
+                    arr_gt = target.cpu().view(sidelenght).detach().numpy()
+                    arr_gt = (arr_gt / 2.) + 0.5
+
+                    arr_output = output.cpu().view(sidelenght).detach().numpy()
+                    arr_output = (arr_output / 2.) + 0.5
+                    arr_output = np.clip(arr_output, a_min=0., a_max=1.)
+
+                    # val_psnr = psnr(arr_gt, arr_output,data_range=1.)
+                    # val_mssim = ssim(arr_gt, arr_output,data_range=1.)
+                    psnr_score = psnr(arr_gt, arr_output,data_range=1.)
+                    ssim_score = ssim(arr_gt, arr_output,data_range=1.)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)

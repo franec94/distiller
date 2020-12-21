@@ -144,14 +144,34 @@ class SirenRegressorCompressor(object):
         return cls(cls.mock_args(), '')
 
 
+    def get_input_target(self, kind = None):
+        if kind and kind == 'train':
+            data_loader = self.train_loader.sampler
+        elif kind and kind == 'val':
+            data_loader = self.val_loader
+        else:
+            data_loader = self.test_loader
+        
+        total_samples = len(data_loader.sampler)
+        batch_size = data_loader.batch_size
+
+        inputs, target = next(iter(data_loader))
+        inputs, target = inputs.to(self.args.device), target.to(self.args.device)
+        return inputs, target, total_samples, batch_size
+
+
     def train_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Train for one epoch"""
         # self.load_datasets()
 
+        inputs, target, total_samples, batch_size = self.get_input_target(kind='train')
+
         with collectors_context(self.activations_collectors["train"]) as collectors:
             loss = \
                 distiller.apputils.siren_utils.siren_train_val_test_utils.train(
-                    self.train_loader, self.model,
+                    # self.train_loader,
+                    inputs, target, total_samples, batch_size, 
+                    self.model,
                     self.criterion, self.optimizer, 
                     epoch, self.compression_scheduler,
                     loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
@@ -186,9 +206,13 @@ class SirenRegressorCompressor(object):
     def validate_one_epoch(self, epoch, verbose=True, is_last_epoch = False):
         """Evaluate on validation set"""
         # self.load_datasets()
+        inputs_val, target_Val, total_samples_val, batch_size_val = self.get_input_target(kind='val')
         with collectors_context(self.activations_collectors["valid"]) as collectors:
-            vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                                         [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
+            vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
+                # self.val_loader, self.model, self.criterion, 
+                inputs_val, target_Val, total_samples_val, batch_size_val, \
+                self.model, self.criterion, 
+                [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch)
             distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                 collector=collectors["sparsity"])
             save_collectors_data(collectors, msglogger.logdir)

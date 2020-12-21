@@ -166,7 +166,7 @@ def earlyexit_validate_stats(args, msglogger):
 # ----------------------------------------------------------------------------------------------- #
 def train_via_scheduler(
         # train_loader,
-        inputs, target, total_samples, batch_size, \ 
+        inputs, target, total_samples, batch_size, \
         model, criterion, optimizer, epoch, \
         compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
     """Training-with-compression loop for one epoch.

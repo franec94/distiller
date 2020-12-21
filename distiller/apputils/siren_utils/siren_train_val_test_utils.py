@@ -193,8 +193,8 @@ def train_via_scheduler(
 
         # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
         stats_dict = OrderedDict()
-        for loss_name, meter in losses.items():
-            stats_dict[loss_name] = meter.mean
+        # for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
+        stats_dict[loss_name] = 
         stats_dict['LR'] = optimizer.param_groups[0]['lr']
         stats_dict['Time'] = batch_time.mean
         stats = ('Performance/Training/', stats_dict)
@@ -213,7 +213,7 @@ def train_via_scheduler(
                           (OBJECTIVE_LOSS_KEY, tnt.AverageValueMeter())])
 
     batch_time = tnt.AverageValueMeter()
-    data_time = tnt.AverageValueMeter()
+    # data_time = tnt.AverageValueMeter()
 
     # For Early Exit, we define statistics for each exit, so
     # `exiterrors` is analogous to `classerr` in the non-Early Exit case
@@ -231,7 +231,7 @@ def train_via_scheduler(
     train_step = 0
     # for train_step, (inputs, target) in enumerate(train_loader):
     # Measure data loading time
-    data_time.add(time.time() - end)
+    # data_time.add(time.time() - end)
     # inputs, target = inputs.cuda(), target.cuda()
 
     # Execute the forward phase, compute the output and measure loss
@@ -282,7 +282,7 @@ def train_via_scheduler(
         msglogger.info(f"Total Sparsity Achieved: {total}")
         _log_training_progress()
         _log_train_epoch_pruning(args, epoch, msglogger)
-    end = time.time()
+    # end = time.time()
     #return acc_stats
     # NOTE: this breaks previous behavior, which returned a history of (top1, top5) values
     return losses[OVERALL_LOSS_KEY]
@@ -417,7 +417,8 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     global TARGET_TOTAL_SPARSITY
 
     def _log_validation_progress():
-        stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+        stats_dict = OrderedDict([('Loss', objective_loss)])
         #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         # else:
         """ stats_dict = OrderedDict()
@@ -430,8 +431,10 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
                                         total_steps, args.print_freq, loggers)
 
     """Execute the validation/test loop."""
-    losses = {'objective_loss': tnt.AverageValueMeter()}
-    metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    # losses = {'objective_loss': tnt.AverageValueMeter()}
+    objective_loss = None
+    # metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    val_psnr, val_mssim = None, None
     # metrices = { 'psnr': [], 'ssim': [] }
 
     """
@@ -444,7 +447,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         args.exit_taken = [0] * args.num_exits
     """
 
-    batch_time = tnt.AverageValueMeter()
+    # batch_time = tnt.AverageValueMeter()
     # total_samples = len(data_loader.sampler)
     # batch_size = data_loader.batch_size
 
@@ -454,7 +457,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     # Switch to evaluation mode
     model.eval()
 
-    end = time.time()
+    # end = time.time()
     with torch.no_grad():
         # for validation_step, (inputs, target) in enumerate(data_loader):
         validation_step = 0
@@ -468,7 +471,8 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         # compute loss
         loss = criterion(output, target)
         # measure accuracy and record loss
-        losses['objective_loss'].add(loss.item())
+        # losses['objective_loss'].add(loss.item())
+        objective_loss = loss.item()
         # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
         sidelenght = output.size()[1]
 
@@ -482,12 +486,12 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         val_psnr = psnr(arr_gt, arr_output,data_range=1.)
         val_mssim = ssim(arr_gt, arr_output,data_range=1.)
         # metrices['psnr'].append(val_psnr); metrices['ssim'].append(val_mssim)
-        metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
+        # metrices['psnr'].add(val_psnr); metrices['ssim'].add(val_mssim)
         # else: earlyexit_validate_loss(output, target, criterion, args)
 
         # measure elapsed time
-        batch_time.add(time.time() - end)
-        end = time.time()
+        # batch_time.add(time.time() - end)
+        # end = time.time()
 
         steps_completed = (validation_step+1)
         if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
@@ -497,17 +501,20 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
             # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+            # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+            objective_loss, val_psnr, val_mssim)
     elif test_mode_on:
         # if args.evaluate and test_mode_on:
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
             # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
-            losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+            # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+            objective_loss, val_psnr, val_mssim)
     # return losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean()
     # else:
     #    losses_exits_stats = earlyexit_validate_stats(args)
     #    return losses_exits_stats[args.num_exits-1]
-    return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
+    # return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
+    return objective_loss, val_psnr, val_mssim
 
 
 def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):

@@ -166,8 +166,8 @@ def earlyexit_validate_stats(args, msglogger):
 # ----------------------------------------------------------------------------------------------- #
 def train_via_scheduler(
         # train_loader,
-        inputs, target, model, criterion, optimizer, epoch, \
-        total_samples, batch_size, \
+        inputs, target, total_samples, batch_size, \ 
+        model, criterion, optimizer, epoch, \
         compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
     """Training-with-compression loop for one epoch.
     
@@ -470,7 +470,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         # measure accuracy and record loss
         # losses['objective_loss'].add(loss.item())
         objective_loss = loss.item().item()
-        
+
         # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
         sidelenght = output.size()[1]
 

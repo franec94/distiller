@@ -977,7 +977,7 @@ def _log_train_epoch_pruning(args, epoch, prune_details = {}):
 
     msglogger.info(f"--- dump pruning data (epoch={epoch}) ---------")
     msglogger.info(f"Data saved to: {out_file_data}")
-    msglogger.info(str_data)
+    # msglogger.info(str_data)
     try:
         with open(out_file_data, 'w') as outfile:
             json.dump(prune_details, outfile)

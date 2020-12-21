@@ -450,7 +450,7 @@ class SirenRegressorCompressor(object):
                 distiller.log_training_progress(stats, params, # epoch, steps_completed,
                     epoch, 1, math.ceil(total_samples / batch_size),
                     self.args.print_freq, loggers=loggers)
-                _log_train_epoch_pruning(self.args, epoch, prune_details=prune_details)
+                # _log_train_epoch_pruning(self.args, epoch, prune_details=prune_details)
 
                 _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
                 msglogger.info(f"Total Sparsity Achieved: {total}")

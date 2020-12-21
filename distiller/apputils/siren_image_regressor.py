@@ -946,7 +946,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
     global TOLL
     global msglogger
 
-    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True, prune_details = {})
+    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
 
     if early_stopping_agp:
         early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)

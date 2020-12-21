@@ -432,7 +432,7 @@ class SirenRegressorCompressor(object):
             if epoch >= 0 and epoch % self.args.print_freq == 0:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
-                msglogger.info('--- train (epoch=%d)-----------', epoch)
+                msglogger.info('--- train (epoch=%d/%d)-----------', epoch, self.ending_epoch)
                 # _log_training_progress(loggers=[self.tflogger, self.pylogger])
                 stats_dict = OrderedDict()
                 for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
@@ -451,7 +451,7 @@ class SirenRegressorCompressor(object):
                 
                 # ---------------------- log val data ---------------------- #
                 # msglogger.info('\n')
-                msglogger.info('--- validation (epoch=%d)-----------', epoch)
+                msglogger.info('--- validation (epoch=%d/%d)-----------', epoch, self.ending_epoch)
                 # _log_validation_progress(loggers=[self.tflogger, self.pylogger])
                 """msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())

@@ -238,6 +238,19 @@ class SirenRegressorCompressor(object):
 
     def run_training_loop_with_scheduler(self,):
         global msglogger
+
+        total_samples = len(self.train_loader.sampler)
+        batch_size = self.train_loader.batch_size
+
+        inputs, target = next(iter(self.train_loader))
+        inputs, target = inputs.to(self.args.device), target.to(self.args.device)
+
+        total_samples_val = len(self.val_loader.sampler)
+        batch_size_val = self.val_loader.batch_size
+
+        inputs_val, target_val = next(iter(self.val_loader))
+        inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)
+
         for epoch in range(self.start_epoch, self.ending_epoch):
             is_last_epoch = epoch == self.ending_epoch - 1
             # ---------------------- train_validate_with_scheduling ---------------------- #
@@ -248,7 +261,9 @@ class SirenRegressorCompressor(object):
             with collectors_context(self.activations_collectors["train"]) as collectors:
                 loss = \
                     distiller.apputils.siren_utils.siren_train_val_test_utils.train_via_scheduler(
-                        self.train_loader, self.model,
+                        # self.train_loader,
+                        inputs, target, total_samples, batch_size,
+                        self.model,
                         self.criterion, self.optimizer, 
                         epoch, self.compression_scheduler,
                         loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
@@ -270,7 +285,8 @@ class SirenRegressorCompressor(object):
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
                 loss, psnr_score, ssim_score = \
                     distiller.apputils.siren_utils.siren_train_val_test_utils.validate( \
-                        self.val_loader, self.model, self.criterion, \
+                        # self.val_loader, self.model, self.criterion, \
+                        inputs_val, target_val, total_samples_val, batch_size_val, self.model, self.criterion, \
                         [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
@@ -298,6 +314,19 @@ class SirenRegressorCompressor(object):
 
     def run_plain_training_loop(self,):
         global msglogger
+
+        total_samples = len(self.train_loader.sampler)
+        batch_size = self.train_loader.batch_size
+
+        inputs, target = next(iter(self.train_loader))
+        inputs, target = inputs.to(self.args.device), target.to(self.args.device)
+
+        total_samples_val = len(self.val_loader.sampler)
+        batch_size_val = self.val_loader.batch_size
+
+        inputs_val, target_val = next(iter(self.val_loader))
+        inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)
+
         for epoch in range(self.start_epoch, self.ending_epoch):
             is_last_epoch = epoch == self.ending_epoch - 1
             # ---------------------- train_one_epoch ---------------------- #
@@ -305,7 +334,9 @@ class SirenRegressorCompressor(object):
             with collectors_context(self.activations_collectors["train"]) as collectors:
                 loss = \
                     distiller.apputils.siren_utils.siren_train_val_test_utils.train(
-                        self.train_loader, self.model,
+                        # self.train_loader, self.model,
+                        inputs, target, total_samples, batch_size,
+                        self.model,
                         self.criterion, self.optimizer, 
                         epoch, self.compression_scheduler,
                         loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
@@ -316,8 +347,10 @@ class SirenRegressorCompressor(object):
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
                 # vloss, vpsnr, vssim = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                loss, psnr_score, ssim_score = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion, 
-                                            [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+                loss, psnr_score, ssim_score = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
+                    # self.val_loader, self.model, self.criterion, 
+                    inputs_val, target_val, total_samples_val, batch_size_val, self.model, self.criterion, \
+                    [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
@@ -378,15 +411,26 @@ class SirenRegressorCompressor(object):
 
     def validate(self, epoch=-1, is_last_epoch = False):
         # self.load_datasets()
-        return distiller.apputils.siren_utils.siren_train_val_test_utils.validate(self.val_loader, self.model, self.criterion,
-                        [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+        total_samples_val = len(self.train_loader.sampler)
+        batch_size_val = self.train_loader.batch_size
+
+        inputs_val, target_val = next(iter(self.train_loader))
+        inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)
+
+        return distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
+            # self.val_loader,
+            inputs_val, target_val, total_samples_val, batch_size_val, \
+            self.model, self.criterion, \
+            [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
 
 
     def test(self):
         self.test_mode_on = True
         self.load_datasets()
+        # start_time = time.time()
         result_test = test(self.test_loader, self.model, self.criterion,
                     self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on, msglogger=msglogger)
+        # msglogger.info(f"Test Inference Time: {time.time() - start_time}")
         self.test_mode_on = False
         return result_test
 
@@ -407,8 +451,18 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     if activations_collectors is None:
         activations_collectors = create_activation_stats_collectors(model, None)
 
+    total_samples_val = len(test_loader.sampler)
+    batch_size_val = test_loader.batch_size
+
+    inputs_val, target_val = next(iter(test_loader))
+    inputs_val, target_val = inputs_val.to(args.device), target_val.to(args.device)
+
     with collectors_context(activations_collectors["test"]) as collectors:
-        losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
+        # losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
+        losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(
+            # test_loader,
+            inputs_val, target_val, total_samples_val, batch_size_val, \
+            model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
         distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
         save_collectors_data(collectors, msglogger.logdir)
     return losses

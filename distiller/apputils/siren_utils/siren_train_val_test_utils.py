@@ -40,10 +40,18 @@ from distiller.pruning.automated_gradual_pruner import AutomatedGradualPruner
 TOLL = 2
 PRUNE_DETAILS = dict()
 
+_INPUT_TRAIN, _TARGET_TRAIN = None, None
+_INPUT_VAL, _TARGET_VAL = None, None
 
 # ----------------------------------------------------------------------------------------------- #
 # Utils Section
 # ----------------------------------------------------------------------------------------------- #
+
+def set_data_for_trainin(data_loader):
+    _INPUT_TRAIN, _TARGET_TRAIN = next(iter(train_loader))
+    
+def set_data_for_val(data_loader):
+    _INPUT_VAL, _TARGET_VAL = next(iter(data_loader))
 
 def early_exit_mode(args):
     return hasattr(args, 'earlyexit_lossweights') and args.earlyexit_lossweights
@@ -156,8 +164,11 @@ def earlyexit_validate_stats(args, msglogger):
 # ----------------------------------------------------------------------------------------------- #
 # Train Section
 # ----------------------------------------------------------------------------------------------- #
-def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
-          compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
+def train_via_scheduler(
+        # train_loader,
+        inputs, target, model, criterion, optimizer, epoch, \
+        total_samples, batch_size, \
+        compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -208,20 +219,20 @@ def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
     # `exiterrors` is analogous to `classerr` in the non-Early Exit case
     if early_exit_mode(args): args.exiterrors = []
 
-    total_samples = len(train_loader.sampler)
-    batch_size = train_loader.batch_size
+    # total_samples = len(train_loader.sampler)
+    # batch_size = train_loader.batch_size
     steps_per_epoch = math.ceil(total_samples / batch_size)
     # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('Training epoch: %d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to train mode
     model.train()
     end = time.time()
-    inputs, target = next(iter(train_loader))
+
     train_step = 0
     # for train_step, (inputs, target) in enumerate(train_loader):
     # Measure data loading time
     data_time.add(time.time() - end)
-    inputs, target = inputs.cuda(), target.cuda()
+    # inputs, target = inputs.cuda(), target.cuda()
 
     # Execute the forward phase, compute the output and measure loss
     compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
@@ -277,8 +288,10 @@ def train_via_scheduler(train_loader, model, criterion, optimizer, epoch,
     return losses[OVERALL_LOSS_KEY]
 
 
-def train(train_loader, model, criterion, optimizer, epoch,
-          compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
+def train( #train_loader
+        inputs, target, model, criterion, optimizer, epoch, \
+        total_samples, batch_size, \
+        compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -329,8 +342,8 @@ def train(train_loader, model, criterion, optimizer, epoch,
     # `exiterrors` is analogous to `classerr` in the non-Early Exit case
     # if early_exit_mode(args): args.exiterrors = []
 
-    total_samples = len(train_loader.sampler)
-    batch_size = train_loader.batch_size
+    # total_samples = len(train_loader.sampler)
+    # batch_size = train_loader.batch_size
     steps_per_epoch = math.ceil(total_samples / batch_size)
     # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('Training epoch: %d samples (%d per mini-batch)', total_samples, batch_size)
 
@@ -338,11 +351,14 @@ def train(train_loader, model, criterion, optimizer, epoch,
     model.train()
     end = time.time()
     train_step = 0
-    inputs, target = next(iter(train_loader))
+    
+    # inputs, target = next(iter(train_loader))
+    # inputs, target = inputs.to(args.device), target.to(args.device)
+
     # for train_step, (inputs, target) in enumerate(train_loader):
     # Measure data loading time
     data_time.add(time.time() - end)
-    inputs, target = inputs.to(args.device), target.to(args.device)
+    
     
     if not hasattr(args, 'kd_policy') or args.kd_policy is None:
         output, _ = model(inputs)
@@ -380,14 +396,16 @@ def train(train_loader, model, criterion, optimizer, epoch,
 # ----------------------------------------------------------------------------------------------- #
 # Test or Validate Section
 # ----------------------------------------------------------------------------------------------- #
-def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, msglogger = None):
+# def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, msglogger = None):
+def validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, msglogger = None):
     """Model validation"""
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: msglogger.info('--- validate (epoch=%d)-----------', epoch)
     # else: msglogger.info('--- validate ---------------------')
-    return _validate(val_loader, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+    return _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
 
 
-def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
+# def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
+def _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
     """Validate model on validation set or test set, depending on which time instant it is called.
     Return
     ------
@@ -426,8 +444,8 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     """
 
     batch_time = tnt.AverageValueMeter()
-    total_samples = len(data_loader.sampler)
-    batch_size = data_loader.batch_size
+    # total_samples = len(data_loader.sampler)
+    # batch_size = data_loader.batch_size
 
     total_steps = total_samples / batch_size
     # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
@@ -439,9 +457,9 @@ def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_
     with torch.no_grad():
         # for validation_step, (inputs, target) in enumerate(data_loader):
         validation_step = 0
-        inputs, target = next(iter(data_loader))
-        
-        inputs, target = inputs.to(args.device), target.to(args.device)        
+        # inputs, target = next(iter(data_loader))
+        # inputs, target = inputs.to(args.device), target.to(args.device)        
+
         # compute output from model
         output, _ = model(inputs)
 

@@ -229,7 +229,8 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, prune_details = {}):
+    # def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, prune_details = {}):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, prune_details = {}):
         # Update the list of top scores achieved so far, and save the checkpoint
 
         is_one_to_save_pruned = False
@@ -256,12 +257,16 @@ class SirenRegressorCompressor(object):
             
             # prune_details = distiller.apputils.siren_utils.siren_train_val_test_utils.get_prune_detail()
             distiller.apputils.save_checkpoint(
-                epoch=epoch, arch=self.args.arch, model=self.model, optimizer=self.optimizer, \
-                scheduler=self.compression_scheduler, extras=checkpoint_extras, \
+                epoch=epoch,
+                arch=self.args.arch, model=self.model, optimizer=self.optimizer, scheduler=self.compression_scheduler, \
+                extras=checkpoint_extras, \
                 name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
-                is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
-                is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=prune_details \
+                is_best=is_best, \
+                is_mid_ckpt = is_mid_ckpt, \
+                # is_last_epoch = is_last_epoch,
+                is_one_to_save_pruned=is_one_to_save_pruned, \
+                save_mid_pr_obj=self.save_mid_pr,
+                prune_details=prune_details \
             )
 
 
@@ -326,7 +331,7 @@ class SirenRegressorCompressor(object):
         loggers = [self.tflogger, self.pylogger]
 
         for epoch in range(self.start_epoch, self.ending_epoch):
-            is_last_epoch = epoch == self.ending_epoch - 1
+            # is_last_epoch = epoch == self.ending_epoch - 1
 
             # ---------------------- train_validate_with_scheduling ---------------------- #
             self.compression_scheduler.on_epoch_begin(epoch)
@@ -394,7 +399,7 @@ class SirenRegressorCompressor(object):
             # ---------------------- save stats ---------------------- #
             prune_details = _check_pruning_met_layers_sparse(
                 self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, prune_details=prune_details)
-            if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d)-----------', epoch)
@@ -453,11 +458,19 @@ class SirenRegressorCompressor(object):
                 distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers[0])
             
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, prune_details=prune_details)
+            # ---------------------- check whether to save middlle checkpoint data ---------------------- #
+            # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
+            self._finalize_epoch(epoch, loss, psnr_score, ssim_score,  prune_details=prune_details)
 
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
-                self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True, prune_details=prune_details)
+                # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
                 break
+            
+        # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True, prune_details=prune_details)
+        old_name = str(self.args.name)
+        self.args.name = "final_epoch"
+        self._finalize_epoch(epoch, loss, psnr_score, ssim_score, prune_details=prune_details)
+        self.args.name = old_name
 
 
     def run_plain_training_loop(self,):

@@ -33,11 +33,15 @@ from distiller.utils import normalize_module_name
 msglogger = logging.getLogger()
 
 
-def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
-                    extras=None, is_best=False, name=None, dir='.', freq_ckpt = None, is_mid_ckpt = False,
-                    is_last_epoch = False,
-                    is_one_to_save_pruned = False,
-                    save_mid_pr_obj = None, prune_details=None):
+def save_checkpoint( \
+        epoch, arch, model, optimizer=None, scheduler=None, \
+        extras=None,  name=None, dir='.', freq_ckpt = None, \
+        is_best=False,
+        is_mid_ckpt = False, \
+        # is_last_epoch = False,
+        is_one_to_save_pruned = False, \
+        save_mid_pr_obj = None, \
+        prune_details=None):
     """Save a pytorch training checkpoint
 
     Args:
@@ -104,13 +108,16 @@ def save_checkpoint(epoch, arch, model, optimizer=None, scheduler=None,
         fullpath_mid_ckpt = os.path.join(dir, filename_mid_ckpt)
         # shutil.copyfile(fullpath, fullpath_mid_ckpt)
         torch.save(checkpoint, fullpath_mid_ckpt)
+    
+    """
     elif is_last_epoch:
         # Save last desired epoch-ckpt result into dedicated ckpt.
         filename_final_ckpt = f'final_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_final_ckpt_epoch_{epoch}.pth.tar'
         fullpath_final_ckpt = os.path.join(dir, filename_final_ckpt)
         # shutil.copyfile(fullpath, fullpath_final_ckpt)
         torch.save(checkpoint, fullpath_final_ckpt)
-    
+    """
+
     if is_one_to_save_pruned and save_mid_pr_obj is not None:
         # Save desired epoch-ckpt result into dedicated ckpt if prunig scheduler is on.
         prune_rate = save_mid_pr_obj.get_rate_to_save()

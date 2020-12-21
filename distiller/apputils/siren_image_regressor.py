@@ -322,6 +322,10 @@ class SirenRegressorCompressor(object):
 
         inputs_val, target_val = next(iter(self.val_loader))
         inputs_val, target_val = inputs_val.to(self.args.device), target_val.to(self.args.device)
+
+        arr_gt = target_val.cpu().view(sidelenght).detach().numpy()
+        arr_gt = (arr_gt / 2.) + 0.5
+        
         loggers = [self.tflogger, self.pylogger]
 
         for epoch in range(self.start_epoch, self.ending_epoch):
@@ -367,17 +371,14 @@ class SirenRegressorCompressor(object):
 
                 # end = time.time()
                 with torch.no_grad():
-                    output, _ = model(inputs)
+                    output, _ = model(inputs_val)
                     # objective_loss = criterion(output, target).item()
                     loss = self.criterion(output, target).item()
                     
                     sidelenght = output.size()[1]
-                    arr_gt = target.cpu().view(sidelenght).detach().numpy()
-                    arr_gt = (arr_gt / 2.) + 0.5
-
+                    
                     arr_output = output.cpu().view(sidelenght).detach().numpy()
-                    arr_output = (arr_output / 2.) + 0.5
-                    arr_output = np.clip(arr_output, a_min=0., a_max=1.)
+                    arr_output = np.clip((arr_output / 2.) + 0.5, a_min=0., a_max=1.)
 
                     # val_psnr = psnr(arr_gt, arr_output,data_range=1.)
                     # val_mssim = ssim(arr_gt, arr_output,data_range=1.)
@@ -784,7 +785,6 @@ def earlyexit_validate_loss(output, target, criterion, args):
             args.exiterrors[exitnum].add(torch.tensor(np.array(output[exitnum].data[batch_index].cpu(), ndmin=2)),
                                          torch.full([1], target[batch_index], dtype=torch.long))
             args.exit_taken[exitnum] += 1
-
 
 
 def _convert_ptq_to_pytorch(model, args):

@@ -423,10 +423,11 @@ class SirenRegressorCompressor(object):
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
                 """
-                stats = OrderedDict([('Loss', loss), # vloss
+                stats = ('Performance/Validation/',
+                    OrderedDict([('Loss', loss), # vloss
                     ('PSNR', psnr_score), # vpsnr
                     ('SSIM', ssim_score), # vssim
-                ])
+                ]))
                 distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers)
             else:

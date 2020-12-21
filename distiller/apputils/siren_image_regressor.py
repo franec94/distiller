@@ -392,7 +392,7 @@ class SirenRegressorCompressor(object):
                 metrics={'min': loss,})
 
             # ---------------------- save stats ---------------------- #
-            _check_pruning_met_layers_sparse(
+            prune_details = _check_pruning_met_layers_sparse(
                 self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, prune_details=prune_details)
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
                 # ---------------------- log train data ---------------------- #
@@ -985,6 +985,7 @@ def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, 
                         keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
                         record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
                         prune_details[param_name] = dict(zip(keys, record_data))
+    return prune_details
 
 
 def save_predicted_data(test_loader, model, criterion, loggers, activations_collectors=None, args=None, scheduler=None):

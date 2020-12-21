@@ -400,6 +400,7 @@ def train( #train_loader
 def validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, msglogger = None):
     """Model validation"""
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: msglogger.info('--- validate (epoch=%d)-----------', epoch)
+    else: msglogger.info('--- test ---------------------')
     # else: msglogger.info('--- validate ---------------------')
     return _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
 

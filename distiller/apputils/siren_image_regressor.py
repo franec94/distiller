@@ -445,7 +445,6 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     ------
     `losses` - list python object keeping MSE, PSNR and SSIM scores in that precise order.\n
     """
-    msglogger.info('--- test ---------------------')
     if args is None:
         args = SirenRegressorCompressor.mock_args()
     if activations_collectors is None:
@@ -459,7 +458,7 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
 
     with collectors_context(activations_collectors["test"]) as collectors:
         # losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
-        losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(
+        losses = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
             # test_loader,
             inputs_val, target_val, total_samples_val, batch_size_val, \
             model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)

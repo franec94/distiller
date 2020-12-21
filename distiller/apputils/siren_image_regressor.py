@@ -260,7 +260,8 @@ class SirenRegressorCompressor(object):
                 epoch=epoch,
                 arch=self.args.arch, model=self.model, optimizer=self.optimizer, scheduler=self.compression_scheduler, \
                 extras=checkpoint_extras, \
-                name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
+                name=self.args.name, dir=msglogger.logdir, # freq_ckpt=self.args.print_freq,\
+                freq_ckpt=10000,
                 is_best=is_best, \
                 is_mid_ckpt = is_mid_ckpt, \
                 # is_last_epoch = is_last_epoch,
@@ -356,15 +357,18 @@ class SirenRegressorCompressor(object):
                 
                 # Train: log activation/weigth-sparsity stats 
                 # ------------------------------------------#
+                """
                 distiller.log_activation_statistics(
                     epoch, \
                     "train", \
                     loggers=[self.tflogger], \
                     collector=collectors["sparsity"])
+                
                 distiller.log_weights_sparsity(
                     self.model, \
                     epoch, \
                     [self.tflogger])
+                """
                 # if self.args.compress and epoch >= 0 and epoch % self.args.print_freq == 0:
                 # if epoch >= 0 and epoch % self.args.print_freq == 0: # distiller.log_weights_sparsity(self.model, epoch, [self.tflogger, self.pylogger])
                 if self.args.masks_sparsity:

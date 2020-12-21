@@ -380,8 +380,8 @@ class SirenRegressorCompressor(object):
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
-            else:
-                _log_training_progress(loggers)
+            else: _log_training_progress()
+            
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)

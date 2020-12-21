@@ -231,7 +231,6 @@ class SirenRegressorCompressor(object):
 
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False):
         # Update the list of top scores achieved so far, and save the checkpoint
-        global PRUNE_DETAILS
 
         is_one_to_save_pruned = False
         if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
@@ -921,7 +920,7 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
 def _log_train_epoch_pruning(args, epoch):
     """Log to json file information and data about when pruning take places per layer."""
     # global msglogger
-    global PRUNE_DETAILS
+    # global PRUNE_DETAILS
     global msglogger
 
     if PRUNE_DETAILS == {}: return
@@ -942,7 +941,7 @@ def _log_train_epoch_pruning(args, epoch):
 def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):
     """Update dictionary storing data and information about when pruning takes places for each layer."""
     # global msglogger
-    global PRUNE_DETAILS
+    # global PRUNE_DETAILS
     global TOLL
     global msglogger
 

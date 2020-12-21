@@ -368,7 +368,7 @@ class SirenRegressorCompressor(object):
 
                 # end = time.time()
                 with torch.no_grad():
-                    output, _ = model(inputs_val)
+                    output, _ = self.model(inputs_val)
                     # objective_loss = criterion(output, target).item()
                     loss = self.criterion(output, target).item()
                     

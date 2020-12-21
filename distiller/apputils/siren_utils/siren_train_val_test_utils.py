@@ -469,7 +469,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         # loss = criterion(output, target)
         # measure accuracy and record loss
         # losses['objective_loss'].add(loss.item())
-        objective_loss = loss.item().item()
+        objective_loss = criterion(output, target).item()
 
         # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
         sidelenght = output.size()[1]

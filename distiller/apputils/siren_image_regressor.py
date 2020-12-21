@@ -283,21 +283,30 @@ class SirenRegressorCompressor(object):
                                             math.ceil(total_samples / batch_size), self.args.print_freq,
                                             loggers=loggers)
 
-        """
-        def _log_validation_progress():
+        
+        def _log_validation_progress(loggers=[self.tflogger]):
             # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
-            stats_dict = OrderedDict([('Loss', loss)])
+            # stats_dict = OrderedDict([('Loss', loss)])
             #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
             # else:
-            stats_dict = OrderedDict()
-            for exitnum in range(args.num_exits):
+            # stats_dict = OrderedDict()
+            """for exitnum in range(args.num_exits):
                 la_string = 'LossAvg' + str(exitnum)
                 stats_dict[la_string] = args.losses_exits[exitnum].mean
-            
+            """
+            """
             stats = ('Performance/Validation/', stats_dict)
             distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
                                             total_samples_val / batch_size_val, self.args.print_freq, [self.pylogger])
-        """
+            """
+            stats = ('Performance/Validation/',
+                OrderedDict([('Loss', loss), # vloss
+                    ('PSNR', psnr_score), # vpsnr
+                    ('SSIM', ssim_score), # vssim
+                ]))
+            distiller.log_training_progress(stats, None, epoch, steps_completed=0,
+                                            total_steps=1, log_freq=1, loggers=loggers)
+            
 
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
@@ -349,14 +358,6 @@ class SirenRegressorCompressor(object):
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
-            # if verbose:
-            stats = ('Performance/Validation/',
-            OrderedDict([('Loss', loss), # vloss
-                ('PSNR', psnr_score), # vpsnr
-                ('SSIM', ssim_score), # vssim
-            ]))
-            distiller.log_training_progress(stats, None, epoch, steps_completed=0,
-                                            total_steps=1, log_freq=1, loggers=[self.tflogger])
 
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
                 metrics={'min': loss,})
@@ -376,12 +377,16 @@ class SirenRegressorCompressor(object):
                 msglogger.info('\n')
                 msglogger.info('--- validation (epoch=%d)-----------', epoch)
                 # _log_validation_progress()
-                msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                """msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
-            else: _log_training_progress()
-            
+                """
+                _log_validation_progress(loggers=[self.tflogger, self.pylogger])
+            else:
+                _log_training_progress()
+                _log_validation_progress()
+
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)

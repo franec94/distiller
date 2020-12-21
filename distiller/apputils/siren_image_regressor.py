@@ -265,7 +265,7 @@ class SirenRegressorCompressor(object):
     def run_training_loop_with_scheduler(self,):
         global msglogger
 
-        def _log_training_progress():
+        def _log_training_progress(loggers=[self.tflogger]):
             # Log some statistics
 
             # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
@@ -281,7 +281,7 @@ class SirenRegressorCompressor(object):
                                             # epoch, steps_completed,
                                             epoch, 1,
                                             math.ceil(total_samples / batch_size), self.args.print_freq,
-                                            loggers=[self.tflogger, self.pylogger])
+                                            loggers=loggers)
 
         """
         def _log_validation_progress():
@@ -336,7 +336,6 @@ class SirenRegressorCompressor(object):
                 if self.args.masks_sparsity:
                     msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, \
                         self.compression_scheduler))
-            
             # ---------------------- validate_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
@@ -368,7 +367,7 @@ class SirenRegressorCompressor(object):
             if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
                 msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d)-----------', epoch)
-                _log_training_progress()
+                _log_training_progress(loggers=[self.tflogger, self.pylogger])
                 _log_train_epoch_pruning(self.args, epoch)
 
                 _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
@@ -381,6 +380,8 @@ class SirenRegressorCompressor(object):
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
                     loss, psnr_score, ssim_score)
+            else:
+                _log_training_progress(loggers)
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)

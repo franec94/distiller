@@ -427,7 +427,7 @@ class SirenRegressorCompressor(object):
                 OrderedDict([('Loss', loss), # vloss
                     ('PSNR', psnr_score), # vpsnr
                     ('SSIM', ssim_score), # vssim
-                ]))
+                ])
                 distiller.log_training_progress(stats, None, epoch, steps_completed=0,
                                             total_steps=1, log_freq=1, loggers=loggers)
             else:

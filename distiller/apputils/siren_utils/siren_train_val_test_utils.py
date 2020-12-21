@@ -37,21 +37,25 @@ from skimage.metrics import mean_squared_error
 
 from distiller.pruning.automated_gradual_pruner import AutomatedGradualPruner
 
-TOLL = 2
-PRUNE_DETAILS = dict()
+# TOLL = 2
+# PRUNE_DETAILS = dict()
 
-_INPUT_TRAIN, _TARGET_TRAIN = None, None
-_INPUT_VAL, _TARGET_VAL = None, None
+# _INPUT_TRAIN, _TARGET_TRAIN = None, None
+# _INPUT_VAL, _TARGET_VAL = None, None
 
 # ----------------------------------------------------------------------------------------------- #
 # Utils Section
 # ----------------------------------------------------------------------------------------------- #
 
+"""
+def get_prune_detail(): return PRUNE_DETAILS
+
 def set_data_for_trainin(data_loader):
-    _INPUT_TRAIN, _TARGET_TRAIN = next(iter(train_loader))
+    _INPUT_TRAIN, _TARGET_TRAIN = next(iter(data_loader))
     
 def set_data_for_val(data_loader):
     _INPUT_VAL, _TARGET_VAL = next(iter(data_loader))
+"""
 
 def early_exit_mode(args):
     return hasattr(args, 'earlyexit_lossweights') and args.earlyexit_lossweights
@@ -78,75 +82,6 @@ def earlyexit_loss(output, target, criterion, args):
     return weighted_loss
 
 
-def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None, msglogger = None):
-    """Update dictionary storing data and information about when pruning takes places for each layer."""
-    # global msglogger
-    global PRUNE_DETAILS
-    global TOLL
-    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
-
-    if early_stopping_agp:
-        early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
-        # is_triggered = early_stopping_agp.is_triggered()
-        # if is_triggered:
-        # epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
-        # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
-        if early_stopping_agp.is_triggered_once():
-            msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
-    if save_mid_pr:
-        if save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch):
-            msglogger.info(f"(SaveMiddlePruneRate) Mid sparsity: {total} has been met at epoch: {epoch}")
-    
-    policies_list = list(compression_scheduler.sched_metadata.keys())
-    if policies_list == []: return
-    
-    for policy in policies_list:
-        # sched_metadata = compression_scheduler.sched_metadata[policy]
-        if not hasattr(policy, 'pruner') : continue
-        pruner = policy.pruner
-        if isinstance(pruner, AutomatedGradualPruner):  
-            final_sparsity = pruner.agp_pr.final_sparsity
-            for param_name in pruner.params_names:
-                data_tmp = df[df["Name"] == param_name].values[0]
-                data_tmp_dict = dict(zip(list(df.columns), data_tmp))
-                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
-                    if param_name not in PRUNE_DETAILS.keys():
-                        # Check and eventually Insert new layer
-                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
-                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
-                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
-                    elif float(PRUNE_DETAILS[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
-                        # Update if necessary insert new layer
-                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
-                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
-                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
-                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
-
-
-def _log_train_epoch_pruning(args, epoch, msglogger):
-    """Log to json file information and data about when pruning take places per layer."""
-    # global msglogger
-    global PRUNE_DETAILS
-
-    if PRUNE_DETAILS == {}: return
-
-    out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
-    str_data = json.dumps(PRUNE_DETAILS)
-
-    msglogger.info(f"--- dump pruning data (epoch={epoch}) ---------")
-    msglogger.info(f"Data saved to: {out_file_data}")
-    msglogger.info(str_data)
-    try:
-        with open(out_file_data, 'w') as outfile:
-            json.dump(PRUNE_DETAILS, outfile)
-    except Exception as err:
-        msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
-
-
-def get_prune_detail(): return PRUNE_DETAILS
-
-
 def earlyexit_validate_stats(args, msglogger):
     # Print some interesting summary stats for number of data points that could exit early
     losses_exits_stats = [0] * args.num_exits
@@ -164,11 +99,13 @@ def earlyexit_validate_stats(args, msglogger):
 # ----------------------------------------------------------------------------------------------- #
 # Train Section
 # ----------------------------------------------------------------------------------------------- #
-def train_via_scheduler(
+def train_via_scheduler_old(
         # train_loader,
         inputs, target, total_samples, batch_size, \
         model, criterion, optimizer, epoch, \
-        compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
+        # compression_scheduler, loggers, args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
+        # args, is_last_epoch = False, early_stopping_agp=None, save_mid_pr=None, msglogger = None):
+        compression_scheduler):
     """Training-with-compression loop for one epoch.
     
     For each training step in epoch:
@@ -183,11 +120,14 @@ def train_via_scheduler(
     """
     # global msglogger
 
+    """
     if epoch >= 0 and epoch % args.print_freq == 0:
             msglogger.info('\n')
             msglogger.info('--- train (epoch=%d)-----------', epoch)
+    """
     # else: msglogger.info('--- train ---------------------')
 
+    """
     def _log_training_progress():
         # Log some statistics
 
@@ -195,7 +135,7 @@ def train_via_scheduler(
         stats_dict = OrderedDict()
         for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
         stats_dict['LR'] = optimizer.param_groups[0]['lr']
-        stats_dict['Time'] = batch_time.mean
+        stats_dict['Time'] = batch_time # batch_time.mean
         stats = ('Performance/Training/', stats_dict)
 
         params = model.named_parameters() if args.log_params_histograms else None
@@ -205,6 +145,7 @@ def train_via_scheduler(
                                         epoch, 1,
                                         steps_per_epoch, args.print_freq,
                                         loggers)
+    """
 
     OVERALL_LOSS_KEY = 'Overall Loss'
     OBJECTIVE_LOSS_KEY = 'Objective Loss'
@@ -212,12 +153,14 @@ def train_via_scheduler(
     losses = OrderedDict([(OVERALL_LOSS_KEY, tnt.AverageValueMeter()),
                           (OBJECTIVE_LOSS_KEY, tnt.AverageValueMeter())])
 
-    batch_time = tnt.AverageValueMeter()
+    # batch_time = tnt.AverageValueMeter()
+    batch_time = None
+    # train_step = 0
     # data_time = tnt.AverageValueMeter()
 
     # For Early Exit, we define statistics for each exit, so
     # `exiterrors` is analogous to `classerr` in the non-Early Exit case
-    if early_exit_mode(args): args.exiterrors = []
+    # if early_exit_mode(args): args.exiterrors = []
 
     # total_samples = len(train_loader.sampler)
     # batch_size = train_loader.batch_size
@@ -228,22 +171,23 @@ def train_via_scheduler(
     model.train()
     end = time.time()
 
-    train_step = 0
+    
     # for train_step, (inputs, target) in enumerate(train_loader):
     # Measure data loading time
     # data_time.add(time.time() - end)
     # inputs, target = inputs.cuda(), target.cuda()
 
     # Execute the forward phase, compute the output and measure loss
-    compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
+    # compression_scheduler.on_minibatch_begin(epoch, train_step, steps_per_epoch, optimizer)
+    compression_scheduler.on_minibatch_begin(epoch, 0, steps_per_epoch, optimizer)
 
     # if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs)
     # else: output, _ = args.kd_policy.forward(inputs)
     output, _ = model(inputs)
 
-    if not early_exit_mode(args): loss = criterion(output, target)
-    else: loss = earlyexit_loss(output, target, criterion, args)
-    
+    # if not early_exit_mode(args): loss = criterion(output, target)
+    # else: loss = earlyexit_loss(output, target, criterion, args)
+    loss = criterion(output, target)
     # Record loss
     losses[OBJECTIVE_LOSS_KEY].add(loss.item())
 
@@ -252,7 +196,8 @@ def train_via_scheduler(
     agg_loss = \
         compression_scheduler.before_backward_pass(
             epoch,
-            train_step, steps_per_epoch,
+            # train_step, steps_per_epoch,
+            0, steps_per_epoch,
             loss,
             optimizer=optimizer, return_loss_components=True)
     loss = agg_loss.overall_loss
@@ -267,25 +212,102 @@ def train_via_scheduler(
     optimizer.zero_grad()
     loss.backward()
     
-    compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
+    # compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
+    compression_scheduler.before_parameter_optimization(epoch, 0, steps_per_epoch, optimizer)
     optimizer.step()
-    compression_scheduler.on_minibatch_end(epoch, train_step, steps_per_epoch, optimizer)
+    compression_scheduler.on_minibatch_end(epoch, 0, steps_per_epoch, optimizer)
 
     # measure elapsed time
     batch_time.add(time.time() - end)
     # steps_completed = (train_step+1)
 
     # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
-    _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr, msglogger=msglogger)
+    """
+    # _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr, msglogger=msglogger)
+
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
         _, total = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True)
         msglogger.info(f"Total Sparsity Achieved: {total}")
-        _log_training_progress()
-        _log_train_epoch_pruning(args, epoch, msglogger)
+        # _log_training_progress()
+        # _log_train_epoch_pruning(args, epoch, msglogger)
+    """
     # end = time.time()
     #return acc_stats
     # NOTE: this breaks previous behavior, which returned a history of (top1, top5) values
-    return losses[OVERALL_LOSS_KEY]
+    return losses[OVERALL_LOSS_KEY], batch_time
+
+
+def train_via_scheduler(
+        inputs, target, total_samples, batch_size, \
+        model, criterion, optimizer, epoch, \
+        compression_scheduler):
+    """Training-with-compression loop for one epoch.
+    
+    For each training step in epoch:
+        compression_scheduler.on_minibatch_begin(epoch)
+        output = model(input)
+        loss = criterion(output, target)
+        compression_scheduler.before_backward_pass(epoch)
+        loss.backward()
+        compression_scheduler.before_parameter_optimization(epoch)
+        optimizer.step()
+        compression_scheduler.on_minibatch_end(epoch)
+    """
+
+    OVERALL_LOSS_KEY = 'Overall Loss'
+    OBJECTIVE_LOSS_KEY = 'Objective Loss'
+
+    losses = OrderedDict([(OVERALL_LOSS_KEY, tnt.AverageValueMeter()),
+                          (OBJECTIVE_LOSS_KEY, tnt.AverageValueMeter())])
+    batch_time = None
+    steps_per_epoch = math.ceil(total_samples / batch_size)
+
+    # Switch to train mode
+    model.train()
+    end = time.time()
+
+    compression_scheduler.on_minibatch_begin(epoch, 0, steps_per_epoch, optimizer)
+
+    # if not hasattr(args, 'kd_policy') or args.kd_policy is None: output, _ = model(inputs)
+    # else: output, _ = args.kd_policy.forward(inputs)
+    output, _ = model(inputs)
+
+    # if not early_exit_mode(args): loss = criterion(output, target)
+    # else: loss = earlyexit_loss(output, target, criterion, args)
+    loss = criterion(output, target)
+    # Record loss
+    losses[OBJECTIVE_LOSS_KEY].add(loss.item())
+
+    # Before running the backward phase, we allow the scheduler to modify the loss
+    # (e.g. add regularization loss)
+    agg_loss = \
+        compression_scheduler.before_backward_pass(
+            epoch,
+            # train_step, steps_per_epoch,
+            0, steps_per_epoch,
+            loss,
+            optimizer=optimizer, return_loss_components=True)
+    loss = agg_loss.overall_loss
+    losses[OVERALL_LOSS_KEY].add(loss.item())
+
+    for lc in agg_loss.loss_components:
+        if lc.name not in losses:
+            losses[lc.name] = tnt.AverageValueMeter()
+        losses[lc.name].add(lc.value.item())
+
+    # Compute the gradient and do SGD step
+    optimizer.zero_grad()
+    loss.backward()
+    
+    # compression_scheduler.before_parameter_optimization(epoch, train_step, steps_per_epoch, optimizer)
+    compression_scheduler.before_parameter_optimization(epoch, 0, steps_per_epoch, optimizer)
+    optimizer.step()
+    # compression_scheduler.on_minibatch_end(epoch, train_step, steps_per_epoch, optimizer)
+    compression_scheduler.on_minibatch_end(epoch, 0, steps_per_epoch, optimizer)
+
+    # measure elapsed time
+    batch_time.add(time.time() - end)
+    return losses[OVERALL_LOSS_KEY], batch_time
 
 
 def train( #train_loader
@@ -397,16 +419,18 @@ def train( #train_loader
 # Test or Validate Section
 # ----------------------------------------------------------------------------------------------- #
 # def validate(val_loader, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, msglogger = None):
-def validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, test_mode_on = False, msglogger = None):
-    """Model validation"""
-    if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: msglogger.info('--- validate (epoch=%d)-----------', epoch)
+# def validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, is_last_epoch = False, test_mode_on = False, msglogger = None):
+""" def validate(inputs, target, model, criterion):
+    Model validation
+    # if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: msglogger.info('--- validate (epoch=%d)-----------', epoch)
     # else: msglogger.info('--- test ---------------------')
     # else: msglogger.info('--- validate ---------------------')
-    return _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, test_mode_on = test_mode_on, msglogger=msglogger)
-
+    # return _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch, is_last_epoch = is_last_epoch, test_mode_on = test_mode_on, msglogger=msglogger)
+    return _validate(inputs, target, model, criterion)
+"""
 
 # def _validate(data_loader, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
-def _validate(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
+def _validate_old(inputs, target, total_samples, batch_size, model, criterion, loggers, args, epoch=-1, test_mode_on = False, is_last_epoch = False, msglogger = None):
     """Validate model on validation set or test set, depending on which time instant it is called.
     Return
     ------
@@ -415,20 +439,22 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     `ssim_score` - float value corresponding to SSIM score.\n
     """
     global TARGET_TOTAL_SPARSITY
-
+    
+    """
     def _log_validation_progress():
         # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         stats_dict = OrderedDict([('Loss', objective_loss)])
         #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
         # else:
-        """ stats_dict = OrderedDict()
+         stats_dict = OrderedDict()
         for exitnum in range(args.num_exits):
             la_string = 'LossAvg' + str(exitnum)
             stats_dict[la_string] = args.losses_exits[exitnum].mean
-        """
+        
         stats = ('Performance/Validation/', stats_dict)
         distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
                                         total_steps, args.print_freq, loggers)
+    """
 
     """Execute the validation/test loop."""
     # losses = {'objective_loss': tnt.AverageValueMeter()}
@@ -492,11 +518,10 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         # end = time.time()
 
         # steps_completed = (validation_step+1)
-        if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
-            total_steps = total_samples / batch_size
-            _log_validation_progress()    
+        # if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch: total_steps = total_samples / batch_size; _log_validation_progress()
 
     # if not _is_earlyexit(args):
+    """
     if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
             # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
@@ -513,5 +538,52 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     #    losses_exits_stats = earlyexit_validate_stats(args)
     #    return losses_exits_stats[args.num_exits-1]
     # return losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean
+    """
     return objective_loss, val_psnr, val_mssim
     
+
+def validate(inputs, target, model, criterion):
+    """Validate model on validation set or test set, depending on which time instant it is called.
+    Return
+    ------
+    `loss_score` - float value corresponding to MSE score.\n
+    `psnr_score` - float value corresponding to PSNR score.\n
+    `ssim_score` - float value corresponding to SSIM score.\n
+    """
+    # global TARGET_TOTAL_SPARSITY
+
+    """Execute the validation/test loop."""
+    # losses = {'objective_loss': tnt.AverageValueMeter()}
+    # metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
+    # metrices = { 'psnr': [], 'ssim': [] }
+    objective_loss, val_psnr, val_mssim = None, None, None
+
+    """
+    if _is_earlyexit(args):
+        # for Early Exit, we have a list of errors and losses for each of the exits.
+        args.exiterrors = []
+        args.losses_exits = []
+        for exitnum in range(args.num_exits):
+            args.losses_exits.append(tnt.AverageValueMeter())
+        args.exit_taken = [0] * args.num_exits
+    """
+
+    model.eval()
+
+    # end = time.time()
+    with torch.no_grad():
+        output, _ = model(inputs)
+        objective_loss = criterion(output, target).item()
+        
+        sidelenght = output.size()[1]
+        arr_gt = target.cpu().view(sidelenght).detach().numpy()
+        arr_gt = (arr_gt / 2.) + 0.5
+
+        arr_output = output.cpu().view(sidelenght).detach().numpy()
+        arr_output = (arr_output / 2.) + 0.5
+        arr_output = np.clip(arr_output, a_min=0., a_max=1.)
+
+        val_psnr = psnr(arr_gt, arr_output,data_range=1.)
+        val_mssim = ssim(arr_gt, arr_output,data_range=1.)
+
+    return objective_loss, val_psnr, val_mssim

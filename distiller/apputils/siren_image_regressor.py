@@ -42,7 +42,8 @@ import distiller.apputils.siren_utils.siren_train_val_test_utils
 
 # Logger handle
 msglogger = logging.getLogger()
-
+PRUNE_DETAILS = {}
+TOLL = 2.0
 
 # ----------------------------------------------------------------------------------------------- #
 # SirenRegressorCompressor: Class Definition
@@ -230,6 +231,7 @@ class SirenRegressorCompressor(object):
 
     def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, is_one_to_save_pruned=False):
         # Update the list of top scores achieved so far, and save the checkpoint
+        global PRUNE_DETAILS
         self.performance_tracker.step(
             self.model,
             epoch,
@@ -249,19 +251,51 @@ class SirenRegressorCompressor(object):
             if self.args.save_mid_ckpts != []:
                 is_mid_ckpt = epoch in self.args.save_mid_ckpts
             
-            prune_details = distiller.apputils.siren_utils.siren_train_val_test_utils.get_prune_detail()
+            # prune_details = distiller.apputils.siren_utils.siren_train_val_test_utils.get_prune_detail()
             distiller.apputils.save_checkpoint(
                 epoch=epoch, arch=self.args.arch, model=self.model, optimizer=self.optimizer, \
                 scheduler=self.compression_scheduler, extras=checkpoint_extras, \
                 name=self.args.name, dir=msglogger.logdir, freq_ckpt=self.args.print_freq,\
                 is_best=is_best, is_mid_ckpt = is_mid_ckpt, \
                 is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned, \
-                save_mid_pr_obj=self.save_mid_pr, prune_details=prune_details \
+                save_mid_pr_obj=self.save_mid_pr, prune_details=PRUNE_DETAILS \
             )
 
 
     def run_training_loop_with_scheduler(self,):
         global msglogger
+
+        def _log_training_progress():
+            # Log some statistics
+
+            # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+            stats_dict = OrderedDict()
+            for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
+            stats_dict['LR'] = self.optimizer.param_groups[0]['lr']
+            stats_dict['Time'] = batch_time # batch_time.mean
+            stats = ('Performance/Training/', stats_dict)
+
+            params = self.model.named_parameters() if self.args.log_params_histograms else None
+            distiller.log_training_progress(stats,
+                                            params,
+                                            # epoch, steps_completed,
+                                            epoch, 1,
+                                            math.ceil(total_samples / batch_size), self.args.print_freq,
+                                            loggers=[self.tflogger, self.pylogger])
+
+        def _log_validation_progress():
+            # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+            stats_dict = OrderedDict([('Loss', loss)])
+            #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
+            # else:
+            """ stats_dict = OrderedDict()
+            for exitnum in range(args.num_exits):
+                la_string = 'LossAvg' + str(exitnum)
+                stats_dict[la_string] = args.losses_exits[exitnum].mean
+            """
+            stats = ('Performance/Validation/', stats_dict)
+            distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
+                                            total_samples_val / batch_size_val, self.args.print_freq, [self.pylogger])
 
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
@@ -283,16 +317,13 @@ class SirenRegressorCompressor(object):
             # ---------------------- train_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.train_validate_with_scheduling(epoch, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["train"]) as collectors:
-                loss = \
-                    distiller.apputils.siren_utils.siren_train_val_test_utils.train_via_scheduler(
-                        # self.train_loader,
-                        inputs, target, total_samples, batch_size,
-                        self.model,
-                        self.criterion, self.optimizer, 
-                        epoch, self.compression_scheduler,
-                        loggers=[self.tflogger, self.pylogger], args=self.args, is_last_epoch = is_last_epoch,
-                        early_stopping_agp=self.early_stopping_agp,
-                        save_mid_pr=self.save_mid_pr, msglogger=msglogger)
+                losses, batch_time = \
+                    distiller.apputils.siren_utils.siren_train_val_test_utils.train_via_scheduler( # self.train_loader,
+                        inputs, target, total_samples, batch_size, \
+                        self.model, \
+                        self.criterion, self.optimizer, \
+                        # loggers=[self.tflogger, self.pylogger], is_last_epoch = is_last_epoch, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr, msglogger=msglogger, args=self.args,
+                        epoch, self.compression_scheduler)
                 
                 distiller.log_activation_statistics(epoch, "train", loggers=[self.tflogger], \
                     collector=collectors["sparsity"])
@@ -303,6 +334,7 @@ class SirenRegressorCompressor(object):
                 if self.args.masks_sparsity:
                     msglogger.info(distiller.masks_sparsity_tbl_summary(self.model, \
                         self.compression_scheduler))
+            
             # ---------------------- validate_one_epoch ---------------------- #
             # loss, psnr_score, ssim_score = self.validate_one_epoch(epoch, verbose=True, is_last_epoch = is_last_epoch)
             with collectors_context(self.activations_collectors["valid"]) as collectors:
@@ -310,8 +342,9 @@ class SirenRegressorCompressor(object):
                 loss, psnr_score, ssim_score = \
                     distiller.apputils.siren_utils.siren_train_val_test_utils.validate( \
                         # self.val_loader, self.model, self.criterion, \
-                        inputs_val, target_val, total_samples_val, batch_size_val, self.model, self.criterion, \
-                        [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+                        # inputs_val, target_val, total_samples_val, batch_size_val, self.model, self.criterion, \
+                        # [self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+                        inputs_val, target_val, self.model, self.criterion)
                 distiller.log_activation_statistics(epoch, "valid", loggers=[self.tflogger],
                                                     collector=collectors["sparsity"])
                 save_collectors_data(collectors, msglogger.logdir)
@@ -326,7 +359,25 @@ class SirenRegressorCompressor(object):
 
             self.compression_scheduler.on_epoch_end(epoch, self.optimizer, 
                 metrics={'min': loss,})
-            
+
+            # ---------------------- save stats ---------------------- #
+            _check_pruning_met_layers_sparse(
+                self.compression_scheduler, self.model, epoch, self.args, early_stopping_agp=self.early_stopping_agp, save_mid_pr=self.save_mid_pr)
+            if epoch >= 0 and epoch % self.args.print_freq == 0 or is_last_epoch:
+                _log_train_epoch_pruning(self.args, epoch)
+                msglogger.info('\n')
+                msglogger.info('--- train (epoch=%d)-----------', epoch)
+
+                _, total = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True)
+                msglogger.info(f"Total Sparsity Achieved: {total}")
+                
+                msglogger.info('\n')
+                msglogger.info('--- validation (epoch=%d)-----------', epoch)
+
+                msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+                loss, psnr_score, ssim_score)
             is_one_to_save_pruned = False
             if self.save_mid_pr is not None: is_one_to_save_pruned = self.save_mid_pr.is_one_to_save()
             self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = is_last_epoch, is_one_to_save_pruned=is_one_to_save_pruned)
@@ -443,19 +494,28 @@ class SirenRegressorCompressor(object):
 
         return distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
             # self.val_loader,
-            inputs_val, target_val, total_samples_val, batch_size_val, \
-            self.model, self.criterion, \
-            [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+            # inputs_val, target_val, total_samples_val, batch_size_val, \
+            # self.model, self.criterion, \
+            # [self.tflogger, self.pylogger], self.args, epoch, is_last_epoch = is_last_epoch, msglogger=msglogger)
+            inputs_val, target_val, self.model, self.criterion)
 
 
     def test(self):
-        self.test_mode_on = True
+        global msglogger
+
+        # self.test_mode_on = True
         self.load_datasets()
-        # start_time = time.time()
+        start_time = time.time()
         msglogger.info('--- test ---------------------')
         result_test = test(self.test_loader, self.model, self.criterion,
                     self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on, msglogger=msglogger)
         # msglogger.info(f"Test Inference Time: {time.time() - start_time}")
+        loss, psnr_score, ssim_score = result_test
+        
+        msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f   TIME: %.7f\n', \
+                # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
+                # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
+                loss, psnr_score, ssim_score, time.time() - start_time)
         self.test_mode_on = False
         return result_test
 
@@ -478,21 +538,24 @@ def test(test_loader, model, criterion, loggers=None, activations_collectors=Non
     total_samples_val = len(test_loader.sampler)
     batch_size_val = test_loader.batch_size
 
-    inputs_val, target_val = next(iter(test_loader))
-    inputs_val, target_val = inputs_val.to(args.device), target_val.to(args.device)
+    inputs_test, target_test = next(iter(test_loader))
+    inputs_val, target_test = inputs_test.to(args.device), target_test.to(args.device)
 
     with collectors_context(activations_collectors["test"]) as collectors:
         # losses = distiller.apputils.siren_utils.siren_train_val_test_utils._validate(test_loader, model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
         losses = distiller.apputils.siren_utils.siren_train_val_test_utils.validate(
             # test_loader,
-            inputs_val, target_val, total_samples_val, batch_size_val, \
-            model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
+            # inputs_val, target_val, total_samples_val, batch_size_val, \
+            # model, criterion, loggers, args, test_mode_on = test_mode_on, msglogger=msglogger)
+            inputs_val, target_test, model, criterion)
         distiller.log_activation_statistics(-1, "test", loggers, collector=collectors['sparsity'])
         save_collectors_data(collectors, msglogger.logdir)
     return losses
 
+
 def init_regressor_compression_arg_parser(include_ptq_lapq_args=False):
     return distiller.apputils.siren_utils.siren_init_utils.init_regressor_compression_arg_parser(include_ptq_lapq_args=include_ptq_lapq_args)
+
 
 def create_activation_stats_collectors(model, *phases):
     """Create objects that collect activation statistics.
@@ -784,6 +847,75 @@ def _log_best_scores(performance_tracker, logger, how_many=-1):
 # ----------------------------------------------------------------------------------------------- #
 # Under-test functions
 # ----------------------------------------------------------------------------------------------- #
+def _log_train_epoch_pruning(args, epoch):
+    """Log to json file information and data about when pruning take places per layer."""
+    # global msglogger
+    global PRUNE_DETAILS
+    global msglogger
+
+    if PRUNE_DETAILS == {}: return
+
+    out_file_data = os.path.join(f'{msglogger.logdir}', 'data.json')
+    str_data = json.dumps(PRUNE_DETAILS)
+
+    msglogger.info(f"--- dump pruning data (epoch={epoch}) ---------")
+    msglogger.info(f"Data saved to: {out_file_data}")
+    msglogger.info(str_data)
+    try:
+        with open(out_file_data, 'w') as outfile:
+            json.dump(PRUNE_DETAILS, outfile)
+    except Exception as err:
+        msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
+
+
+def _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp = None, save_mid_pr = None):
+    """Update dictionary storing data and information about when pruning takes places for each layer."""
+    # global msglogger
+    global PRUNE_DETAILS
+    global TOLL
+    global msglogger
+
+    _, total, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
+
+    if early_stopping_agp:
+        early_stopping_agp.check_total_sparsity_is_met(curr_sparsity=total)
+        # is_triggered = early_stopping_agp.is_triggered()
+        # if is_triggered:
+        # epochs_done, total_epochs_to_patience = early_stopping_agp.update_trail_epochs()
+        # msglogger.info(f"EarlyStoppingAGP: is_triggered={is_triggered} - before halting training: ({epochs_done}/{total_epochs_to_patience})")
+        if early_stopping_agp.is_triggered_once():
+            msglogger.info(f"(EarlyStoppingAGP) Total sparsity: {total} has been met at epoch: {epoch}")
+    if save_mid_pr:
+        if save_mid_pr.is_rate_into_middle_prune_rates(a_prune_rate=total, epoch=epoch):
+            msglogger.info(f"(SaveMiddlePruneRate) Mid sparsity: {total} has been met at epoch: {epoch}")
+    
+    policies_list = list(compression_scheduler.sched_metadata.keys())
+    if policies_list == []: return
+    
+    for policy in policies_list:
+        # sched_metadata = compression_scheduler.sched_metadata[policy]
+        if not hasattr(policy, 'pruner') : continue
+        pruner = policy.pruner
+        if isinstance(pruner, AutomatedGradualPruner):  
+            final_sparsity = pruner.agp_pr.final_sparsity
+            for param_name in pruner.params_names:
+                data_tmp = df[df["Name"] == param_name].values[0]
+                data_tmp_dict = dict(zip(list(df.columns), data_tmp))
+                if data_tmp_dict["Fine (%)"] >= (final_sparsity * 100 - TOLL) or data_tmp_dict["Fine (%)"] >= final_sparsity * 100:
+                    if param_name not in PRUNE_DETAILS.keys():
+                        # Check and eventually Insert new layer
+                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
+                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 0, TOLL]
+                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
+                    elif float(PRUNE_DETAILS[param_name]["Fine (%)"]) < data_tmp_dict["Fine (%)"]:
+                        # Update if necessary insert new layer
+                        pruner_name = str(pruner).split(" ")[0].split(".")[-1]
+                        keys = "epoch,param_name,pruner,Fine (%),satisfyed,toll".split(",")
+                        record_data = [epoch, param_name, pruner_name, data_tmp_dict["Fine (%)"], 1, TOLL]
+                        PRUNE_DETAILS[param_name] = dict(zip(keys, record_data))
+
+
 def save_predicted_data(test_loader, model, criterion, loggers, activations_collectors=None, args=None, scheduler=None):
     # This sample application can be invoked to evaluate the accuracy of your model on
     # the test dataset.
@@ -803,6 +935,7 @@ def save_predicted_data(test_loader, model, criterion, loggers, activations_coll
     else:
         quantize_and_test_model(test_loader, model, criterion, args, loggers,scheduler=scheduler, save_flag=True)
     return predict_image(test_loader, model, criterion, loggers, activations_collectors, args=args, msglogger=msglogger)
+
 
 def predict_image(test_loader, model, criterion, loggers=None, activations_collectors=None, args=None):
     """Model Test"""

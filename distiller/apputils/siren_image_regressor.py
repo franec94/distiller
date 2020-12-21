@@ -452,6 +452,7 @@ class SirenRegressorCompressor(object):
         self.test_mode_on = True
         self.load_datasets()
         # start_time = time.time()
+        msglogger.info('--- test ---------------------')
         result_test = test(self.test_loader, self.model, self.criterion,
                     self.pylogger, self.activations_collectors, args=self.args, test_mode_on = self.test_mode_on, msglogger=msglogger)
         # msglogger.info(f"Test Inference Time: {time.time() - start_time}")

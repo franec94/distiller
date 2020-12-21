@@ -283,19 +283,21 @@ class SirenRegressorCompressor(object):
                                             math.ceil(total_samples / batch_size), self.args.print_freq,
                                             loggers=[self.tflogger, self.pylogger])
 
+        """
         def _log_validation_progress():
             # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
             stats_dict = OrderedDict([('Loss', loss)])
             #if not _is_earlyexit(args): # stats_dict = OrderedDict([('Loss', losses['objective_loss'].mean),])
             # else:
-            """ stats_dict = OrderedDict()
+            stats_dict = OrderedDict()
             for exitnum in range(args.num_exits):
                 la_string = 'LossAvg' + str(exitnum)
                 stats_dict[la_string] = args.losses_exits[exitnum].mean
-            """
+            
             stats = ('Performance/Validation/', stats_dict)
             distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
                                             total_samples_val / batch_size_val, self.args.print_freq, [self.pylogger])
+        """
 
         total_samples = len(self.train_loader.sampler)
         batch_size = self.train_loader.batch_size
@@ -374,7 +376,7 @@ class SirenRegressorCompressor(object):
                 
                 msglogger.info('\n')
                 msglogger.info('--- validation (epoch=%d)-----------', epoch)
-                _log_validation_progress()
+                # _log_validation_progress()
                 msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f\n', \
                     # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                     # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)

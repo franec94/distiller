@@ -193,8 +193,7 @@ def train_via_scheduler(
 
         # _, _, df = distiller.weights_sparsity_tbl_summary(model, return_total_sparsity=True, return_df=True)
         stats_dict = OrderedDict()
-        # for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
-        stats_dict[loss_name] = 
+        for loss_name, meter in losses.items(): stats_dict[loss_name] = meter.mean
         stats_dict['LR'] = optimizer.param_groups[0]['lr']
         stats_dict['Time'] = batch_time.mean
         stats = ('Performance/Training/', stats_dict)
@@ -202,7 +201,8 @@ def train_via_scheduler(
         params = model.named_parameters() if args.log_params_histograms else None
         distiller.log_training_progress(stats,
                                         params,
-                                        epoch, steps_completed,
+                                        # epoch, steps_completed,
+                                        epoch, 1,
                                         steps_per_epoch, args.print_freq,
                                         loggers)
 
@@ -273,7 +273,7 @@ def train_via_scheduler(
 
     # measure elapsed time
     batch_time.add(time.time() - end)
-    steps_completed = (train_step+1)
+    # steps_completed = (train_step+1)
 
     # if steps_completed > args.print_freq and steps_completed % args.print_freq == 0:
     _check_pruning_met_layers_sparse(compression_scheduler, model, epoch, args, early_stopping_agp=early_stopping_agp, save_mid_pr=save_mid_pr, msglogger=msglogger)
@@ -427,15 +427,14 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
             stats_dict[la_string] = args.losses_exits[exitnum].mean
         """
         stats = ('Performance/Validation/', stats_dict)
-        distiller.log_training_progress(stats, None, epoch, steps_completed,
+        distiller.log_training_progress(stats, None, epoch, 1, # steps_completed,
                                         total_steps, args.print_freq, loggers)
 
     """Execute the validation/test loop."""
     # losses = {'objective_loss': tnt.AverageValueMeter()}
-    objective_loss = None
     # metrices = {'ssim': tnt.AverageValueMeter(), 'psnr': tnt.AverageValueMeter()}
-    val_psnr, val_mssim = None, None
     # metrices = { 'psnr': [], 'ssim': [] }
+    objective_loss, val_psnr, val_mssim = None, None, None
 
     """
     if _is_earlyexit(args):
@@ -449,9 +448,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
 
     # batch_time = tnt.AverageValueMeter()
     # total_samples = len(data_loader.sampler)
-    # batch_size = data_loader.batch_size
-
-    total_steps = total_samples / batch_size
+    # batch_size = data_loader.batch_size    
     # if epoch >= 0 and epoch % args.print_freq == 0: msglogger.info('%d samples (%d per mini-batch)', total_samples, batch_size)
 
     # Switch to evaluation mode
@@ -460,7 +457,7 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
     # end = time.time()
     with torch.no_grad():
         # for validation_step, (inputs, target) in enumerate(data_loader):
-        validation_step = 0
+        # validation_step = 0
         # inputs, target = next(iter(data_loader))
         # inputs, target = inputs.to(args.device), target.to(args.device)        
 
@@ -469,10 +466,11 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
 
         # if not _is_earlyexit(args):
         # compute loss
-        loss = criterion(output, target)
+        # loss = criterion(output, target)
         # measure accuracy and record loss
         # losses['objective_loss'].add(loss.item())
-        objective_loss = loss.item()
+        objective_loss = loss.item().item()
+        
         # val_psnr, val_mssim = compute_desired_metrices(model_output = output, gt = target, data_range=1.)
         sidelenght = output.size()[1]
 
@@ -493,8 +491,9 @@ def _validate(inputs, target, total_samples, batch_size, model, criterion, logge
         # batch_time.add(time.time() - end)
         # end = time.time()
 
-        steps_completed = (validation_step+1)
+        # steps_completed = (validation_step+1)
         if epoch >= 0 and epoch % args.print_freq == 0 or is_last_epoch:
+            total_steps = total_samples / batch_size
             _log_validation_progress()    
 
     # if not _is_earlyexit(args):

@@ -24,3 +24,5 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
     --quantize-eval \
     --qe-config-file "../../../quant-configs/-------.yaml" \
     --qe_lapq
+
+exit 0

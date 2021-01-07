@@ -1,0 +1,27 @@
+# Scheduler for training / re-training a model using quantization aware training, with a linear, range-based quantizer
+#
+# The setting here is 8-bit weights (and activations, even biases if are required). For vision models, this is usually applied to the entire model,
+# without exceptions. Hence, this scheduler isn't model-specific as-is. It doesn't define any name-based overrides.
+#
+# At the moment this quantizer will:
+#  * Quantize weights and biases for all convolution and FC layers
+#  * Quantize all ReLU activations
+
+quantizers:
+  linear_quantizer:
+    class: QuantAwareTrainRangeLinearQuantizer
+    bits_activations: 32
+    bits_weights: 8
+    bits_bias: 32
+    mode: 'SYMMETRIC'  # Can try "ASYMMETRIC_NSUIGNED" as well
+    ema_decay: 0.999   # Decay value for exponential moving average tracking of activation ranges
+    per_channel_wts: True
+
+policies:
+    - quantizer:
+        instance_name: linear_quantizer
+      # For now putting a large range here, which should cover both training from scratch or resuming from some
+      # pre-trained checkpoint at some unknown epoch
+      starting_epoch: 0
+      ending_epoch: 300
+      frequency: 100

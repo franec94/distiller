@@ -1,14 +1,26 @@
 # ======================== #
-# Variables
+# Makefile_2 Variables
 # ======================== #
 
+# Train Scripts
+# -------------
 RUN_PROGRAM = run_program.sh
-RUN_PROGRAM_APP = run_program_siren_app.sh
 RUN_PROGRAM = run_program_siren_app.sh
+
+RUN_PROGRAM_APP = run_program_siren_app.sh
 TEST_RUN_PROGRAM = test_run_program_siren_app.sh
 
+# Quant scripts
+# -------------
 RUN_PROGRAM_PTQ = run_program_siren_app_ptq.sh
+RUN_PROGRAM_QUANT_AWARE = run_program_siren_app_quant_aware.sh
+
+# Prune scripts
+# -------------
 RUN_PROGRAM_AGP_PRUNE = run_program_siren_app_pruning_agp.sh
+
+# Fine-Tune scripts
+# -----------------
 RUN_PROGRAM_FINE_TUNE_TMP = run_program_siren_app_tmp.sh
 
 
@@ -33,6 +45,14 @@ run_program_siren_app_train_on_cameramen_agp_prune:
 	clear
 	chmod u+x $(RUN_PROGRAM_AGP_PRUNE)
 	./$(RUN_PROGRAM_AGP_PRUNE)
+
+# =============================================== #
+# Quantization tasks
+# =============================================== #
+run_program_siren_app_train_on_cameramen_agp_prune:
+	clear
+	chmod u+x $(RUN_PROGRAM_QUANT_AWARE)
+	./$(RUN_PROGRAM_QUANT_AWARE)
 
 # =============================================== #
 # Test tasks

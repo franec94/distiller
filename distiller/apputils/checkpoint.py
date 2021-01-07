@@ -122,7 +122,9 @@ def save_checkpoint( \
         # Save desired epoch-ckpt result into dedicated ckpt if prunig scheduler is on.
         prune_rate = save_mid_pr_obj.get_rate_to_save()
         # if prune_rate is not None:
-        filename_prune_rate_ckpt = f'pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar' if name is None else name + f'_pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar'
+        filename_prune_rate_ckpt = \
+            f'pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar' if name is None \
+                else name + f'_pruned_ckpt_epoch_{epoch}_prune_rate_{prune_rate}.pth.tar'
         fullpath_prune_rate_ckpt = os.path.join(dir, filename_prune_rate_ckpt)
         # shutil.copyfile(fullpath, fullpath_prune_rate_ckpt)
         torch.save(checkpoint, fullpath_prune_rate_ckpt)

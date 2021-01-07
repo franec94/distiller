@@ -49,7 +49,7 @@ run_program_siren_app_train_on_cameramen_agp_prune:
 # =============================================== #
 # Quantization tasks
 # =============================================== #
-run_program_siren_app_train_on_cameramen_agp_prune:
+run_program_siren_app_train_on_cameramen_quant_aware:
 	clear
 	chmod u+x $(RUN_PROGRAM_QUANT_AWARE)
 	./$(RUN_PROGRAM_QUANT_AWARE)

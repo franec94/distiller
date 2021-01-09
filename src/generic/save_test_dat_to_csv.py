@@ -43,5 +43,9 @@ def save_test_data_to_csv(opt, results_test, app):
             df = pd.read_csv(file_name)
             tmp_df = pd.DataFrame(data=[a_record], columns = columns)
             df = df.append(tmp_df)
+        dir_name = os.path.dirname(file_name)
+        try:
+            os.makedirs(dir_name)
+        except: pass
         df.to_csv(file_name)
     pass

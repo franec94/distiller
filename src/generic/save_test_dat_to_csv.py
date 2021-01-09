@@ -19,7 +19,8 @@ def save_test_data_to_csv(opt, results_test, app):
 
     date_train = None
     if app.logdir:
-        date_train = os.path.dirname(app.logdir)
+        tmp_log_dir = os.path.normpath(app.logdir)
+        date_train = os.path.dirname(tmp_log_dir)
 
     with open(opt.compress) as compress_file:
         compress_dict = yaml.load(compress_file, Loader=yaml.FullLoader)

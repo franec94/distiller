@@ -51,5 +51,5 @@ def save_test_data_to_csv(opt, results_test, app):
         try:
             os.makedirs(dir_name)
         except: pass
-        df.to_csv(file_name)
+        df.to_csv(file_name, index=False)
     pass

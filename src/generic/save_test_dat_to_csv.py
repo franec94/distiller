@@ -36,7 +36,7 @@ def save_test_data_to_csv(opt, results_test, app):
         pprint(values_p)
 
         columns = "date,MSE,PSNR,SSIM,TIME".split(",") + keys + keys_p + net_layers
-        a_record = [date_train] + results_test + values + values_p + wts_sparse
+        a_record = [date_train] + list(results_test) + values + values_p + wts_sparse
         if os.path.exists(file_name) is False:
             df = pd.DataFrame(data=[a_record], columns = columns)
         else:

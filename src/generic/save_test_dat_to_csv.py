@@ -25,7 +25,7 @@ def save_test_data_to_csv(opt, results_test, app):
         compress_dict = yaml.load(compress_file, Loader=yaml.FullLoader)
         pprint(compress_dict)
 
-    if "quantizer" in compress_dict.keys():
+    if "quantizers" in compress_dict.keys():
         keys = list(compress_dict["quantizer"]["linear_quantizer"].keys())
         pprint(keys)
         values = list(compress_dict["quantizer"]["linear_quantizer"].values())

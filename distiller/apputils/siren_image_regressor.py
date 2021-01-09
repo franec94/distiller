@@ -646,7 +646,7 @@ class SirenRegressorCompressor(object):
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f   TIME: %.7f\n', \
                 # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                 # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-                loss, psnr_score, ssim_score, )
+                loss, psnr_score, ssim_score, end_time)
         self.test_mode_on = False
         return loss, psnr_score, ssim_score, end_time
 

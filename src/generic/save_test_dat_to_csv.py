@@ -42,7 +42,9 @@ def save_test_data_to_csv(opt, results_test, app):
         if os.path.exists(file_name) is False:
             df = pd.DataFrame(data=[a_record], columns = columns)
         else:
-            df = pd.read_csv(file_name).drop(['Unnamed 0'], axis=1)
+            df = pd.read_csv(file_name)
+            if 'Unnamed 0' in df.columns:
+                df = df.drop(['Unnamed 0'], axis=1)
             tmp_df = pd.DataFrame(data=[a_record], columns = columns)
             df = df.append(tmp_df)
         dir_name = os.path.dirname(file_name)

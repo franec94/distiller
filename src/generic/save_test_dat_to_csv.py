@@ -26,9 +26,9 @@ def save_test_data_to_csv(opt, results_test, app):
         pprint(compress_dict)
 
     if "quantizers" in compress_dict.keys():
-        keys = list(compress_dict["quantizer"]["linear_quantizer"].keys())
+        keys = list(compress_dict["quantizers"]["linear_quantizer"].keys())
         pprint(keys)
-        values = list(compress_dict["quantizer"]["linear_quantizer"].values())
+        values = list(compress_dict["quantizers"]["linear_quantizer"].values())
         pprint(values)
         keys_p = list(compress_dict["policies"][0].keys())[1:]
         pprint(keys_p)

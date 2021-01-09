@@ -42,12 +42,12 @@ def save_test_data_to_csv(opt, results_test, app):
         if os.path.exists(file_name) is False:
             df = pd.DataFrame(data=[a_record], columns = columns)
         else:
-            df = pd.read_csv(file_name)
+            df = pd.read_csv(file_name).drop(['unnamed 0'], axis=1)
             tmp_df = pd.DataFrame(data=[a_record], columns = columns)
             df = df.append(tmp_df)
         dir_name = os.path.dirname(file_name)
         try:
             os.makedirs(dir_name)
         except: pass
-        df.to_csv(file_name, index_col = False)
+        df.to_csv(file_name)
     pass

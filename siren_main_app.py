@@ -175,7 +175,11 @@ def main(opt):
 
         # Finally run results on the test set
         if opt.evaluate:
-            return app.test()
+            results_test = app.test()
+            if opt.save_test_data_to_csv_path:
+                save_test_data_to_csv(opt, results_test, app)
+                pass
+            return results_test
     return
 
     

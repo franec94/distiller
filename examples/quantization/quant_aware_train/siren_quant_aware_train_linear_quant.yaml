@@ -13,9 +13,39 @@ quantizers:
     bits_activations: 32
     bits_weights: 8
     bits_bias: 32
-    mode: 'SYMMETRIC'  # Can try "ASYMMETRIC_NSUIGNED" as well
+    mode: 'SYMMETRIC'  # Can try "ASYMMETRIC_UNSIGNED" as well
     ema_decay: 0.999   # Decay value for exponential moving average tracking of activation ranges
     per_channel_wts: True
+    overrides:
+    # Don't quantize first and last layer
+      net.0.linear:
+        bits_activations: null
+        bits_weights: null
+        bits_bias: null
+      net.1.linear:
+        bits_weights: 8
+        bits_bias: null
+        bits_activations: null
+      net.2.linear:
+        bits_weights: 8
+        bits_activations: null
+        bits_bias: null
+      net.3.linear:
+        bits_weights: 8
+        bits_activations: null
+        bits_bias: null
+      net.4.linear:
+        bits_weights: 8
+        bits_activations: null
+        bits_bias: null
+      net.5.linear:
+        bits_weights: 8
+        bits_activations: null
+        bits_bias: null
+      net.6:
+        bits_weights: null
+        bits_bias: null
+        bits_activations: null
 
 policies:
     - quantizer:
@@ -23,5 +53,5 @@ policies:
       # For now putting a large range here, which should cover both training from scratch or resuming from some
       # pre-trained checkpoint at some unknown epoch
       starting_epoch: 0
-      ending_epoch: 300
-      frequency: 100
+      ending_epoch: 440729
+      frequency: 25

@@ -40,6 +40,9 @@ def get_cmd_line_opts():
     parser.add_argument('--image_filepath', type=str, default=None, required=False, dest='image_filepath',
                help='Path to input image to be compressed (default: None). If not specified, It is used cameramen image as target image to be compressed.',
     )
+    parser.add_argument('--save_test_data_to_csv_path', type=str, default=None, required=False, dest='save_test_data_to_csv_path',
+               help='Path to output csv file within local file system where to save test values.',
+    )
 
     # Options for building Model, via hyper-params.
     parser.add_argument('--sidelength', nargs='+', type=int, required=False, default=[], dest='sidelength',

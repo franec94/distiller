@@ -120,6 +120,12 @@ class SirenRegressorCompressor(object):
         return self.data_loaders
 
 
+    def get_dataframe_model(self,):
+        _, total, df = distiller.weights_sparsity_tbl_summary(self.model, return_total_sparsity=True, return_df=True)
+        return df
+
+
+
     @property
     def data_loaders(self):
         return self.train_loader, self.val_loader, self.test_loader
@@ -636,12 +642,13 @@ class SirenRegressorCompressor(object):
         # msglogger.info(f"Test Inference Time: {time.time() - start_time}")
         loss, psnr_score, ssim_score = result_test
         
+        end_time = time.time() - start_time
         msglogger.info('==> MSE: %.7f   PSNR: %.7f   SSIM: %.7f   TIME: %.7f\n', \
                 # losses['objective_loss'].mean, metrices['psnr'].mean(), metrices['ssim'].mean())
                 # losses['objective_loss'].mean, metrices['psnr'].mean, metrices['ssim'].mean)
-                loss, psnr_score, ssim_score, time.time() - start_time)
+                loss, psnr_score, ssim_score, )
         self.test_mode_on = False
-        return result_test
+        return loss, psnr_score, ssim_score, end_time
 
 
 # ----------------------------------------------------------------------------------------------- #

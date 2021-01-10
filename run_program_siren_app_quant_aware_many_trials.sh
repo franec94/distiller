@@ -26,8 +26,8 @@ function run_trials_linear_quant() {
     local INITIALIZED_MODEL=$1
 
     LOGGING_ROOT='../../../results/cameramen/distiller-siren/train/quant-aware/linear-quant'
-    COMPRESS_SCHEDULE="../../../quant-configs/siren_quant_aware_train_linear_quant.yaml"
-    COMPRESS_COMBS="../../../quant-configs/quant-combs/siren_quant_aware_train_linear_quant.csv"
+    COMPRESS_SCHEDULE="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.yaml"
+    COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.csv"
 
     check_file_exists $LOGGING_ROOT
     check_file_exists $COMPRESS_SCHEDULE

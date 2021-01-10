@@ -14,7 +14,7 @@
 
 function check_file_exists() {
     local file_path=$1
-    echo -e "[*] check file - '{file_path}' exists..."
+    echo -e "[*] check file - '${file_path}' exists..."
     if [ ! -f "${file_path}" ] ; then
         echo "Error: '${file_path}' is not a file."
         exit -1
@@ -29,7 +29,6 @@ function run_trials_linear_quant() {
     COMPRESS_SCHEDULE="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.yaml"
     COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.csv"
 
-    check_file_exists $LOGGING_ROOT
     check_file_exists $COMPRESS_SCHEDULE
     check_file_exists $COMPRESS_COMBS
 
@@ -38,11 +37,18 @@ function run_trials_linear_quant() {
     i=0
     while IFS= read -r line ; do
         # echo "$line"
+        line=$(echo -n "$line" | xargs)
+
+        if [ "$line" == "" ] ; then
+            echo "Empty Line Skipped!"
+            continue
+        fi
+
         options=$(echo $line | tr "," "\n")
         if [ i -eq 0 ] ; then
             j=0 
             for opt in $options ; do
-                echo "> [$opt]"
+                # echo "> [$opt]"
                 MAP_OPTS[${opt}]=""
                 MAP_IDX_OPT[j]=$opt
                 j=$((j+1))
@@ -51,7 +57,7 @@ function run_trials_linear_quant() {
         else
             j=0 
             for opt in $options ; do
-                echo "> [$opt]"
+                # echo "> [$opt]"
                 opt_name=MAP_IDX_OPT[j]
                 MAP_OPTS[$opt_name]=${opt}
                 j=$((j+1))

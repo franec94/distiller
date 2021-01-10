@@ -57,7 +57,7 @@ def read_yaml_file_to_dict(args) -> dict:
     return compress_dict
 
 
-def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_file_path: str) -> None:
+def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_file_path: str, pos_comb) -> None:
     """Update scheduler for linear quantization.
     Args:
     -----
@@ -72,7 +72,7 @@ def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_f
     compress_dict["policies"][0]["ending_epoch"] = a_row["ending_epoch"]
     compress_dict["policies"][0]["frequency"] = a_row["frequency"]
 
-    with open(f'{compress_file_path}', 'w') as outfile:
+    with open(f'{compress_file_path}_{pos_comb}', 'w') as outfile:
         yaml.dump(compress_dict, outfile, default_flow_style=False)
         pass
     pass
@@ -100,7 +100,7 @@ def main(args):
     compress_dict = read_yaml_file_to_dict(args)
 
     if "linear_quantizer" in compress_dict["quantizers"].keys():
-        update_linear_quantizer(a_row, compress_dict, args.compress)
+        update_linear_quantizer(a_row, compress_dict, args.compress, args.pos_comb)
         pass
     pass
 

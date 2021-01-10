@@ -69,7 +69,7 @@ function run_trials_linear_quant() {
                 --compress $COMPRESS_SCHEDULE \
                 --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
-            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL $MAP_OPTS
+            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL ${MAP_OPTS[epoch]} ${MAP_OPTS[lr]}
             clear
         fi
         i=$((i+1))
@@ -80,7 +80,8 @@ function run_trials() {
     local LOGGING_ROOT=$1
     local COMPRESS_SCHEDULE=$2
     local INITIALIZED_MODEL=$3
-    local MAP_OPTS=$4
+    local EPOCHS=$4
+    local LR=$4
     CUDA_VISIBLE_DEVICES=0 python3 siren_main_app.py \
         --logging_root ${LOGGING_ROOT} \
         --experiment_name 'quant_aware_train' \
@@ -89,8 +90,8 @@ function run_trials() {
         --n_hl 5 \
         --seed 0 \
         --cuda \
-        --num_epochs ${MAP_OPTS[epochs]} \
-        --lr ${MAP_OPTS[lr]} \
+        --num_epochs ${EPOCHS} \
+        --lr ${LR} \
         --verbose 0 \
         --exp-load-weights-from ${INITIALIZED_MODEL} \
         --compress ${COMPRESS_SCHEDULE}

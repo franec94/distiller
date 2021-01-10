@@ -108,6 +108,27 @@ def main(args):
     compress_dict = read_yaml_file_to_dict(args)
 
     if "linear_quantizer" in compress_dict["quantizers"].keys():
+        mask_int = [0,0,1,1,1,0,1]
+        mask_float = [0,0,0,0,0,1,0]
+        mask_bool = [0,1,0,0,0,0,0]
+        def update_to(item, data_type=int):
+            d, mask_val = item
+            k, v = d
+            if mask_val == 0: return k, v
+            return k, data_type(v)
+        a_row = dict(map(update_to, zip(a_row.items(), mask_int)))
+        def update_to(item, data_type=float):
+            d, mask_val = item
+            k, v = d
+            if mask_val == 0: return k, v
+            return k, data_type(v)
+        a_row = dict(map(update_to, zip(a_row.items(), mask_float)))
+        def update_to(item, data_type=bool):
+            d, mask_val = item
+            k, v = d
+            if mask_val == 0: return k, v
+            return k, data_type(v)
+        a_row = dict(map(update_to, zip(a_row.items(), mask_bool)))
         update_linear_quantizer(a_row, compress_dict, args.compress, args.pos_comb)
         pass
     pass

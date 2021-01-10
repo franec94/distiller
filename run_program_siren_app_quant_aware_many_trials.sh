@@ -81,7 +81,7 @@ function run_trials() {
     local COMPRESS_SCHEDULE=$2
     local INITIALIZED_MODEL=$3
     local EPOCHS=$4
-    local LR=$4
+    local LR=$5
     CUDA_VISIBLE_DEVICES=0 python3 siren_main_app.py \
         --logging_root ${LOGGING_ROOT} \
         --experiment_name 'quant_aware_train' \

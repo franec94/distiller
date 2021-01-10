@@ -103,7 +103,7 @@ def main(args):
         print(f"Error: pos='{args.pos_comb}' is not allowed since either negative or greater than {df.shape[0]}", file=sys.stderr)
         sys.exit(-1)
 
-    a_row = df.iloc[args.pos_comb, :]
+    a_row = dict(df.iloc[args.pos_comb, :])
     pprint(a_row)
     sys.exit(0)
     compress_dict = read_yaml_file_to_dict(args)

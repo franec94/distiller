@@ -104,8 +104,7 @@ def main(args):
         sys.exit(-1)
 
     a_row = dict(df.iloc[args.pos_comb, :])
-    pprint(a_row)
-    sys.exit(0)
+    # pprint(a_row)
     compress_dict = read_yaml_file_to_dict(args)
 
     if "linear_quantizer" in compress_dict["quantizers"].keys():

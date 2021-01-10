@@ -69,7 +69,7 @@ function run_trials_linear_quant() {
                 --compress $COMPRESS_SCHEDULE \
                 --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
-            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL ${MAP_OPTS[epoch]} ${MAP_OPTS[lr]}
+            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL ${MAP_OPTS[epochs]} ${MAP_OPTS[lr]}
             clear
         fi
         i=$((i+1))

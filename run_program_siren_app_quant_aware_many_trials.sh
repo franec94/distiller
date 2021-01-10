@@ -25,7 +25,7 @@ function check_file_exists() {
 function run_trials_linear_quant() {
     local INITIALIZED_MODEL=$1
 
-    LOGGING_ROOT='../../../results/cameramen/distiller-siren/train/quant-aware/linear-quant'
+    LOGGING_ROOT='../../../results/cameramen/distiller-siren/train/quant-aware/linear-quant/middle-freq/attempt_1'
     COMPRESS_SCHEDULE="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.yaml"
     COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.csv"
 
@@ -67,7 +67,7 @@ function run_trials_linear_quant() {
                 --compress $COMPRESS_SCHEDULE \
                 --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
-            # run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL $MAP_OPTS
+            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL $MAP_OPTS
         fi
         i=$((i+1))
     done < "$COMPRESS_COMBS"

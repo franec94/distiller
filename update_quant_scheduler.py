@@ -82,6 +82,9 @@ def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_f
     with open(f'{new_filename}', 'w') as outfile:
         yaml.dump(compress_dict, outfile, default_flow_style=False)
         pass
+    with open(f'{compress_file_path}', 'w') as outfile:
+        yaml.dump(compress_dict, outfile, default_flow_style=False)
+        pass
     pass
 
 

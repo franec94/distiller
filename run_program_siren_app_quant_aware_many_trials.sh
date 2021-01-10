@@ -45,7 +45,7 @@ function run_trials_linear_quant() {
         fi
 
         options=$(echo $line | tr "," "\n")
-        if [ i -eq 0 ] ; then
+        if [ $i -eq 0 ] ; then
             j=0 
             for opt in $options ; do
                 # echo "> [$opt]"

@@ -72,7 +72,7 @@ def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_f
     compress_dict["policies"][0]["ending_epoch"] = a_row["ending_epoch"]
     compress_dict["policies"][0]["frequency"] = a_row["frequency"]
 
-    pprint(compress_dict)
+    # pprint(compress_dict)
     
     base_name = os.path.basename(compress_file_path)
     dir_name = os.path.dirname(compress_file_path)

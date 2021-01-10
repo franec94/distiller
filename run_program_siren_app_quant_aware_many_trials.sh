@@ -65,7 +65,7 @@ function run_trials_linear_quant() {
             pos_comb=$((i-1))
             python3 update_quant_scheduler.py \
                 --compress $COMPRESS_SCHEDULE \
-                --combs COMPRESS_COMBS \
+                --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
             # run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL $MAP_OPTS
         fi
@@ -90,7 +90,7 @@ function run_trials() {
         --lr MAP_OPTS[lr] \
         --verbose 0 \
         --exp-load-weights-from ${INITIALIZED_MODEL} \
-        --compress ${COMPRESS_SCHEDULE} \
+        --compress ${COMPRESS_SCHEDULE}
 }
 
 INITIALIZED_MODEL="../../../ckpts/_mid_ckpt_epoch_299999.pth.tar"

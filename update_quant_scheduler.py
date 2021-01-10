@@ -88,7 +88,7 @@ def main(args):
     check_file_exists(args.compress, ".yaml")
     check_file_exists(args.combs, ".csv")
 
-    df = pd.read_csv(args.comb)
+    df = pd.read_csv(args.combs)
     if "Unnmaded: 0" in df.columns:
         df = df.drop(["Unnmaded: 0"], axis = 1)
 

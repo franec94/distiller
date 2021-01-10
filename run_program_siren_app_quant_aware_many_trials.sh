@@ -12,14 +12,16 @@
 # (2) Attempting to quantize it, via yaml scheduler.
 # ======================================================== #
 
+clear
+
 function check_file_exists() {
     local file_path=$1
-    echo -e "[*] check file - '${file_path}' exists..."
+    # echo -e "[*] check file - '${file_path}' exists..."
     if [ ! -f "${file_path}" ] ; then
         echo "Error: '${file_path}' is not a file."
         exit -1
     fi
-    echo -e "[*] check file - Done."
+    # echo -e "[*] check file - Done."
 }
 
 function run_trials_linear_quant() {
@@ -68,6 +70,7 @@ function run_trials_linear_quant() {
                 --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
             run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL $MAP_OPTS
+            clear
         fi
         i=$((i+1))
     done < "$COMPRESS_COMBS"

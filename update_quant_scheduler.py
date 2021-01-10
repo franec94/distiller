@@ -73,8 +73,13 @@ def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_f
     compress_dict["policies"][0]["frequency"] = a_row["frequency"]
 
     pprint(compress_dict)
+    
+    base_name = os.path.basename(compress_file_path)
+    dir_name = os.path.dirname(compress_file_path)
 
-    with open(f'comp__{pos_comb}_{compress_file_path}', 'w') as outfile:
+    new_filename = os.path.join(dir_name, f"comp_{pos_comb}_{base_name}")
+
+    with open(f'{new_filename}', 'w') as outfile:
         yaml.dump(compress_dict, outfile, default_flow_style=False)
         pass
     pass

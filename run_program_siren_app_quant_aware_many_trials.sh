@@ -89,8 +89,8 @@ function run_trials() {
         --n_hl 5 \
         --seed 0 \
         --cuda \
-        --num_epochs MAP_OPTS[epochs] \
-        --lr MAP_OPTS[lr] \
+        --num_epochs ${MAP_OPTS[epochs]} \
+        --lr ${MAP_OPTS[lr]} \
         --verbose 0 \
         --exp-load-weights-from ${INITIALIZED_MODEL} \
         --compress ${COMPRESS_SCHEDULE}

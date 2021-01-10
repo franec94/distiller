@@ -65,12 +65,12 @@ def update_linear_quantizer(a_row: pd.DataFrame, compress_dict: dict, compress_f
     `compress_dict` - dict python object representing quant options.\n
     `compress_file_path` - str python object, representing dest file path where updated options should be saved in.\n
     """
-    compress_dict["quantizers"]["linear_quantizer"]["mode"] = a_row["mode"]
-    compress_dict["quantizers"]["linear_quantizer"]["per_channel_wts"] = a_row["per_channel_wts"]
+    compress_dict["quantizers"]["linear_quantizer"]["mode"] = a_row["mode"].values[0]
+    compress_dict["quantizers"]["linear_quantizer"]["per_channel_wts"] = a_row["per_channel_wts"].values[0]
 
-    compress_dict["policies"][0]["starting_epoch"] = a_row["starting_epoch"]
-    compress_dict["policies"][0]["ending_epoch"] = a_row["ending_epoch"]
-    compress_dict["policies"][0]["frequency"] = a_row["frequency"]
+    compress_dict["policies"][0]["starting_epoch"] = a_row["starting_epoch"].values[0]
+    compress_dict["policies"][0]["ending_epoch"] = a_row["ending_epoch"].values[0]
+    compress_dict["policies"][0]["frequency"] = a_row["frequency"].values[0]
 
     with open(f'{compress_file_path}_{pos_comb}', 'w') as outfile:
         yaml.dump(compress_dict, outfile, default_flow_style=False)

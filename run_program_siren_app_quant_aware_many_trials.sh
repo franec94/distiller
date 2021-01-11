@@ -45,10 +45,13 @@ function run_trials_linear_quant() {
     local INITIALIZED_MODEL=$1
     local RESULTS_CSV_PATH=$2
 
-    # Local File System input directories / files.
+    # Local File System input directories.
     LOGGING_ROOT='../../../results/cameramen/distiller-siren/train/quant-aware/linear-quant/high-freq/attempt_init_model_date_2020.12.11-171610'
+
+    # Local File System input files.
     COMPRESS_SCHEDULE="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.yaml"
-    COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant_long_train.csv"
+    COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.csv"
+    # COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant_long_train.csv"
 
     # Check whether files declared above exist.
     check_file_exists $COMPRESS_SCHEDULE

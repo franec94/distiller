@@ -24,12 +24,15 @@ function check_file_exists() {
     # echo -e "[*] check file - Done."
 }
 
+printarr() { declare -n __p="$1"; for k in "${!__p[@]}"; do printf "%s=%s\n" "$k" "${__p[$k]}" ; done ;  } 
+
 function run_trials_linear_quant() {
     local INITIALIZED_MODEL=$1
+    local RESULTS_CSV_PATH=$2
 
     LOGGING_ROOT='../../../results/cameramen/distiller-siren/train/quant-aware/linear-quant/middle-freq/attempt_1'
     COMPRESS_SCHEDULE="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.yaml"
-    COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant.csv"
+    COMPRESS_COMBS="../../../schedulers/quant-aware-training/siren_quant_aware_train_linear_quant_long_train.csv"
 
     check_file_exists $COMPRESS_SCHEDULE
     check_file_exists $COMPRESS_COMBS
@@ -46,31 +49,37 @@ function run_trials_linear_quant() {
             continue
         fi
 
-        options=$(echo $line | tr "," "\n")
+        options=$(echo $line | tr -d '\r' | tr "," " ")
         if [ $i -eq 0 ] ; then
             j=0 
             for opt in $options ; do
                 # echo "> [$opt]"
                 MAP_OPTS[${opt}]=""
-                MAP_IDX_OPT[j]=$opt
+                MAP_IDX_OPT[$j]=$opt
+                # echo "${MAP_IDX_OPT[$j]}"
                 j=$((j+1))
             done
-
+	# printarr MAP_IDX_OPT
         else
             j=0 
             for opt in $options ; do
                 # echo "> [$opt]"
-                opt_name=MAP_IDX_OPT[j]
-                MAP_OPTS[$opt_name]=${opt}
+                opt_name="${MAP_IDX_OPT[${j}]}"
+                MAP_OPTS["$opt_name"]=${opt}
+                # echo "$opt_name --> ${MAP_OPTS[$opt_name]}"
                 j=$((j+1))
             done
+	    printarr MAP_OPTS
             pos_comb=$((i-1))
             python3 update_quant_scheduler.py \
                 --compress $COMPRESS_SCHEDULE \
                 --combs $COMPRESS_COMBS \
                 --pos_comb $pos_comb
-            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL ${MAP_OPTS[epochs]} ${MAP_OPTS[lr]}
-            clear
+            run_trials $LOGGING_ROOT $COMPRESS_SCHEDULE $INITIALIZED_MODEL ${MAP_OPTS[epochs]} ${MAP_OPTS[lr]} $RESULTS_CSV_PATH
+            # clear
+            # echo -- ${MAP_OPTS[epochs]}
+            # echo -- ${MAP_OPTS[lr]}
+            # exit 0
         fi
         i=$((i+1))
     done < "$COMPRESS_COMBS"
@@ -82,6 +91,9 @@ function run_trials() {
     local INITIALIZED_MODEL=$3
     local EPOCHS=$4
     local LR=$5
+    local RESULTS_CSV_PATH=$6
+    # echo LR $LR EPOCHS $EPOCHS
+    # return
     CUDA_VISIBLE_DEVICES=0 python3 siren_main_app.py \
         --logging_root ${LOGGING_ROOT} \
         --experiment_name 'quant_aware_train' \
@@ -90,16 +102,21 @@ function run_trials() {
         --n_hl 5 \
         --seed 0 \
         --cuda \
+        --train \
+        --evaluate \
         --num_epochs ${EPOCHS} \
         --lr ${LR} \
+        --epochs_til_ckpt 5000 \
         --verbose 0 \
-        --exp-load-weights-from ${INITIALIZED_MODEL} \
-        --compress ${COMPRESS_SCHEDULE}
+        --resume-from ${INITIALIZED_MODEL} \
+        --compress ${COMPRESS_SCHEDULE} \
+        --save_test_data_to_csv_path ${RESULTS_CSV_PATH}
 }
 
-INITIALIZED_MODEL="../../../ckpts/_mid_ckpt_epoch_299999.pth.tar"
+INITIALIZED_MODEL="../../../ckpts/_final_ckpt_epoch_430729.pth.tar"
+RESULTS_CSV_PATH="../../../results/csv/quant-aware-train/linear-quant/linear_quant_attempt_1.csv"
 
-run_trials_linear_quant $INITIALIZED_MODEL
+run_trials_linear_quant $INITIALIZED_MODEL $RESULTS_CSV_PATH
 
 exit 0
 

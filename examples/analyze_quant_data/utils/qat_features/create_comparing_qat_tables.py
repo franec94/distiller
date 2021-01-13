@@ -17,11 +17,10 @@ def create_comparing_results_table(table_df, show_columns, delta_columns, format
         for a_delta_column in delta_columns:
             create_delta_attributes(table_df, a_delta_column)
             pass
-        pass
     else:
         deltas_list = list(filter(lambda item: item.startswith('delta_'), list(table_df.columns)))
-        # table_df = table_df.drop(deltas_list, axis = 1)
         show_columns = list(filter(lambda item: item not in deltas_list, show_columns))
+        # table_df = table_df.drop(deltas_list, axis = 1)
     for a_key in extend_formatter_keys:
         formatter_dict[a_key] = '{:.2f}'
         pass
@@ -32,7 +31,6 @@ def create_comparing_results_table(table_df, show_columns, delta_columns, format
                 .style\
                 .format(formatter_dict)\
                 .background_gradient(cmap=f'{cmap}').hide_index()
-            pass
         else:
             resulting_table_df = table_df[show_columns]\
                 .style\
@@ -44,7 +42,6 @@ def create_comparing_results_table(table_df, show_columns, delta_columns, format
                 .style\
                 .format(formatter_dict)\
                 .background_gradient(cmap=f'{cmap}')
-            pass
         else:
             resulting_table_df = table_df[show_columns]\
                 .style\

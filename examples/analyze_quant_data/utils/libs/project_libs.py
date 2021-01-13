@@ -168,3 +168,8 @@ from utils.custom_dash_app.custom_dash_app import get_dash_app
 from utils.loaders.load_agp_dataframe import load_agp_dataframe
 from utils.loaders.load_quant_aware_trained_data import load_siren_quant_aware_data_df
 from utils.data_loaders.data_loader import load_data_baseline, load_jpeg_baseline
+
+# ----------------------------------------------- #
+# Custom Import: qat_features
+# ----------------------------------------------- # 
+from utils.qat_features.create_comparing_qat_tables import create_comparing_results_table

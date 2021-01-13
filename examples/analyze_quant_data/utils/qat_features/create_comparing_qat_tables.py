@@ -47,3 +47,29 @@ def create_comparing_results_table(table_df, show_columns, delta_columns, format
                 .style\
                 .format(formatter_dict)
     return resulting_table_df
+
+def show_scatter_plot_2(qat_df, jpeg_df):
+    @interact
+    def scatter_plot(flag_add_jpeg_data=False, x=list(qat_df.select_dtypes('number').columns),
+                     y=list(qat_df.select_dtypes('number').columns)[1:],
+                     theme=list(cf.themes.THEMES.keys()), 
+                     colorscale=list(cf.colors._scales_names.keys())):
+        with warnings.catch_warnings():
+            # this will suppress all warnings in this block
+            warnings.simplefilter("ignore")
+            if flag_add_jpeg_data:
+                tmp_df = pd.concat([jpeg_df, qat_df[(qat_df["bpp"] <= 12.0)]], axis = 0)
+                tmp_df.iplot(kind='scatter', x=x, y=y, mode='markers', 
+                 xTitle=x.capitalize(), yTitle=y.capitalize(),
+                 text='cmprss-class',
+                 title=f'{y.capitalize()} vs {x.capitalize()}',
+                theme=theme, colorscale=colorscale, categories="cmprss-class-3")
+            else:
+                qat_df[(qat_df["bpp"] <= 12.0)].iplot(kind='scatter', x=x, y=y, mode='markers', 
+                 xTitle=x.capitalize(), yTitle=y.capitalize(),
+                 text='cmprss-class',
+                 title=f'{y.capitalize()} vs {x.capitalize()}',
+                theme=theme, colorscale=colorscale, categories="cmprss-class-3")
+            pass
+        pass
+    pass

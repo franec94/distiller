@@ -167,7 +167,7 @@ def main(opt):
     
     # app = SirenRegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
     app = SirenRegressorCompressorSampleApp(args, script_dir=opt.logging_root)
-    if app.handle_subapps():
+    if app.handle_subapps(opt):
         return
     if opt.train:
         init_knowledge_distillation(app.args, app.model, app.compression_scheduler)
@@ -183,7 +183,7 @@ def main(opt):
     return
 
     
-def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args):
+def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger, args, opt = None, logdir = None):
     def load_test_data(args):
         test_loader = distiller.apputils.siren_image_regressor.load_data(args, load_train=False, load_val=False, load_test=True)
         return test_loader
@@ -220,9 +220,20 @@ def handle_subapps(model, criterion, optimizer, compression_scheduler, pylogger,
                 scheduler=compression_scheduler, save_as_pytorch_model=True)
         else:
             test_loader = load_test_data(args)
-            distiller.apputils.siren_image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
+            start_time = time.time()
+            metrices_scores = distiller.apputils.siren_image_regressor.evaluate_model(test_loader, model, criterion, pylogger,
                 distiller.apputils.siren_image_regressor.create_activation_stats_collectors(model, *args.activation_stats),
                 args, scheduler=compression_scheduler)
+            dela_time = time.time() - start_time
+            if opt.save_test_data_to_csv_path:
+                save_test_data_to_csv(opt, np.array(list(metrices_scores) + [dela_time]), app = None, args = args, logdir=logdir)
+            if msglogger is not None:
+                msglogger.info(f"{logdir}")
+                msglogger.info(f"--- Test Results ---------------")
+                msglogger.info(f"MSE={metrices_scores[0]}   PSNR={metrices_scores[1]}   SSIM={metrices_scores[2]}   TIME={dela_time}")
+            else:
+                print(f"--- Test Results ---------------")
+                print(f"MSE={metrices_scores[0]}   PSNR={metrices_scores[1]}   SSIM={metrices_scores[2]}   TIME={dela_time}")
             if args.save_image_on_test:
                 test_loader = load_test_data(args)
                 distiller.apputils.siren_image_regressor.save_predicted_data(test_loader, model, criterion, pylogger,
@@ -280,9 +291,9 @@ class SirenRegressorCompressorSampleApp(distiller.apputils.siren_image_regressor
                                      name=ckpt_name, dir=msglogger.logdir)
 
 
-    def handle_subapps(self):
+    def handle_subapps(self, opt = None):
         return handle_subapps(self.model, self.criterion, self.optimizer,
-                              self.compression_scheduler, self.pylogger, self.args)
+                              self.compression_scheduler, self.pylogger, self.args, opt = opt, logdir=self.logdir)
 
 
 def sensitivity_analysis(model, criterion, data_loader, loggers, args, sparsities):

@@ -257,11 +257,11 @@ def _config_compute_device(args, msglogger = None):
     """
     # global msglogger
     if args.cpu or not torch.cuda.is_available():
-        if msglogger:
-            msglogger.info(f"=> Selected device: {args.device}, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
         # Set GPU index to -1 if using CPU
         args.device = 'cpu'
         args.gpus = -1
+        if msglogger:
+            msglogger.info(f"=> Selected device: {args.device}, since args.cpu={args.cpu} or torch.cuda.is_available()={torch.cuda.is_available()}")
     else:
         args.device = 'cuda'
         if args.gpus is not None:

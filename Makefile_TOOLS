@@ -1,0 +1,10 @@
+SCRIPT_INTERPETER = python3
+TEST_BATCH_SCRIPT = test_batch_of_models.py
+TEST_BATCH_ARGS = --input_dataset_file ../../results/datasets/agp_pruning/pool_1610709720.298365/enanched_pool_1610709720.298365.csv \
+ --output_dataset_path ../../results/tests/datasets/ \
+ --tests_logging_root ../../results/tests
+
+test_batch:
+	clear
+	chmod u+x $(TEST_BATCH_SCRIPT)
+	$(SCRIPT_INTERPETER) $(TEST_BATCH_SCRIPT) $(TEST_BATCH_ARGS)

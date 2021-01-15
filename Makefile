@@ -25,7 +25,8 @@ train_on_cameramen:
 	clear
 	chmod u+x $(RUN_PROGRAM)
 	./$(RUN_PROGRAM)
-siren_app_train_on_cameramen:
+
+train_siren_app_on_cameramen:
 	clear
 	chmod u+x $(RUN_PROGRAM_APP)
 	./$(RUN_PROGRAM_APP)
@@ -35,7 +36,7 @@ siren_app_train_on_cameramen_agp_prune:
 	chmod u+x $(RUN_PROGRAM_AGP_PRUNE)
 	./$(RUN_PROGRAM_AGP_PRUNE)
 
-test_siren_app_train_on_cameramen:
+test_siren_app_on_cameramen:
 	clear
 	chmod u+x $(TEST_RUN_PROGRAM)
 	./$(TEST_RUN_PROGRAM)

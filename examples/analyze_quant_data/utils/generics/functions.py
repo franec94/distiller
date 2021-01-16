@@ -30,6 +30,7 @@ def check_file_exists(file_path: str, raise_exception:bool=True) -> bool:
         return False
     return True
 
+
 def check_dir_exists(dir_path, raise_exception=True):
     """Check whether input provided file path really exists.
     Args:
@@ -45,6 +46,7 @@ def check_dir_exists(dir_path, raise_exception=True):
             raise Exception(f"Error: directory '{dir_path}' does not exists!")
         else: return False
     return True
+
 
 def get_all_files_by_ext(dir_path, ext, recursive_search = False, regex_filter = None, verbose = 0):
     files_list = []
@@ -110,6 +112,7 @@ def read_conf_file(conf_file_path, raise_exception = True):
         raise Exception(f"Error: when reading input conf file '{conf_file_path}'")
     pass
 
+
 def load_target_image(image_file_path = None):
     # image_file_path = 'test068.png'
     im = None
@@ -121,6 +124,7 @@ def load_target_image(image_file_path = None):
     
     im = Image.fromarray(skimage.data.camera())
     return im
+
 
 def get_dataframe(conf_data):
     if 'result_timestamp' in conf_data.keys():
@@ -142,6 +146,7 @@ def get_dataframe(conf_data):
     train_df = pd.DataFrame(data = train_arr, columns = columns)
     return train_df
 
+
 def get_dict_dataframes(conf_data):
     columns = conf_data['columns_df_str'].split(";")
     result_dict_df = dict()
@@ -156,6 +161,7 @@ def get_dict_dataframes(conf_data):
             pass
         pass
     return result_dict_df
+
 
 def laod_data_from_files_list(files_list, as_df = False, columns = None):
     if files_list == None or len(files_list) == 0: return None

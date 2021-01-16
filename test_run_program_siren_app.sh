@@ -14,7 +14,7 @@ SCRIPT_SIREN_APP=siren_main_app.py
 SCRIPT_INTERPRETER=python3
 
 # LOGGING_ROOT='../../../results/cameramen/distiller-siren'
-LOGGING_ROOT='../results/tests'
+LOGGING_ROOT='../results/tests/baselines'
 
 STATE_DICT_MODEL_FILE="/media/franec94/OS/data/data_thesys/distiller-siren/cameramen/agp_pruning/1st_battery/___2020.12.06-201125/_final_ckpt_epoch_449999.pth.tar"
 

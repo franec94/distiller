@@ -68,6 +68,9 @@ def run_tests_in_batch(args, models_df, verbose = 0):
     for a_row in tqdm.tqdm(models_df.values, total = models_df.shape[0]):
         a_row_dict = dict(zip(columns, a_row))
         STATE_DICT_MODEL_FILE = os.path.join(a_row_dict['root_dir'], a_row_dict['model_name'])
+        SIDELENGTH = a_row_dict['sidelength']
+        N_HF = a_row_dict["n_hf"]
+        N_HL = a_row_dict["n_hl"]
 
         if verbose == 1:
             tqdm.tqdm.write(f"Processing '{STATE_DICT_MODEL_FILE}'...")
@@ -85,9 +88,9 @@ CUDA_VISIBLE_DEVICES=0 \
 python3 siren_main_app.py \
     --logging_root {LOGGING_ROOT} \
     --experiment_name 'test_model' \
-    --sidelength 256 \
-    --n_hf 64  \
-    --n_hl 5 \
+    --sidelength {SIDELENGTH} \
+    --n_hf {N_HF}  \
+    --n_hl {N_HL} \
     --seed 0 \
     --cuda \
     --evaluate \
@@ -95,7 +98,9 @@ python3 siren_main_app.py \
     --save_test_data_to_csv_path {RESULTS_CSV_PATH} \
     --verbose 0
         """
+        # print(cmd)
         run_and_wait_subprocess(cmd, show_subprocess_info=False)
+        
         pass
 
     res_test_df = show_res_tests_df_info(results_csv_path=RESULTS_CSV_PATH)

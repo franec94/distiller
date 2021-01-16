@@ -1,0 +1,15 @@
+root_dest_results: "../results/datasets/tmp/baselines"
+create_enanched_datasets: true
+kind_dataset: "baseline" # "pruned" "quanted"
+
+w: 256
+h: 256
+image_path: null
+
+
+input_dirs_list:
+  - /media/franec94/OS/data/data_thesys/distiller-siren/cameramen/baselines
+
+# - /media/franec94/OS/data/data_thesys/distiller-siren/cameramen/agp_pruning/1st_battery
+# - /media/franec94/OS/data/data_thesys/distiller-siren/cameramen/agp_pruning/2nd_battery
+# - /media/franec94/OS/data/data_thesys/distiller-siren/cameramen/baselines

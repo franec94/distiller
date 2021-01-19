@@ -357,7 +357,9 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
     total = pos_hp * pos_oc
     
     ts = time.time()
-    out_dir_path = save_created_conf_files(conf_dict, out_conf_list, ts)
+    if conf_dict["dataset"]["save_dataset"]:
+        out_dir_path = save_created_conf_files(conf_dict, out_conf_list, ts)
+        pass
 
     records_list: list = []
     with tqdm.tqdm(total=total) as pbar:
@@ -418,6 +420,16 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
             total_trials=a_df.shape[0],
             total_schedulers=oc_arr.shape[0]
         )
+    else:
+        out_dict_info_tmp = dict(
+            total_trials=a_df.shape[0],
+            total_schedulers=oc_arr.shape[0]
+        )
+        meta_tb = dict(
+            tabular_data=out_dict_info_tmp.items()
+        )
+        table = tabulate.tabulate(**meta_tb)
+        print(table)
         pass
 
 
@@ -427,7 +439,7 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
 def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFrame(), out_dict_info:dict = None, echo:bool=False, verbose:int=0) -> dict:
     """TODO COMMENT IT."""
 
-    _debug_mode = True
+    _debug_mode = False
 
     out_dir = conf_dict["out_dir"]
     out_dir_path = os.path.join(
@@ -453,7 +465,24 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
             a_df = a_df.drop(['Unnamed 0'], axis=1)
             pass
         pass
-    if a_df.shape == (0, 0): pass
+    if a_df.shape == (0, 0): return
+
+    if _debug_mode:
+        dataset_columns = []
+        dataset_columns += conf_dict["dataset"]["dataset_columns_time"].split(",")
+        dataset_columns += conf_dict["dataset"]["dataset_columns_scores"].split(",")
+        dataset_columns += conf_dict["dataset"]["dataset_columns_settings"].split(",")
+
+        dates_cols = conf_dict["dataset"]["dataset_columns_time"].split(",")
+        print(a_df[dates_cols].head(2))
+
+        scores_cols = conf_dict["dataset"]["dataset_columns_scores"].split(",")
+        print(a_df[scores_cols].head(2))
+
+        train_settings = conf_dict["dataset"]["dataset_columns_settings"].split(",")
+        print(a_df[train_settings].head(2))
+        sys.exit(0)
+        pass
 
     with tqdm.tqdm(total=a_df.shape[0]) as pbar:
         pbar.write("Running dataset exp...")

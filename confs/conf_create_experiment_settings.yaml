@@ -1,0 +1,18 @@
+main_out_dir_exp_set: "../tmp/experiment_settings/" # Output Directory Path for our experiment settings
+
+category_experiment: "quant" # Categories: ["plain_train", "prune", "quant"]
+
+blueprint_conf_dirname: "/home/franec94/Documents/thesys-siren/codebase/blueprint_distiller_experiments_schedulers"
+blueprint_conf_filename: "siren_quant_aware_train_linear_quant.yaml"
+
+exp_hyper_params_space:
+  policies.0.frequency:
+    choices: "2,5,10,25"
+  policies.0.ending_epoch:
+    choices: ""
+  quantizers.mode:
+    choices: "SYMMETRIC,ASYMMETRIC_SIGNED,ASYMMETRIC_UNSIGNED"
+  quantizers.per_channel_wts:
+    choices: "[True, False]"
+  quantizers.overrides.all.bits_weights:
+    choices: "2,4,7,9,10,13,16"

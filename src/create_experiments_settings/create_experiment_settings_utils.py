@@ -369,6 +369,7 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
         
         for hp_train in hpt_arr[:pos_hp]:
             for out_conf in oc_arr[:pos_oc]:
+                hp_train["num_epochs"] = out_conf["policies"][0]['ending_epoch'] + hp_train["delta_end_epochs"]
                 a_record = get_dataset_record(tmp_record, hp_train)
                 cmd = get_custom_command(hp_train, out_conf, echo=True)
                 cmd_ = re.sub(r"\s+", " ", cmd)

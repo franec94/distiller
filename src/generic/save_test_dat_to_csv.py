@@ -31,6 +31,10 @@ def add_to_dataset(file_name: str, columns: list, a_record: list) -> pd.DataFram
         df = pd.DataFrame(data=[a_record], columns = columns)
     else:
         df = pd.read_csv(file_name)
+        if 'Unnamed: 0' in df.columns:
+            df = df.drop(['Unnamed: 0'], axis=1)
+        if 'unnamed: 0' in df.columns:
+            df = df.drop(['unnamed: 0'], axis=1)
         if 'Unnamed 0' in df.columns:
             df = df.drop(['Unnamed 0'], axis=1)
         tmp_df = pd.DataFrame(data=[a_record], columns = columns)

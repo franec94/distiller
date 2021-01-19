@@ -3,6 +3,8 @@
 # ---------------------------------------------- #
 from src.libraries.all_libs import *
 
+UNDESIRED_COLUMNS: list = "Unnamed: 0,unnamed: 0,Unnamed 0".split(",")
+
 # =================================================================================================== #
 # Create experiments
 # =================================================================================================== #
@@ -461,8 +463,10 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
     if conf_dict["actions"]["dataset_path"]:
         data_path = conf_dict["actions"]["dataset_path"]
         a_df = pd.read_csv(data_path)
-        if 'Unnamed 0' in a_df.columns:
-            a_df = a_df.drop(['Unnamed 0'], axis=1)
+        for u_col in UNDESIRED_COLUMNS:
+            if u_col in a_df.columns:
+                a_df = a_df.drop([u_col], axis=1)
+                pass
             pass
         pass
     if a_df.shape == (0, 0): return

@@ -121,20 +121,22 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
     data_tb = dict(
         csv_file_path=file_name,
     )
-    meta_tb = dict(
-        tabular_data=data_tb.items()
-    )
-    a_table = tabulate.tabulate(**meta_tb)
+
 
     if app:
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
         a_record = create_record_from_app(opt=opt, results_test=results_test, app = app, args = args, logdir = logdir)
         for k, v in a_record.items():
-            a_table[k] = v
+            data_tb[k] = v
             pass
         columns = list(a_record.keys())
         a_record = list(a_record.values())
         a_df = add_a_row_to_dataframe(file_name=file_name, columns = columns, a_record = a_record)
         write_dataframe_to_csv(file_name, a_df)
+
+        meta_tb = dict(
+            tabular_data=data_tb.items()
+        )
+        a_table = tabulate.tabulate(**meta_tb)
         return a_table
     return None

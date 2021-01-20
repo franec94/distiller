@@ -111,7 +111,7 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
 
     if app:
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
-        a_record = create_record_from_app(opt, results_test, app = app, args = args, logdir = logdir)
+        a_record = create_record_from_app(opt, results_test, app = None, args = None, logdir = None)
         pass
 
     columns = list(a_record.keys())

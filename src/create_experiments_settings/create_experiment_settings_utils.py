@@ -76,7 +76,7 @@ def get_workload_infos(conf_dict:dict, bp_conf_dict: dict) -> None:
         total_train_combs=hpt_arr.shape[0],
         total=oc_arr.shape[0] * hpt_arr.shape[0],
         blueprint_scheduler=conf_dict["dataset"]["blueprint_conf_filename"],
-        category_experiment=conf_dict["dataset"]["category_experiment"],
+        category_experiment=conf_dict["out_dir"]["category_experiment"],
     )
     meta_tb = dict(
         tabular_data=data_tb.items(),
@@ -109,8 +109,15 @@ def get_target(key_path: str, a_conf_dict: dict):
     pass
 
 
-def update_target(key_path: str, a_conf_dict: dict, target_val) -> None:
+def update_target(key_path: list, a_conf_dict: dict, target_val) -> None:
     """TODO COMMENT IT."""
+    
+    # pprint(key_path)
+    # print(type(key_path))
+    # print(type(a_conf_dict))
+    # print(a_conf_dict["policies"])
+    assert type(key_path) == list, f"Error key_path is not a list but, {type(key_path)}"
+
     tmp_var = a_conf_dict[key_path[0]]
     for a_key in key_path[1:len(key_path)-1]:
         if a_key == "all":
@@ -127,11 +134,11 @@ def update_target(key_path: str, a_conf_dict: dict, target_val) -> None:
     pass
 
 
-def update_bp_confs(conf_dict:dict, bp_conf_dict: dict) -> list:
+def update_bp_confs(conf_dict : dict, bp_conf_dict : dict) -> list:
     """TODO COMMENT IT."""
     out_conf_list = []
 
-    def conver_key_chuncks(chuncks_list:list):
+    def conver_key_chuncks(chuncks_list : list):
         out_chuncks_list: list = []
         for a_chunck in chuncks_list:
             # print(a_chunck)
@@ -148,9 +155,12 @@ def update_bp_confs(conf_dict:dict, bp_conf_dict: dict) -> list:
     with tqdm.tqdm(total=len(hyper_params_grid_list)) as pbar:
         pbar.write("Create files...")
         for a_hp_conf in hyper_params_grid_list:
+            # print(type(bp_conf_dict))
             out_bp_conf_dict = copy.deepcopy(bp_conf_dict)
+            assert type(out_bp_conf_dict) == dict, f"Error out_bp_conf_dict is not a 'dict' but, {type(out_bp_conf_dict)}"
+            # print(type(out_bp_conf_dict))
             for k, v in a_hp_conf.items():
-                key_path = k.split(".") # ; print(key_path)
+                key_path : list = k.split(".") # ; print(key_path)
                 key_path = conver_key_chuncks(key_path) # ; pprint(["{} - {}".format(a_key, type(a_key)) for a_key in key_path])
                 update_target(key_path=key_path,
                     a_conf_dict=out_bp_conf_dict, target_val=v)

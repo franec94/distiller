@@ -1,41 +1,41 @@
 actions:
   create_dataset_exp: True
-  run_dataset_exp: True
-  dataset_path: null
+  run_dataset_exp: False
+  dataset_path: "../tmp/experiment_settings/quant/exp_1611091989.5274785/out/out_1611091989.5274785.csv"
 
-store_results: "../tmp/"
+out_dir:
+  root_dir: "../tmp"
+  main_out_dir_exp_set: "experiment_settings" # Output Directory Path for our experiment settings
+  category_experiment: "quant"                # Categories: ["plain_train", "prune", "quant"]
 
 dataset:
   dataset_columns_time: "experiment_date,date_train,date_test,init_from,root_dir,model_name"
   dataset_columns_scores: "size_byte,footprint,psnr,bpp,CR,mse,ssim,time,entropy"
   dataset_columns_settings: "scheduler_name,scheduler,prune_techs,prune_rate,quant_techs,command_line,num_epochs,n_hl,n_hf,w,h,L1,L2"
   save_dataset: True
-  main_out_dir_exp_set: "experiment_settings" # Output Directory Path for our experiment settings
-  category_experiment: "quant"                        # Categories: ["plain_train", "prune", "quant"]
-  blueprint_conf_dirname: "../../../schedulers/quant-aware-training"
+  blueprint_conf_dirname: "/home/franec94/Documents/thesys-siren/codebase/blueprint_distiller_experiments_schedulers"
   blueprint_conf_filename: "siren_quant_aware_train_linear_quant.yaml"
 
 
 exp_train_confs:
-  lr: "[1e-4,5e-5,7.5e-5]"
-  logging_root: "['../../../results/cameramen/train/quant-aware/linear-quant']"
+  lr: "[1e-4,1e-5,5e-5,7.5e-5]"
+  logging_root: "['./tmp/quant_train']"
   sidelength: "[256]"
   n_hf: "[64]"
   n_hl: "[5]"
   delta_end_epochs: "[25]"
-  results_csv_path: "['../../../results/csv/quant-aware-train/linear-quant/linear_quant_attempt_2020.12.13-232457.csv']"  
-  init_model: "['../../../ckpts/_final_ckpt_epoch_474999.pth.tar']"
-
-# num_epochs: "['475000']"
+  results_csv_path: "['../../../results/csv/quant-aware-train/linear-quant/linear_quant_attempt_2020.12.11-171610.csv']"
+  num_epochs: "['475000']"
+  init_model: "['../../../ckpts/_final_ckpt_epoch_449999.pth.tar']"
 
 exp_hyper_params_space:
   policies.0.frequency:
     choices: "[2,5,10,25]"
   policies.0.ending_epoch:
-    choices: "[475249,475499]"
+    choices: "[475000]"
   quantizers.linear_quantizer.mode:
     choices: "['SYMMETRIC','ASYMMETRIC_SIGNED','ASYMMETRIC_UNSIGNED']"
   quantizers.linear_quantizer.per_channel_wts:
     choices: "[True, False]"
   quantizers.linear_quantizer.overrides.all.bits_weights:
-    choices: "[5,7,8]"
+    choices: "[2,4,7]"

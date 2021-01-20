@@ -3,6 +3,7 @@ import os
 import sys
 import pandas as pd
 import yaml
+import tabulate
 
 
 def get_a_record() -> dict:
@@ -24,32 +25,34 @@ def get_a_record() -> dict:
     return tmp_record
 
 
-def add_to_dataset(file_name: str, columns: list, a_record: list) -> pd.DataFrame:
+def add_a_row_to_dataframe(file_name: str, columns: list, a_record: list) -> pd.DataFrame:
     """TODO COMMENT IT."""
 
     if os.path.exists(file_name) is False:
-        df = pd.DataFrame(data=[a_record], columns = columns)
+        a_df = pd.DataFrame(data=[a_record], columns = columns)
     else:
-        df = pd.read_csv(file_name)
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop(['Unnamed: 0'], axis=1)
-        if 'unnamed: 0' in df.columns:
-            df = df.drop(['unnamed: 0'], axis=1)
-        if 'Unnamed 0' in df.columns:
-            df = df.drop(['Unnamed 0'], axis=1)
+        a_df = pd.read_csv(file_name)
+        if 'Unnamed: 0' in a_df.columns:
+            a_df = a_df.drop(['Unnamed: 0'], axis=1)
+        if 'unnamed: 0' in a_df.columns:
+            a_df = a_df.drop(['unnamed: 0'], axis=1)
+        if 'Unnamed 0' in a_df.columns:
+            a_df = a_df.drop(['Unnamed 0'], axis=1)
         tmp_df = pd.DataFrame(data=[a_record], columns = columns)
-        df = df.append(tmp_df)
+        a_df = a_df.append(tmp_df)
         pass
-    return df
+    return a_df
 
 
-def write_to_csv(file_name: str, df: pd.DataFrame) -> None:
+def write_dataframe_to_csv(file_name: str, a_df: pd.DataFrame) -> None:
     """TODO COMMENT IT."""
     dir_name = os.path.dirname(file_name)
-    try:
-        os.makedirs(dir_name)
-    except: pass
-    df.to_csv(file_name, index=False)
+    if not os.path.exists(dir_name) or not os.path.isdir(dir_name):
+        try:
+            os.makedirs(dir_name)
+        except:
+            pass
+    a_df.to_csv(file_name, index=False)
     pass
 
 
@@ -115,12 +118,23 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
     """TODO COMMENT IT."""
     file_name = opt.save_test_data_to_csv_path
 
+    data_tb = dict(
+        csv_file_path=file_name,
+    )
+    meta_tb = dict(
+        tabular_data=data_tb.items()
+    )
+    a_table = tabulate.tabulate(**meta_tb)
+
     if app:
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
-        a_record = create_record_from_app(opt, results_test, app = app, args = args, logdir = logdir)
+        a_record = create_record_from_app(opt=opt, results_test=results_test, app = app, args = args, logdir = logdir)
+        for k, v in a_record.items():
+            a_table[k] = v
+            pass
         columns = list(a_record.keys())
         a_record = list(a_record.values())
-        df = add_to_dataset(file_name, columns = columns, a_record = a_record)
-        write_to_csv(file_name, df)
-        pass
-    pass
+        a_df = add_a_row_to_dataframe(file_name=file_name, columns = columns, a_record = a_record)
+        write_dataframe_to_csv(file_name, a_df)
+        return a_table
+    return None

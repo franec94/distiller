@@ -16,15 +16,25 @@ from src.create_experiments_settings.create_experiment_settings_utils import run
 
 
 def main(args) -> None:
+    # Init variables.
     out_dict_info: dict = None
     a_df: pd.DataFrame = pd.DataFrame()
-    conf_dict: dict = read_conf_file_content(args.conf_file)
-    # pprint(conf_dict)
 
+    # Load Script conf dictionary, with options and
+    # constraints by means leading workload to be carryed out.
+    conf_dict: dict = read_conf_file_content(args.conf_file)
+    # print(type(conf_dict))
+    # pprint(conf_dict)
+    assert type(conf_dict) == dict
+
+    # Load scheduler scheme to be employed
+    # as blueprint for crafting new ones.
     bp_conf_file_path: str = os.path.join(
         conf_dict["dataset"]["blueprint_conf_dirname"], conf_dict["dataset"]["blueprint_conf_filename"])
     bp_conf_dict: dict = read_conf_file_content(bp_conf_file_path)
+    # print(type(bp_conf_dict))
     # pprint(bp_conf_dict)
+    assert type(bp_conf_dict) == dict
 
     if args.summary_estimated_workload:
         get_workload_infos(conf_dict, bp_conf_dict)

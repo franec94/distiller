@@ -143,4 +143,3 @@ def get_overall_stats_from_input_dirs(conf_dict, verbose = 0) -> (collections.Or
         print(table_stats)
     record_stats_nt = RecordStats._make(record_stats.values())
     return record_stats, record_stats_nt
->>>>>>> ea31d102da497e72c171f7b76b443cf9aca0500f

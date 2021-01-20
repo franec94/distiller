@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import yaml
 import tabulate
+import torch
 
 
 def get_a_record() -> dict:
@@ -20,7 +21,7 @@ def get_a_record() -> dict:
     dataset_columns += dataset_columns_settings.split(",")
     '''
 
-    dataset_columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
+    dataset_columns = "date_train,date_test,mse,psnr,ssim,time,size_byte".split(",")
     tmp_record = dict(zip(dataset_columns, ["-"] * len(dataset_columns)))
     return tmp_record
 
@@ -118,17 +119,25 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
     """TODO COMMENT IT."""
     file_name = opt.save_test_data_to_csv_path
 
-    data_tb = dict(
-        csv_file_path=file_name,
-    )
-
-
     if app:
+        data_tb = dict(
+            app_logdir=app.logdir,
+            csv_file_path=file_name,
+        )
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
+        model_size_byte = 0.0
+        try:
+            tmp_model_file = os.path.join(app.logdir, "tmp_model.pt")
+            torch.save(app.model, tmp_model_file)
+            model_size_byte = os.path.getsize(tmp_model_file)
+        except:
+            pass
         a_record = create_record_from_app(opt=opt, results_test=results_test, app = app, args = args, logdir = logdir)
+        a_record["size_byte"] = model_size_byte
         for k, v in a_record.items():
             data_tb[k] = v
             pass
+
         columns = list(a_record.keys())
         a_record = list(a_record.values())
         a_df = add_a_row_to_dataframe(file_name=file_name, columns = columns, a_record = a_record)

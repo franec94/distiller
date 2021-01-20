@@ -128,7 +128,7 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
         model_size_byte = 0.0
         try:
             tmp_model_file = os.path.join(app.logdir, "tmp_model.pt")
-            torch.save(app.model, tmp_model_file)
+            torch.save(app.model.state_dict(), tmp_model_file)
             model_size_byte = os.path.getsize(tmp_model_file)
         except Exception as err:
             raise err

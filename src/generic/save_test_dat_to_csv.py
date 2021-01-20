@@ -19,7 +19,7 @@ def get_a_record() -> dict:
     dataset_columns += dataset_columns_settings.split(",")
     '''
 
-    dataset_columns = "date_train,date_test,mse,psnr,ssim,time,size_byte".split(",")
+    dataset_columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
     tmp_record = dict(zip(dataset_columns, ["-"] * len(dataset_columns)))
     return tmp_record
 
@@ -57,7 +57,10 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
     """TODO COMMENT IT."""
 
     a_record = get_a_record()
+    date_train = None
     try:
+        
+        """
         df_model = app.get_dataframe_model()
 
         net_layers = list(df_model["Name"].values)
@@ -65,15 +68,16 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
         wts_sparse = list(df_model["NNZ (sparse)"].values)
         wts_sparse = wts_sparse[:(len(wts_sparse)-1)]
         # pprint(wts_sparse)
+        """
 
-        date_train = None
         if app.logdir:
             print(app.logdir)
             tmp_log_dir = os.path.normpath(app.logdir)
             date_train = os.path.basename(tmp_log_dir)
+            pass
         pass
     except:
-        print(logdir)
+        # print(logdir)
         tmp_log_dir = os.path.normpath(logdir)
         date_train = os.path.basename(tmp_log_dir)
         pass
@@ -83,6 +87,7 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
     for k, v in zip(columns, a_record_vals):
         a_record[k] = v
         pass
+    """
     try:
         with open(opt.compress) as compress_file:
             compress_dict = yaml.load(compress_file, Loader=yaml.FullLoader)
@@ -102,6 +107,7 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
             pass
     except:
         pass
+    """
     return a_record
 
 
@@ -112,10 +118,9 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
     if app:
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
         a_record = create_record_from_app(opt, results_test, app = app, args = args, logdir = logdir)
+        columns = list(a_record.keys())
+        a_record = list(a_record.values())
+        df = add_to_dataset(file_name, columns = columns, a_record = a_record)
+        write_to_csv(file_name, df)
         pass
-
-    columns = list(a_record.keys())
-    a_record = list(a_record.values())
-    df = add_to_dataset(file_name, columns = columns, a_record = a_record)
-    write_to_csv(file_name, df)
     pass

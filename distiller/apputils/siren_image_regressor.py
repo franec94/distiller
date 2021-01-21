@@ -441,7 +441,7 @@ class SirenRegressorCompressor(object):
                 save_mid_pr=self.save_mid_pr, \
                 prune_details=prune_details)
             """
-            if epoch >= 0 and epoch % self.args.print_freq == 0:
+            if epoch >= 0 and epoch % self.args.print_freq == 0 or epoch == self.ending_epoch-1:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d/%d)-----------', epoch, self.ending_epoch)

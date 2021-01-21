@@ -588,7 +588,7 @@ def validate(inputs, target, model, criterion):
         arr_output = (arr_output / 2.) + 0.5
         arr_output = np.clip(arr_output, a_min=0., a_max=1.)
 
-        val_psnr = psnr(arr_gt, arr_output,data_range=1.)
-        val_mssim = ssim(arr_gt, arr_output,data_range=1.)
+        val_psnr = psnr(arr_gt, arr_output, data_range=1.)
+        val_mssim = ssim(arr_gt, arr_output, data_range=1.)
 
     return objective_loss, val_psnr, val_mssim

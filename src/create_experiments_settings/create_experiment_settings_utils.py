@@ -76,7 +76,7 @@ def get_workload_infos(conf_dict:dict, bp_conf_dict: dict) -> None:
         total_train_combs=hpt_arr.shape[0],
         total=oc_arr.shape[0] * hpt_arr.shape[0],
         blueprint_scheduler=conf_dict["dataset"]["blueprint_conf_filename"],
-        category_experiment=conf_dict["out_dir"]["category_experiment"],
+        category_experiment=conf_dict["dataset"]["category_experiment"],
     )
     meta_tb = dict(
         tabular_data=data_tb.items(),
@@ -93,14 +93,20 @@ def create_hyper_params_combinations(hyper_params_conf_dict: dict) -> list:
     hyper_params_conf_dict_tmp = dict()
     for k, v in hyper_params_conf_dict.items():
         # pprint(eval(v["choices"]))
-        hyper_params_conf_dict_tmp[k] = eval(v["choices"])
+        choices = eval(v["choices"])
+        if "overrides" in k:
+            exclude = [eval(v["exclude"])]
+            choices = list(zip(choices, exclude * len(choices)))
+            pprint(choices)
+            pass
+        hyper_params_conf_dict_tmp[k] = choices
     hyper_params_grid = list(ParameterGrid(hyper_params_conf_dict_tmp))
     # pprint(hyper_params_grid[0:5])
     # sys.exit(0)
     return hyper_params_grid
 
 
-def get_target(key_path: str, a_conf_dict: dict):
+def get_target(key_path: list, a_conf_dict: dict):
     """TODO COMMENT IT."""
     tmp_var = key_path[0]
     for a_key in key_path[1:]:
@@ -111,18 +117,14 @@ def get_target(key_path: str, a_conf_dict: dict):
 
 def update_target(key_path: list, a_conf_dict: dict, target_val) -> None:
     """TODO COMMENT IT."""
-    
-    # pprint(key_path)
-    # print(type(key_path))
-    # print(type(a_conf_dict))
-    # print(a_conf_dict["policies"])
-    assert type(key_path) == list, f"Error key_path is not a list but, {type(key_path)}"
-
     tmp_var = a_conf_dict[key_path[0]]
     for a_key in key_path[1:len(key_path)-1]:
         if a_key == "all":
             for pos in tmp_var.keys():
-                tmp_var[pos][key_path[-1]] = target_val
+                if int(pos.split(".")[1]) not in target_val[1]:
+                    tmp_var[pos][key_path[-1]] = target_val[0]
+                else:
+                    tmp_var[pos][key_path[-1]] = None
             return
         else:
             tmp_var = tmp_var[a_key]
@@ -134,11 +136,11 @@ def update_target(key_path: list, a_conf_dict: dict, target_val) -> None:
     pass
 
 
-def update_bp_confs(conf_dict : dict, bp_conf_dict : dict) -> list:
+def update_bp_confs(conf_dict:dict, bp_conf_dict: dict) -> list:
     """TODO COMMENT IT."""
     out_conf_list = []
 
-    def conver_key_chuncks(chuncks_list : list):
+    def conver_key_chuncks(chuncks_list:list):
         out_chuncks_list: list = []
         for a_chunck in chuncks_list:
             # print(a_chunck)
@@ -155,12 +157,9 @@ def update_bp_confs(conf_dict : dict, bp_conf_dict : dict) -> list:
     with tqdm.tqdm(total=len(hyper_params_grid_list)) as pbar:
         pbar.write("Create files...")
         for a_hp_conf in hyper_params_grid_list:
-            # print(type(bp_conf_dict))
             out_bp_conf_dict = copy.deepcopy(bp_conf_dict)
-            assert type(out_bp_conf_dict) == dict, f"Error out_bp_conf_dict is not a 'dict' but, {type(out_bp_conf_dict)}"
-            # print(type(out_bp_conf_dict))
             for k, v in a_hp_conf.items():
-                key_path : list = k.split(".") # ; print(key_path)
+                key_path:list = k.split(".") # ; print(key_path)
                 key_path = conver_key_chuncks(key_path) # ; pprint(["{} - {}".format(a_key, type(a_key)) for a_key in key_path])
                 update_target(key_path=key_path,
                     a_conf_dict=out_bp_conf_dict, target_val=v)
@@ -379,7 +378,6 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
         
         for hp_train in hpt_arr[:pos_hp]:
             for out_conf in oc_arr[:pos_oc]:
-                hp_train["num_epochs"] = out_conf["policies"][0]['ending_epoch'] + hp_train["delta_end_epochs"]
                 a_record = get_dataset_record(tmp_record, hp_train)
                 cmd = get_custom_command(hp_train, out_conf, echo=True)
                 cmd_ = re.sub(r"\s+", " ", cmd)

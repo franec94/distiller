@@ -177,7 +177,8 @@ def main(opt):
         if opt.evaluate:
             results_test = app.test()
             if opt.save_test_data_to_csv_path:
-                save_test_data_to_csv(opt, results_test, app)
+                a_table = save_test_data_to_csv(opt, results_test, app)
+                msglogger.info(f"\n{str(a_table)}")
                 pass
             return results_test
     return

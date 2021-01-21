@@ -214,7 +214,7 @@ def get_custom_command(a_conf_train_dict:dict, file_conf:str, echo: bool = False
     EPOCHS = a_conf_train_dict["num_epochs"]
 
     INITIALIZED_MODEL = a_conf_train_dict["init_model"]
-    COMPRESS_SCHEDULE = "../schedulers/schedule.yaml"
+    COMPRESS_SCHEDULE = "../schedulers/scheduler.yaml"
     RESULTS_CSV_PATH = a_conf_train_dict["results_csv_path"]
 
     if "lambda_L_1" not in a_conf_train_dict.keys():
@@ -237,6 +237,7 @@ python3 siren_main_app.py \
     --n_hl {N_HL} \
     --seed 0 \
     --cuda \
+    --train \
     --evaluate \
     --num_epochs {EPOCHS} \
     --lr {LR} \
@@ -259,6 +260,7 @@ python3 siren_main_app.py \
     --n_hl {N_HL} \
     --seed 0 \
     --cuda \
+    --train \
     --evaluate \
     --num_epochs {EPOCHS} \
     --lr {LR} \
@@ -379,7 +381,7 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
         for hp_train in hpt_arr[:pos_hp]:
             for out_conf in oc_arr[:pos_oc]:
                 a_record = get_dataset_record(tmp_record, hp_train)
-                cmd = get_custom_command(hp_train, out_conf, echo=True)
+                cmd = get_custom_command(hp_train, out_conf, echo=False)
                 cmd_ = re.sub(r"\s+", " ", cmd)
                 a_record["experiment_date"] = f"{ts}"
                 a_record["command_line"] = cmd_

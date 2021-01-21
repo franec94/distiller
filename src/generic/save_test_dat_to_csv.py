@@ -3,6 +3,8 @@ import os
 import sys
 import pandas as pd
 import yaml
+import tabulate
+import torch
 
 
 def get_a_record() -> dict:
@@ -24,32 +26,34 @@ def get_a_record() -> dict:
     return tmp_record
 
 
-def add_to_dataset(file_name: str, columns: list, a_record: list) -> pd.DataFrame:
+def add_a_row_to_dataframe(file_name: str, columns: list, a_record: list) -> pd.DataFrame:
     """TODO COMMENT IT."""
 
     if os.path.exists(file_name) is False:
-        df = pd.DataFrame(data=[a_record], columns = columns)
+        a_df = pd.DataFrame(data=[a_record], columns = columns)
     else:
-        df = pd.read_csv(file_name)
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop(['Unnamed: 0'], axis=1)
-        if 'unnamed: 0' in df.columns:
-            df = df.drop(['unnamed: 0'], axis=1)
-        if 'Unnamed 0' in df.columns:
-            df = df.drop(['Unnamed 0'], axis=1)
+        a_df = pd.read_csv(file_name)
+        if 'Unnamed: 0' in a_df.columns:
+            a_df = a_df.drop(['Unnamed: 0'], axis=1)
+        if 'unnamed: 0' in a_df.columns:
+            a_df = a_df.drop(['unnamed: 0'], axis=1)
+        if 'Unnamed 0' in a_df.columns:
+            a_df = a_df.drop(['Unnamed 0'], axis=1)
         tmp_df = pd.DataFrame(data=[a_record], columns = columns)
-        df = df.append(tmp_df)
+        a_df = a_df.append(tmp_df)
         pass
-    return df
+    return a_df
 
 
-def write_to_csv(file_name: str, df: pd.DataFrame) -> None:
+def write_dataframe_to_csv(file_name: str, a_df: pd.DataFrame) -> None:
     """TODO COMMENT IT."""
     dir_name = os.path.dirname(file_name)
-    try:
-        os.makedirs(dir_name)
-    except: pass
-    df.to_csv(file_name, index=False)
+    if not os.path.exists(dir_name) or not os.path.isdir(dir_name):
+        try:
+            os.makedirs(dir_name)
+        except:
+            pass
+    a_df.to_csv(file_name, index=False)
     pass
 
 
@@ -57,7 +61,10 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
     """TODO COMMENT IT."""
 
     a_record = get_a_record()
+    date_train = None
     try:
+        
+        """
         df_model = app.get_dataframe_model()
 
         net_layers = list(df_model["Name"].values)
@@ -65,15 +72,16 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
         wts_sparse = list(df_model["NNZ (sparse)"].values)
         wts_sparse = wts_sparse[:(len(wts_sparse)-1)]
         # pprint(wts_sparse)
+        """
 
-        date_train = None
         if app.logdir:
             print(app.logdir)
             tmp_log_dir = os.path.normpath(app.logdir)
             date_train = os.path.basename(tmp_log_dir)
+            pass
         pass
     except:
-        print(logdir)
+        # print(logdir)
         tmp_log_dir = os.path.normpath(logdir)
         date_train = os.path.basename(tmp_log_dir)
         pass
@@ -83,6 +91,7 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
     for k, v in zip(columns, a_record_vals):
         a_record[k] = v
         pass
+    """
     try:
         with open(opt.compress) as compress_file:
             compress_dict = yaml.load(compress_file, Loader=yaml.FullLoader)
@@ -102,6 +111,7 @@ def create_record_from_app(opt, results_test, app = None, args = None, logdir = 
             pass
     except:
         pass
+    """
     return a_record
 
 
@@ -110,12 +120,33 @@ def save_test_data_to_csv(opt, results_test, app = None, args = None, logdir = N
     file_name = opt.save_test_data_to_csv_path
 
     if app:
+        data_tb = dict(
+            app_logdir=app.logdir,
+            csv_file_path=file_name,
+        )
         columns = "date_train,date_test,mse,psnr,ssim,time".split(",")
-        a_record = create_record_from_app(opt, results_test, app = None, args = None, logdir = None)
-        pass
+        model_size_byte = 0.0
+        try:
+            tmp_model_file = os.path.join(app.logdir, "tmp_model.pt")
+            torch.save(app.model.state_dict(), tmp_model_file)
+            model_size_byte = os.path.getsize(tmp_model_file)
+        except Exception as err:
+            raise err
+            pass
+        a_record = create_record_from_app(opt=opt, results_test=results_test, app = app, args = args, logdir = logdir)
+        a_record["size_byte"] = model_size_byte
+        for k, v in a_record.items():
+            data_tb[k] = v
+            pass
 
-    columns = list(a_record.keys())
-    a_record = list(a_record.values())
-    df = add_to_dataset(file_name, columns = columns, a_record = a_record)
-    write_to_csv(file_name, df)
-    pass
+        columns = list(a_record.keys())
+        a_record = list(a_record.values())
+        a_df = add_a_row_to_dataframe(file_name=file_name, columns = columns, a_record = a_record)
+        write_dataframe_to_csv(file_name, a_df)
+
+        meta_tb = dict(
+            tabular_data=data_tb.items()
+        )
+        a_table = tabulate.tabulate(**meta_tb)
+        return a_table
+    return None

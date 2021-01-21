@@ -203,7 +203,7 @@ def save_created_conf_files(conf_dict: dict, out_conf_list: list, ts = None) -> 
 # Run experiments
 # =================================================================================================== #
 
-def get_custom_command(a_conf_train_dict:dict, file_conf:str, echo: bool = False) -> str:
+def get_custom_command(a_conf_train_dict:dict, out_conf:dict, echo: bool = False) -> str:
     """TODO COMMENT IT."""
     LOGGING_ROOT = a_conf_train_dict["logging_root"]
     SIDELENGTH = a_conf_train_dict["sidelength"]
@@ -211,7 +211,10 @@ def get_custom_command(a_conf_train_dict:dict, file_conf:str, echo: bool = False
     N_HL = a_conf_train_dict["n_hl"]
 
     LR = a_conf_train_dict["lr"]
-    EPOCHS = a_conf_train_dict["num_epochs"]
+
+    delta_end_epochs = a_conf_train_dict["delta_end_epochs"]
+    ending_epoch = out_conf["policies"][0]["ending_epoch"]
+    EPOCHS = ending_epoch + delta_end_epochs
 
     INITIALIZED_MODEL = a_conf_train_dict["init_model"]
     COMPRESS_SCHEDULE = "../schedulers/schedule.yaml"
@@ -288,6 +291,9 @@ def get_dataset_record(tmp_record: dict, exp_train_confs: dict) -> dict:
         pass
     if "lambda_L_2" not in exp_train_confs.keys():
         exp_train_confs["lambda_L_2"] = 0.0
+        pass
+    if "num_epochs" not in exp_train_confs.keys():
+        exp_train_confs["num_epochs"] = 0.0
         pass
 
     for src_k, dst_k in zip(src_keys, dst_keys):
@@ -385,6 +391,19 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
                 a_record["command_line"] = cmd_
                 a_record["scheduler"] = out_conf
                 a_record["model_name"] = os.path.basename(hp_train["init_model"])
+
+                a_record["model_name"] = os.path.basename(hp_train["init_model"])
+
+                pprint(hp_train)
+
+                delta_end_epochs = hp_train["delta_end_epochs"]
+
+                ending_epoch = out_conf["policies"][0]["ending_epoch"]
+                a_record["num_epochs"] = ending_epoch + delta_end_epochs
+
+                pprint(a_record)
+                # sys.exit(0)
+
 
                 # run_subprocess_waiting_it(hp_train, out_conf, echo=True, verbose=1)
                 
@@ -515,8 +534,10 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
                 _ = yaml.dump(scheduler, scheduler_file)
                 pass
             cmd = a_row_dict["command_line"]
+            print(cmd)
             run_subprocess_cmd_waiting_it(cmd, verbose=1)
             pbar.update(1)
+            sys.exit(0)
             pass
         pass
     if 'configs_dir' not in out_dict_info.keys():

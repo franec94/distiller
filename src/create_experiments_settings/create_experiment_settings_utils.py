@@ -40,6 +40,7 @@ python3 siren_main_app.py \
     --n_hl {N_HL} \
     --seed 0 \
     --cuda \
+    --train \
     --evaluate \
     --num_epochs {EPOCHS} \
     --lr {LR} \
@@ -240,6 +241,7 @@ python3 siren_main_app.py \
     --n_hl {N_HL} \
     --seed 0 \
     --cuda \
+    --train \
     --evaluate \
     --num_epochs {EPOCHS} \
     --lr {LR} \
@@ -262,6 +264,7 @@ python3 siren_main_app.py \
     --n_hl {N_HL} \
     --seed 0 \
     --cuda \
+    --train \
     --evaluate \
     --num_epochs {EPOCHS} \
     --lr {LR} \

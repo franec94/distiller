@@ -217,7 +217,7 @@ def get_custom_command(a_conf_train_dict:dict, out_conf:dict, echo: bool = False
     EPOCHS = ending_epoch + delta_end_epochs
 
     INITIALIZED_MODEL = a_conf_train_dict["init_model"]
-    COMPRESS_SCHEDULE = "../schedulers/schedule.yaml"
+    COMPRESS_SCHEDULE = "../schedulers/scheduler.yaml"
     RESULTS_CSV_PATH = a_conf_train_dict["results_csv_path"]
 
     if "lambda_L_1" not in a_conf_train_dict.keys():

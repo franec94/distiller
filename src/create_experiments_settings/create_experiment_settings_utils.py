@@ -385,7 +385,7 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
         for hp_train in hpt_arr[:pos_hp]:
             for out_conf in oc_arr[:pos_oc]:
                 a_record = get_dataset_record(tmp_record, hp_train)
-                cmd = get_custom_command(hp_train, out_conf, echo=True)
+                cmd = get_custom_command(hp_train, out_conf, echo=False)
                 cmd_ = re.sub(r"\s+", " ", cmd)
                 a_record["experiment_date"] = f"{ts}"
                 a_record["command_line"] = cmd_

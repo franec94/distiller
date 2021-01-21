@@ -97,7 +97,7 @@ def create_hyper_params_combinations(hyper_params_conf_dict: dict) -> list:
         if "overrides" in k:
             exclude = [eval(v["exclude"])]
             choices = list(zip(choices, exclude * len(choices)))
-            pprint(choices)
+            # pprint(choices)
             pass
         hyper_params_conf_dict_tmp[k] = choices
     hyper_params_grid = list(ParameterGrid(hyper_params_conf_dict_tmp))
@@ -394,14 +394,14 @@ def create_dataset_experiments(args, conf_dict: dict, out_conf_list: list, echo:
 
                 a_record["model_name"] = os.path.basename(hp_train["init_model"])
 
-                pprint(hp_train)
+                # pprint(hp_train)
 
                 delta_end_epochs = hp_train["delta_end_epochs"]
 
                 ending_epoch = out_conf["policies"][0]["ending_epoch"]
                 a_record["num_epochs"] = ending_epoch + delta_end_epochs
 
-                pprint(a_record)
+                # pprint(a_record)
                 # sys.exit(0)
 
 
@@ -513,7 +513,7 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
 
         train_settings = conf_dict["dataset"]["dataset_columns_settings"].split(",")
         print(a_df[train_settings].head(2))
-        sys.exit(0)
+        # sys.exit(0)
         pass
 
     with tqdm.tqdm(total=a_df.shape[0]) as pbar:
@@ -537,7 +537,7 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
             print(cmd)
             run_subprocess_cmd_waiting_it(cmd, verbose=1)
             pbar.update(1)
-            sys.exit(0)
+            # sys.exit(0)
             pass
         pass
     if 'configs_dir' not in out_dict_info.keys():

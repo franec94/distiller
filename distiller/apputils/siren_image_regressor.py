@@ -751,6 +751,13 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
     # pprint(args.data)
     # sys.exit(0)
 
+    if args.data is None:
+        msglogger.info("=> Loading 'Cameramen' Input Image as Target Data")
+    else:
+        image_name = os.path.basename(args.data)
+        msglogger.info(f"=> Loading '{image_name}' Input Image as Target Data")
+        pass
+
     train_loader, val_loader, test_loader, _ = distiller.apputils.load_data(args.dataset, args.arch,
                               os.path.expanduser(args.data), args.batch_size,
                               args.workers, args.validation_split, args.deterministic,

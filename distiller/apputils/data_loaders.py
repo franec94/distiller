@@ -97,6 +97,7 @@ def load_data(dataset, arch, data_dir,
     datasets_fn = __dataset_factory(dataset, arch)
 
     if dataset == 'cameramen':
+        assert data_dir == None, "data_dir is not None, when should be since Default Cameramen image was adoped!"
         _, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # train_dataset, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # _, val_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
@@ -105,6 +106,7 @@ def load_data(dataset, arch, data_dir,
         test_dataset = torch.utils.data.DataLoader(test_dataset, batch_size=1, pin_memory=True, num_workers=0)
         # val_dataset = torch.utils.data.DataLoader(val_dataset, batch_size=1, pin_memory=True, num_workers=0)
         
+        assert test_dataset != None, "test_dataset is None!"
         input_shape = __image_size(test_dataset)
         # return train_dataloader, val_dataset, val_dataset, input_shapetest_dataset
         return test_dataset, test_dataset, test_dataset, input_shape
@@ -117,8 +119,9 @@ def load_data(dataset, arch, data_dir,
         _, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         test_dataset = torch.utils.data.DataLoader(test_dataset, batch_size=1, pin_memory=True, num_workers=0)
 
-        input_shape = __image_size(test_dataset)
         assert test_dataset != None, "test_dataset is None!"
+        input_shape = __image_size(test_dataset)
+        
         # assert test_dataset == torch.utils.data.DataLoader, "test_dataset is not torch.utils.data.DataLoader!"
         return test_dataset, test_dataset, test_dataset, input_shape
     

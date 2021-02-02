@@ -5,6 +5,7 @@
 # Plain Train scripts
 # --------------------------
 RUN_PROGRAM = run_program.sh
+RUN_PROGRAM_CI = run_program_siren_app_custom_image.sh
 RUN_PROGRAM_APP = run_program_siren_app.sh
 RUN_PROGRAM = run_program_siren_app.sh
 
@@ -44,3 +45,14 @@ test_siren_app_on_cameramen:
 install_distiller_dependencies_via_requirements_file:
 	clear
 	pip install -r requirements.txt
+
+
+train_on_custom_image:
+	clear
+	chmod u+x $(RUN_PROGRAM_CI)
+	./$(RUN_PROGRAM_CI)
+
+test_siren_app_on_custom_image:
+	clear
+	chmod u+x $(TEST_RUN_PROGRAM)
+	./$(TEST_RUN_PROGRAM)

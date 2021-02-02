@@ -35,7 +35,7 @@ from distiller.modules import Mean, EltwiseAdd
 import logging
 msglogger = logging.getLogger()
 
-SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist', "cameramen")
+SUPPORTED_DATASETS = ('imagenet', 'cifar10', 'mnist', "cameramen", "custom_image")
 
 # ResNet special treatment: we have our own version of ResNet, so we need to over-ride
 # TorchVision's version.
@@ -254,6 +254,8 @@ def _is_registered_extension(arch, dataset, pretrained):
 def _create_extension_model(arch, dataset, args = None):
     if (arch, dataset) == ('siren', 'cameramen'):
         return _model_extensions[(arch, dataset)](arch, args)
+    elif (arch, dataset) == ('siren', 'custom_image'):
+        return _model_extensions[(arch, dataset)](arch, args)
     return _model_extensions[(arch, dataset)]()
 
 
@@ -270,4 +272,5 @@ def _create_siren_model(arch, args):
 
 _model_extensions = {
     ('siren', 'cameramen') : _create_siren_model,
+    ('siren', 'custom_image') : _create_siren_model,
 }

@@ -571,6 +571,8 @@ def _validate_input_shape(dataset, input_shape):
         try:
             if dataset == 'cameramen':
                 return (1, 65536, 2)
+            elif dataset == "custom_image":
+                return (1, 65536, 2)
             return tuple(distiller.apputils.classification_get_input_shape(dataset))
         except ValueError:
             raise ValueError("Can't infer input shape for dataset {}, please pass shape directly".format(dataset))

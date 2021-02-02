@@ -71,6 +71,7 @@ def init_regressor_default_args(args, opt):
     args.save_mid_ckpts = opt.save_mid_ckpts
     args.save_image_on_test = opt.save_image_on_test
     args.mid_target_sparsities = opt.mid_target_sparsities
+    args.data = str(opt.image_filepath)
 
     if opt.logging_root == '':
         args.output_dir = None
@@ -132,7 +133,8 @@ def config_learner_args(args, arch, dataset, dataset_path, pretrained, adam_args
     # args.arch = f"{arch}"
     args.arch = arch
     args.dataset = f"{dataset}"
-    args.data = ""
+    # args.data = ""
+    args.data = str(dataset_path)
     args.pretrained = False
     args.lr = adam_args[0]
     args.momentum = adam_args[1]
@@ -150,20 +152,40 @@ def main(opt):
                   hidden_layers=n_hl, outermost_linear=True)
         return img_siren
 
-    distiller.models.register_user_model(
-        arch="SirenCompressingModel",
-        dataset="cameramen",
-        model=sire_model)
+    if opt.image_filepath is None:
+        distiller.models.register_user_model(
+            arch="SirenCompressingModel",
+            dataset="cameramen",
+            model=sire_model)
+    else:
+        # pprint("custom_image")
+        distiller.models.register_user_model(
+            arch="SirenCompressingModel",
+            dataset="custom_image",
+            model=sire_model)
     # Parse arguments
     args , _ = examples.siren_compression.custom_parser.add_cmdline_args(distiller.apputils.siren_image_regressor.init_regressor_compression_arg_parser(True)).parse_known_args() # .parse_args()
     args = init_regressor_default_args(args, opt)
-    args = config_learner_args(
-        args,
-        "SirenCompressingModel", "cameramen", "",
-        False,
-        (opt.lr[0], opt.momentum[0], opt.lambda_L_2[0]),
-        1,
-        opt.num_epochs[0])
+    if opt.image_filepath is None:
+        args = config_learner_args(
+            args,
+            "SirenCompressingModel", "cameramen", "",
+            False,
+            (opt.lr[0], opt.momentum[0], opt.lambda_L_2[0]),
+            1,
+            opt.num_epochs[0])
+    else:
+        # pprint("custom_image")
+        args = config_learner_args(
+            args,
+            "SirenCompressingModel", "custom_image", opt.image_filepath,
+            False,
+            (opt.lr[0], opt.momentum[0], opt.lambda_L_2[0]),
+            1,
+            opt.num_epochs[0])
+        pass    
+    # pprint(args.data)
+    # sys.exit(0)
     
     # app = SirenRegressorCompressorSampleApp(args, script_dir=os.path.dirname(__file__))
     app = SirenRegressorCompressorSampleApp(args, script_dir=opt.logging_root)
@@ -333,6 +355,8 @@ def greedy(model, criterion, optimizer, loggers, args):
 if __name__ == '__main__':
     try:
         opt, parser = get_cmd_line_opts()
+        # pprint(opt)
+        # sys.exit(0)
         main(opt)
     except KeyboardInterrupt:
         print("\n-- KeyboardInterrupt --")

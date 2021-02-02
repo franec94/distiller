@@ -20,6 +20,7 @@ This code will help with the image classification datasets: ImageNet and CIFAR10
 
 """
 import os
+import sys
 import torch
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
@@ -31,7 +32,7 @@ import numpy as np
 import distiller
 
 
-DATASETS_NAMES = ['imagenet', 'cifar10', 'mnist', 'cameramen']
+DATASETS_NAMES = ['imagenet', 'cifar10', 'mnist', 'cameramen', 'custom_image']
 
 
 def classification_dataset_str_from_arch(arch):
@@ -65,6 +66,7 @@ def __dataset_factory(dataset, arch):
     return {'cifar10': cifar10_get_datasets,
             'mnist': mnist_get_datasets,
             'cameramen': get_cameramen_dataset,
+            'custom_image': get_custom_image_dataset,
             'imagenet': partial(imagenet_get_datasets, arch=arch)}.get(dataset, None)
 
 
@@ -105,6 +107,19 @@ def load_data(dataset, arch, data_dir,
         
         input_shape = __image_size(test_dataset)
         # return train_dataloader, val_dataset, val_dataset, input_shapetest_dataset
+        return test_dataset, test_dataset, test_dataset, input_shape
+
+        
+    elif dataset == 'custom_image':
+        test_dataset, input_shape = None, None
+        assert data_dir != None, "data_dir is None!"
+
+        _, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
+        test_dataset = torch.utils.data.DataLoader(test_dataset, batch_size=1, pin_memory=True, num_workers=0)
+
+        input_shape = __image_size(test_dataset)
+        assert test_dataset != None, "test_dataset is None!"
+        # assert test_dataset == torch.utils.data.DataLoader, "test_dataset is not torch.utils.data.DataLoader!"
         return test_dataset, test_dataset, test_dataset, input_shape
     
     return get_data_loaders(datasets_fn, data_dir, batch_size, workers,
@@ -356,6 +371,9 @@ def get_data_loaders(datasets_fn, data_dir, batch_size, num_workers, validation_
 
 
 def get_cameramen_dataset(data_dir = None, load_train=True, load_test=True):
+    print("get_cameramen_dataset")
+    print(data_dir)
+    sys.exit(0)
     train_dataset = None
     if load_train:
         train_dataset = ImageFitting(256)
@@ -389,9 +407,13 @@ def get_mgrid(sidelen, dim=2):
 
 
 class ImageFitting(torch.utils.data.Dataset):
-    def __init__(self, sidelength):
+    def __init__(self, sidelength, file_path=None):
         super().__init__()
-        img = get_cameraman_tensor(sidelength)
+        if file_path is None:
+            img = get_cameraman_tensor(sidelength)
+        else:
+            img = get_custom_image_tensor(file_path, sidelength)
+            pass
         self.pixels = img.permute(1, 2, 0).view(-1, 1)
         self.coords = get_mgrid(sidelength, 2)
 
@@ -402,3 +424,31 @@ class ImageFitting(torch.utils.data.Dataset):
         if idx > 0: raise IndexError
             
         return self.coords, self.pixels
+
+
+def get_custom_image_tensor(file_path, sidelength):
+    # print("file_path:", file_path)
+    # sys.exit(0)
+    img = Image.open(file_path)
+    transform = transforms.Compose([
+        transforms.CenterCrop(sidelength),
+        transforms.ToTensor(),
+        transforms.Normalize(torch.Tensor([0.5]), torch.Tensor([0.5]))
+    ])
+    img = transform(img)
+    return img
+
+
+def get_custom_image_dataset(data_dir = None, load_train=True, load_test=True):
+    # print("get_custom_image_dataset")
+    # sys.exit(0)
+    train_dataset = None
+    if load_train:
+        train_dataset = ImageFitting(256, file_path=data_dir)
+        
+    test_dataset = None
+    if load_test:
+        test_dataset = ImageFitting(256, file_path=data_dir)
+
+    assert load_test != None, "load_test is None in get_custom_image_dataset!"
+    return train_dataset, test_dataset

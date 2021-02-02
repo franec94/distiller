@@ -748,11 +748,18 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
 
     test_only = not load_train and not load_val
 
+    # pprint(args.data)
+    # sys.exit(0)
+
     train_loader, val_loader, test_loader, _ = distiller.apputils.load_data(args.dataset, args.arch,
                               os.path.expanduser(args.data), args.batch_size,
                               args.workers, args.validation_split, args.deterministic,
                               args.effective_train_size, args.effective_valid_size, args.effective_test_size,
                               fixed_subset, sequential, test_only)
+    assert test_loader != None, "test_loader is None!"
+    # print(test_loader)
+    # print(len(test_loader.sampler))
+    # sys.exit(0)
     if test_only:
         msglogger.info('Dataset sizes:\n\ttest=%d', len(test_loader.sampler))
     else:

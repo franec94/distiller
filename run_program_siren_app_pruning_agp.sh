@@ -17,7 +17,7 @@ SCHEDULER_FILEPATH="../../../schedulers/agp-pruning/test066_airplane/siren64_5.s
 
 INIT_FROM="../../../ckpts/test066_airplane/_mid_ckpt_epoch_299999.pth.tar"
 
-CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
+CUDA_VISIBLE_DEVICES=0 python3 siren_main_app.py \
   --logging_root ${LOGGING_ROOT} \
   --experiment_name 'train' \
   --compress  ${SCHEDULER_FILEPATH} \

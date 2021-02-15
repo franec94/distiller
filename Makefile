@@ -22,6 +22,9 @@ RUN_PROGRAM_AGP_PRUNE = run_program_siren_app_pruning_agp.sh
 # Makefile - Targets:
 # =============================================== #
 
+
+# Cameramen Image Tasks
+# ====================================================== #
 train_on_cameramen:
 	clear
 	chmod u+x $(RUN_PROGRAM)
@@ -42,17 +45,26 @@ test_siren_app_on_cameramen:
 	chmod u+x $(TEST_RUN_PROGRAM)
 	./$(TEST_RUN_PROGRAM)
 
-install_distiller_dependencies_via_requirements_file:
-	clear
-	pip install -r requirements.txt
-
-
+# Custom Image Tasks
+# ====================================================== #
 train_on_custom_image:
 	clear
 	chmod u+x $(RUN_PROGRAM_CI)
 	./$(RUN_PROGRAM_CI)
 
+train_on_custom_image_agp_prune:
+	clear
+	chmod u+x $(RUN_PROGRAM_AGP_PRUNE)
+	./$(RUN_PROGRAM_AGP_PRUNE)
+
 test_siren_app_on_custom_image:
 	clear
 	chmod u+x $(TEST_RUN_PROGRAM)
 	./$(TEST_RUN_PROGRAM)
+
+# Other Tasks
+# ====================================================== #
+install_distiller_dependencies_via_requirements_file:
+	clear
+	pip install -r requirements.txt
+

@@ -9,10 +9,19 @@
 # image.
 # =============================================== #
 
+IMAGE_FILEPATH="../../../BSD68/test066.png"
+
+LOGGING_ROOT="../../../results/test066/distiller-siren/agp_prune"
+
+SCHEDULER_FILEPATH="../../../schedulers/agp-pruning/siren64_5.schedule_agp.yaml"
+
+INIT_FROM="../../../ckpts/_mid_ckpt_epoch_299999.pth.tar"
+
 CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
-  --logging_root '../../../results/cameramen/distiller-siren/agp_prune' \
+  --logging_root ${LOGGING_ROOT} \
   --experiment_name 'train' \
-  --compress "../../../schedulers/agp-pruning/siren64_5.schedule_agp.yaml" \
+  --compress  ${SCHEDULER_FILEPATH} \
+  --image_filepath ${IMAGE_FILEPATH} \
   --sidelength 256 \
   --n_hf 64  \
   --n_hl 5 \
@@ -22,13 +31,13 @@ CUDA_VISIBLE_DEVICES=0 python siren_main_app.py \
   --lr 0.0001 \
   --lambda_L_1 0 \
   --lambda_L_2 0 \
-  --epochs_til_ckpt 850 \
-  --num-best-scores 5 \
+  --epochs_til_ckpt 900 \
+  --num-best-scores 3 \
   --train \
   --evaluate \
   --verbose 0 \
-  --resume-from "../../../ckpts/_mid_ckpt_epoch_299999.pth.tar" \
-  --target_sparsity 50.0 \
+  --resume-from  ${INIT_FROM} \
+  --target_sparsity 30.0 \
   --toll_sparsity 2.0 \
   --patience_sparsity 1000 \
   --trail_epochs 1000 \

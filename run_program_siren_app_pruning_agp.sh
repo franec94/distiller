@@ -13,7 +13,7 @@ IMAGE_FILEPATH="../../../BSD68/test066.png"
 
 LOGGING_ROOT="../../../results/test066/distiller-siren/agp_prune"
 
-SCHEDULER_FILEPATH="../../../schedulers/agp-pruning/test066_airplane/siren64_5.schedule_agp.yaml"
+SCHEDULER_FILEPATH="../../../schedulers/test066_airplane/agp-pruning/siren64_5.schedule_agp.yaml"
 
 INIT_FROM="../../../ckpts/test066_airplane/_mid_ckpt_epoch_299999.pth.tar"
 

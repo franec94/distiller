@@ -115,8 +115,11 @@ class SirenRegressorCompressor(object):
     
     def load_datasets(self):
         """Load the datasets"""
+        global msglogger
+        msglogger.info("Loading datasets...")
         if not all((self.train_loader, self.val_loader, self.test_loader)):
             self.train_loader, self.val_loader, self.test_loader = load_data(self.args)
+        msglogger.info("Datasets correctly loaded.")
         return self.data_loaders
 
 

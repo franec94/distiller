@@ -97,7 +97,7 @@ def load_data(dataset, arch, data_dir,
     datasets_fn = __dataset_factory(dataset, arch)
 
     if dataset == 'cameramen':
-        # assert data_dir == None, "data_dir is not None, when it should be, since Default Cameramen image was adoped!"
+        assert data_dir == None or len(data_dir) == 0, f"data_dir is not None, or is empty string, acttualy is '{data_dir}', when it should be, since Default Cameramen image was adoped!"
         _, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # train_dataset, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # _, val_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
@@ -375,8 +375,8 @@ def get_data_loaders(datasets_fn, data_dir, batch_size, num_workers, validation_
 
 def get_cameramen_dataset(data_dir = None, load_train=True, load_test=True):
     print("get_cameramen_dataset")
-    print(data_dir)
-    sys.exit(0)
+    # print(data_dir)
+    # sys.exit(0)
     train_dataset = None
     if load_train:
         train_dataset = ImageFitting(256)

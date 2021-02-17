@@ -97,7 +97,7 @@ def load_data(dataset, arch, data_dir,
     datasets_fn = __dataset_factory(dataset, arch)
 
     if dataset == 'cameramen':
-        assert data_dir == None, "data_dir is not None, when should be since Default Cameramen image was adoped!"
+        # assert data_dir == None, "data_dir is not None, when it should be, since Default Cameramen image was adoped!"
         _, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # train_dataset, test_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)
         # _, val_dataset = datasets_fn(data_dir, load_train=not test_only, load_test=True)

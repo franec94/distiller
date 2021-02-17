@@ -751,7 +751,7 @@ def load_data(args, fixed_subset=False, sequential=False, load_train=True, load_
     # pprint(args.data)
     # sys.exit(0)
 
-    if args.data is None:
+    if args.data is None or len(args.data) == 0:
         msglogger.info("=> Loading 'Cameramen' Input Image as Target Data")
     else:
         image_name = os.path.basename(args.data)

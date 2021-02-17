@@ -1,0 +1,51 @@
+
+
+
+
+\begin{frame}
+\frametitle{Target Image for Training Siren Models}
+Differently from Siren paper's Camera Image, we decide to resize it, by cropping the full image down to 256x256 image about its center, leading to the following update image:
+
+
+\begin{columns}
+\column{0.5\textwidth}
+\begin{figure}
+\includegraphics[scale=0.2]{slides/experiments/target-image/cropped_cameramen_256x256.png}
+\caption{Camera 256x256 target image}
+\end{figure}
+
+\column{0.5\textwidth}
+\begin{table}
+\begin{tabular}{ll}
+\hline
+          Image Feature & Value \\
+\hline
+       name &      Camera \\
+      shape &  (256, 256) \\
+  size\_byte &       65536 \\
+ image\_band &        (L,) \\
+\hline
+\end{tabular}
+\caption{Cropped Camera Image Characteristics }
+\end{table}
+
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Data Distribution for Target Image for Training Siren Models}
+
+\begin{figure}
+\includegraphics[scale=0.2]{slides/experiments/target-image/mixing_image_hist.png}
+\caption{Camera target image, full and cropped data distribution}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{General Summarizing Image Overview}
+\begin{figure}
+\includegraphics[scale=0.15]{slides/experiments/target-image/complex_3.png}
+\end{figure}
+\end{frame}

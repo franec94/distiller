@@ -1,0 +1,88 @@
+
+
+
+
+\begin{frame}
+\frametitle{Baseline Siren Dataset Design - Hyper-Params Choices}
+For the construction of Baseline Siren data points, which are nothing but instances and rows within the resulting dataset representing trained Siren Deep Nets, we proceeded in the
+following manner. In more precise words, we established which degree of freedom employing for training several different configurations, and doing so, we end up claiming that
+we allowed for each different trial to set arbitrarily the number of hidden layers and the numbber of hidden features. Where, we can say furthermore that:
+
+\begin{itemize}
+\item \textbf{\textit{"Number of Hidden Features"}} - which are the number of weigths (also referred to as parameters to be learnt), we decided to try the following list of possible values:
+$[75., 55., 85., 64., 45., 90., 35., 25.,  8., 32.]$ , a total of 11 possible choices.
+\item \textbf{\textit{"Number of Hidden Layers"}} - whose values indicate the deepness of a Net, we decided to try the follwoing list of possible values:
+$[10., 11., 12., 13.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  2.]$ , a total of again 11 possible choices.
+\end{itemize}
+
+As we can understand from the proposed list of values one for number of hidden features and the other of the number of hidden layers, we also include some combinations that lead to
+distinct settings that for sure do not correspond to real, suitable, and proper Net's hyper-param settings, that is, some possible model's configurations can be discarded since are
+too tiny or too large and deep and furthermore correspond to overly under-parameterized or over-parameterized Architectures.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Baseline Siren Dataset Design - Dividing Data into Groups depending on Model's Size (Byte) (2)}
+As we can understand from the proposed list of values one for number of hidden features and the other of the number of hidden layers, we also include some combinations that lead to
+distinct settings that for sure do not correspond to real, suitable, and proper Net's hyper-param settings, that is, some possible model's configurations can be discarded since are
+too tiny or too large and deep and furthermore correspond to overly under-parameterized or over-parameterized Architectures. In fact for describing this observation, indeed, we also
+decide to split the overall datasets of plain trained Siren models into three classes which corresponds to three categories described as follows:
+
+\begin{itemize}
+\item \textbf{\textit{"under"}} - which corresponds to those trials where trained siren architectures are lower or equal to $35844.0B$
+\item \textbf{\textit{"mid"}} - which corresponds to those trials where trained siren architectures whose sinzew in byte ley in between of the following range $[35844.0,381484.0]$B
+\item \textbf{\textit{"over"}} - trials where models's size is larger or equal to $381484.0B$
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Baseline Siren Dataset Design - Dividing Data into Groups depending on Model's Deepness  (3)}
+Another possible, meaningful, and interesting observation we can propose regard the fact that we can even organize and so describe baseline data points for plain siren trained models
+dividing them again into three arbitrary categories depending on the depth reached by each model regardless the net's size, as follows:
+
+\begin{itemize}
+\item \textbf{\textit{"tiny"}} - which corresponds to those trials where trained siren architectures that ahve a  lower or equal to 5 levels of hidden layers;
+\item \textbf{\textit{"mid"}} - which corresponds to those trials where trained siren architectures whose depthley in between of the following range $[5,9]$B
+\item \textbf{\textit{"deep"}} - which corresponds to those trials where trained siren architectures that ahve a  greater or equal to 9 levels of hidden layers;
+
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Baseline Siren Dataset Design - Summary Tables (4)}
+
+\begin{table}
+\begin{tabular}{lrrrrrrl}
+\hline
+param\_class &  size(byte) &    psnr &   bpp &  n\_hf &  n\_hl &     deepness \\
+\hline
+\hline
+under    &      2724.0 &  17.202 &   0.333 &    8.0 &   9.0 &   mid($[5,9]$) \\
+mid &     34308.0 &  39.487 &   4.188 &  32.0 &   8.0 &   mid($[5,9]$) \\
+over    &    293764.0 &  57.340 &  35.860 &  85.0 &  10.0 &  deep($\geq9$) \\
+\hline
+\end{tabular}
+\caption{Example of table with samples from plain Siren Dataset when grouped by Number of parameters, expressed as overall Model's Size in byte}
+\end{table}
+
+\begin{table}
+\begin{tabular}{lrrrrrl}
+\hline
+deepness &  size(byte) &    psnr &     bpp &  n\_hf &  n\_hl &   param\_class \\
+\hline
+\hline
+tiny($ \leq 5$) &       708.0 &  18.517 &   0.086 &   8.0 &   2.0 &  under($ \geq 35.0KB$) \\
+mid($[5,9]$)  &    117508.0 &  54.111 &  14.344 &  64.0 &   7.0 &  over($ \geq 372.5KB$) \\
+deep($ \geq 9$) &     83524.0 &  46.880 &  10.196 &  45.0 &  10.0 &  over($ \geq 372.5KB$) \\
+\hline
+\end{tabular}
+\caption{Example of table with samples from plain Siren Dataset when grouped by Model's Depth}
+\end{table}
+
+
+
+\end{frame}

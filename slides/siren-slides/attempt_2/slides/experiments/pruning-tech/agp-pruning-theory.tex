@@ -1,0 +1,37 @@
+
+
+
+
+\begin{frame}
+\frametitle{Automated Gradual Pruner}
+\textbf{Automated Gradual Pruner (AGP)}, discussed in \textbf{To prune, or not to prune: exploring the efficacy of pruning for model compression}, the authors Michael Zhu and Suyog Gupta propose an intuitive, fresh new pruning approach briefly described as:
+
+\begin{itemize}
+\item \textbf{new automated gradual pruning algorithm} in which the sparsity is increased from an initial sparsity value $s_{i}$ (usually 0) to a ﬁnal sparsity value $s_{f}$ over a span of $n$ pruning steps;
+\item The intuition behind this sparsity function in equation below is to \textbf{prune the network rapidly in the initial phase} when:
+\begin{itemize}
+\item the redundant connections are abundant, and;
+\item gradually reduce the number of weights being pruned each time as there are fewer and fewer weights remaining in the network.
+\end{itemize}
+\end{itemize}
+
+% \begin{equation}
+% s_{t} = s_{f} + (s_{i} - s_{f}(1 - \frac{t-t_{0}}{n \Delta t})^{3}), t \in \{t_{0}, t_{0} + \Delta t, \dots, t_{0} + \Delta n\}
+% \end{equation}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Automated Gradual Pruner (2)}
+Other interesting properties related to \textbf{Automated Gradual Pruner (AGP)}, and discussedwithin Michael Zhu and Suyog Gupta's paper, for better appreciating and understanding the usefulness of such a technique are:
+
+\begin{itemize}
+\item It Requires a lower number of trials, and attempts for identifying meaningful set of hyper-params for leading the pruning approach, compared to other techniques such Magnitude Level Pruning and other similars;
+\item It does not made particular assumptions on weight values density distribution;
+\item It is agnostic with respect to the particular Deep Neural Network Architecture chosen;
+\end{itemize}
+
+
+
+\end{frame}

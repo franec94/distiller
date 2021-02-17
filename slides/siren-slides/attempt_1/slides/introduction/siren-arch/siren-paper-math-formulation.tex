@@ -1,0 +1,18 @@
+
+
+
+
+\begin{frame}
+\frametitle{Math Formulation of Siren Architectures}
+Speaking briefly about essential math details about Siren Deep Neural Net architectures, we can say that these precise kind of models are mathematically formuled as follow:
+
+\begin{itemize}
+\item as Siren paper's authors say, We are interested in a class of functions $\Phi$ that satisfy equations of the form: 
+\begin{equation}
+F(x, \Phi, \nabla_{x}\Phi, \nabla_{x}^{2}\Phi, \dots) = 0, \Phi:x\rightarrow\Phi(x)
+\end{equation}
+\item This implicit problem formulation takes as input the spatial or spatio-temporal coordinates $x \in R^{m}$ and, optionally, derivatives of $\Phi$ with respect to these coordinates. Our goal is then to learn a neuralnetwork that parameterizes $\Phi$ to map $x$ to some quantity of interest while satisfying the constraintpresented in Equation (1).
+\item Thus, $\Phi$ is implicitly defined by the relation defined by $F$ and we refer to neural networks that parameterize such implicitly defined functions as \textit{implicit neural representations}.
+\end{itemize}
+
+\end{frame}

@@ -1,0 +1,16 @@
+
+
+
+
+\begin{frame}
+\frametitle{Pruning Technique Workflow}
+For pruning Siren based Deep Models via AGP pruning method, and after having performed some random trials, via \textbf{Random Search Approach} to indetify most suitable hyper-params, we follow the subsequent training strategy:
+\begin{itemize}
+\item We determine the degree of pruning for each layer depending on the \textbf{Sensitivity Level Analysis} done ahead of pruning time.
+\item We let the \textbf{Frequency} Hyper-parameter to be picked up from: $\{50, 100, 200\}$ possible choices, essential to let net model to mitigate or recovery from \textbf{brain damage} induced while removing not salient weigths;
+\item We train each model for a \textbf{Number of Epochs} equals to $150000$ before turning off pruning and let the model to finish remaining epochs;
+\item We both train \textbf{from scratch} by means of AGP algorithm or prune an \textbf{already trained, for reaching overfitting state, models};
+\item We follow a generically \textbf{Suggested Heuristic in literature} for not pruning first and last layers in order to let performance to not degradate too much;
+\end{itemize}
+
+\end{frame}

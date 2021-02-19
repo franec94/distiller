@@ -1,0 +1,37 @@
+# =============================================== #
+# Makefile_QuantTargets - Variables:
+# =============================================== #
+
+# Quant scripts (Post-Train)
+# --------------------------
+RUN_PROGRAM_PTQ = run_program_siren_app_ptq.sh
+
+# Quant scripts (Train)
+# --------------------------
+RUN_PROGRAM_QUANT_AWARE = run_program_siren_app_quant_aware.sh
+SIREN_APP_QAT_MANY_TRIALS = run_program_siren_app_quant_aware_many_trials.sh
+
+# =============================================== #
+# Makefile_QuantTargets - Targets:
+# =============================================== #
+
+# Post-Train-Quant tasks:
+# --------------------------------- #
+Test_on_Cameramen_PTQ:
+	clear                         # Clear screen.
+	chmod u+x $(RUN_PROGRAM_PTQ)  # Turn as executable bash-compliant script to be runned.
+	./$(RUN_PROGRAM_PTQ)          # run bash-compliant script
+
+
+# Quant-Aware-Train tasks:
+# --------------------------------- #
+Train_on_Cameramen_QAT:
+	clear                                 # Clear screen.
+	chmod u+x $(RUN_PROGRAM_QUANT_AWARE)  # Turn as executable bash-compliant script to be runned.
+	./$(RUN_PROGRAM_QUANT_AWARE)          # run bash-compliant script
+
+
+Train_on_Cameramen_QAT_MANY_TRIALS:
+	clear                                   # Clear screen.
+	chmod u+x $(SIREN_APP_QAT_MANY_TRIALS)  # Turn as executable bash-compliant script to be runned.
+	./$(SIREN_APP_QAT_MANY_TRIALS)          # run bash-compliant script

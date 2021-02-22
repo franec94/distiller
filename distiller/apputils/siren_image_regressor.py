@@ -274,7 +274,7 @@ class SirenRegressorCompressor(object):
                 freq_ckpt=10000,
                 is_best=is_best, \
                 is_mid_ckpt = is_mid_ckpt, \
-                # is_last_epoch = is_last_epoch,
+                is_last_epoch = is_last_epoch,
                 is_one_to_save_pruned=is_one_to_save_pruned, \
                 save_mid_pr_obj=self.save_mid_pr,
                 prune_details=prune_details \

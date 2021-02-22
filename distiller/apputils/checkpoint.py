@@ -38,7 +38,7 @@ def save_checkpoint( \
         extras=None,  name=None, dir='.', freq_ckpt = None, \
         is_best=False,
         is_mid_ckpt = False, \
-        # is_last_epoch = False,
+        is_last_epoch = False,
         is_one_to_save_pruned = False, \
         save_mid_pr_obj = None, \
         prune_details=None):
@@ -95,29 +95,32 @@ def save_checkpoint( \
         torch.save(checkpoint, fullpath)
     # else: torch.save(checkpoint, fullpath)
 
+    """
     if is_best:
         # Save new best result into dedicated ckpt.
         filename_best = 'best.pth.tar' if name is None else name + '_best.pth.tar'
         fullpath_best = os.path.join(dir, filename_best)
         # shutil.copyfile(fullpath, fullpath_best)
         torch.save(checkpoint, fullpath_best)
+    """
 
+    """
     if is_mid_ckpt:
         # Save middle desired epoch-ckpt result into dedicated ckpt.
         filename_mid_ckpt = f'mid_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_mid_ckpt_epoch_{epoch}.pth.tar'
         fullpath_mid_ckpt = os.path.join(dir, filename_mid_ckpt)
         # shutil.copyfile(fullpath, fullpath_mid_ckpt)
         torch.save(checkpoint, fullpath_mid_ckpt)
-    
     """
+
     elif is_last_epoch:
         # Save last desired epoch-ckpt result into dedicated ckpt.
         filename_final_ckpt = f'final_ckpt_epoch_{epoch}.pth.tar' if name is None else name + f'_final_ckpt_epoch_{epoch}.pth.tar'
         fullpath_final_ckpt = os.path.join(dir, filename_final_ckpt)
         # shutil.copyfile(fullpath, fullpath_final_ckpt)
         torch.save(checkpoint, fullpath_final_ckpt)
-    """
 
+    """
     if is_one_to_save_pruned and save_mid_pr_obj is not None:
         # Save desired epoch-ckpt result into dedicated ckpt if prunig scheduler is on.
         prune_rate = save_mid_pr_obj.get_rate_to_save()
@@ -140,6 +143,9 @@ def save_checkpoint( \
                 json.dump(prune_details, outfile)
         except Exception as err:
             msglogger.info(f"{str(err)}.\nError occour when attempting to saving: {out_file_data}")
+        
+        """
+    pass
 
 
 

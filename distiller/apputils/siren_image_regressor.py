@@ -238,8 +238,9 @@ class SirenRegressorCompressor(object):
         return vloss, vpsnr, vssim
 
 
-    # def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch = False, prune_details = {}):
-    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, prune_details = {}):
+    def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, is_last_epoch=False, prune_details={}):
+        """Finalize data obtained for current epoch if it is necessary."""
+        # def _finalize_epoch(self, epoch, mse, psnr_score, ssim_score, prune_details = {}):
         # Update the list of top scores achieved so far, and save the checkpoint
 
         is_one_to_save_pruned = False
@@ -444,7 +445,7 @@ class SirenRegressorCompressor(object):
                 save_mid_pr=self.save_mid_pr, \
                 prune_details=prune_details)
             """
-            if epoch >= 0 and epoch % self.args.print_freq == 0 or epoch == self.ending_epoch-1:
+            if epoch >= 0 and epoch % self.args.print_freq == 0:
                 # ---------------------- log train data ---------------------- #
                 # msglogger.info('\n')
                 msglogger.info('--- train (epoch=%d/%d)-----------', epoch, self.ending_epoch)
@@ -505,10 +506,14 @@ class SirenRegressorCompressor(object):
             
             # ---------------------- check whether to save middlle checkpoint data ---------------------- #
             # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
-            self._finalize_epoch(epoch, loss, psnr_score, ssim_score,  prune_details=prune_details)
+            self._finalize_epoch(
+                epoch,
+                loss, psnr_score, ssim_score,
+                is_last_epoch=False, prune_details=prune_details)
 
             # Check whether to early halt training - when desired overall sparsity level is met.
             if self.early_stopping_agp is not None and self.early_stopping_agp.stop_training():
+                msglogger.info("Early Stopping Halted training!")
                 # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = False, prune_details=prune_details)
                 break
         
@@ -516,8 +521,9 @@ class SirenRegressorCompressor(object):
         # self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True, prune_details=prune_details)
         old_name = str(self.args.name)
         self.args.name = "final_epoch"
-        self._finalize_epoch(epoch, loss, psnr_score, ssim_score, prune_details=prune_details)
+        self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch=True, prune_details=prune_details)
         self.args.name = old_name
+        pass
 
 
     def run_plain_training_loop(self,):
@@ -612,9 +618,11 @@ class SirenRegressorCompressor(object):
                 self._finalize_epoch(epoch, loss, psnr_score, ssim_score, is_last_epoch = True)
                 break
         """
-        msglogger.info("=> Running without scheduler")
-        self.run_plain_training_loop()
-        return self.performance_tracker.perf_scores_history
+
+        # msglogger.info("=> Running without scheduler")
+        # self.run_plain_training_loop()
+        # return self.performance_tracker.perf_scores_history
+        pass
 
 
     def validate(self, epoch=-1, is_last_epoch = False):

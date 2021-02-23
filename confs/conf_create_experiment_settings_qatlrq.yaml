@@ -13,7 +13,7 @@ dataset:
   dataset_columns_scores: "size_byte,footprint,psnr,bpp,CR,mse,ssim,time,entropy"
   dataset_columns_settings: "scheduler_name,scheduler,prune_techs,prune_rate,quant_techs,command_line,num_epochs,n_hl,n_hf,w,h,L1,L2"
   save_dataset: True
-  blueprint_conf_dirname: "/home/franec94/Documents/thesys-siren/codebase/blueprint_distiller_experiments_schedulers"
+  blueprint_conf_dirname: "../../../schedulers/quant-aware-training"
   blueprint_conf_filename: "siren_quant_aware_train_linear_quant.yaml"
 
 

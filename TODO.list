@@ -18,7 +18,7 @@
    - Config file:
      ./confs/conf_create_experiment_settings_qatlrq.yaml
    - Scheduler Blueprint:
-       Root: /home/franec94/Documents/thesys-siren/codebase/blueprint_distiller_experiments_schedulers/
+       Root: ../../../schedulers/quant-aware-training
        Filename: siren_quant_aware_train_linear_quant.yaml
      
 

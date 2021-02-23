@@ -1,0 +1,15 @@
+Required items for carrying out QAT:
+
+ Required Source files:
+   - "Makefile_TOOLS" -> It is the automatio tool that is in charge of running qat tasks, amongst the other things;
+   - "handling_experiment_settings.py" -> It orchestrates several QAT experiments;
+   - "siren_main_app.py" -> It represents entry point for each single trial;
+
+ Other required files:
+   - Checkpoint model's file:
+     /home/chiarlo/siren-project/ckpts/test066_airplane/ckpts_for_qat/___2021.02.22-174841/final_epoch_final_ckpt_epoch_474999.pth.tar
+   - Target Image:
+     /home/chiarlo/siren-project/BSD68/test066.png
+   - Config file:
+     ./confs/conf_create_experiment_settings_qatlrq.yaml
+

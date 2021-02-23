@@ -1,0 +1,44 @@
+policies:
+- ending_epoch: 475000
+  frequency: 2
+  quantizer:
+    instance_name: linear_quantizer
+  starting_epoch: 430728
+quantizers:
+  linear_quantizer:
+    bits_activations: 32
+    bits_bias: 32
+    bits_weights: 8
+    class: QuantAwareTrainRangeLinearQuantizer
+    ema_decay: 0.999
+    mode: SYMMETRIC
+    overrides:
+      net.0.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.1.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.2.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.3.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.4.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.5.linear:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+      net.6:
+        bits_activations: null
+        bits_bias: null
+        bits_weights: 4
+    per_channel_wts: true

@@ -25,7 +25,9 @@ exp_train_confs:
   n_hl: "[5]"
   delta_end_epochs: "[25]"
   results_csv_path: "['../../../results/csv/quant-aware-train/linear-quant/linear_quant_attempt_2020.12.11-171610.csv']"
+  image_path: "['../../../BSD68/test066.png']"
   init_model: "['../../../ckpts/_final_ckpt_epoch_449999.pth.tar']"
+#  init_model: "['../../../ckpts/_final_ckpt_epoch_449999.pth.tar']"
 
 exp_hyper_params_space:
   policies.0.frequency:

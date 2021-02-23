@@ -4,7 +4,7 @@ actions:
   dataset_path: null # "../tmp/experiment_settings/quant/exp_1611091989.5274785/out/out_1611091989.5274785.csv"
 
 out_dir:
-  root_dir: "../../tmp"
+  root_dir: "../../../results/tmp/test066_airplane/created_exp_tmp"
   main_out_dir_exp_set: "experiment_settings" # Output Directory Path for our experiment settings
   category_experiment: "quant"                # Categories: ["plain_train", "prune", "quant"]
 
@@ -19,12 +19,12 @@ dataset:
 
 exp_train_confs:
   lr: "[1e-4,1e-5,5e-5,7.5e-5]"
-  logging_root: "['../../tmp/quant_train']"
+  logging_root: "['../../../results/tmp/test066_airplane/quant_train']"
   sidelength: "[256]"
   n_hf: "[64]"
   n_hl: "[5]"
   delta_end_epochs: "[25]"
-  results_csv_path: "['../../../results/csv/quant-aware-train/linear-quant/linear_quant_attempt_2021.02.22-174841.csv']"
+  results_csv_path: "['../../../results/tmp/test066_airplane/csv/quant-aware-train/linear-quant/linear_quant_attempt_2021.02.22-174841.csv']"
   image_path: "['../../../BSD68/test066.png']"
   init_model: "['../../../ckpts/test066_airplane/ckpts_for_qat/___2021.02.22-174841/final_epoch_final_ckpt_epoch_474999.pth.tar']"
 #  init_model: "['../../../ckpts/_final_ckpt_epoch_449999.pth.tar']"

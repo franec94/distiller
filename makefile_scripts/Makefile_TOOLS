@@ -1,0 +1,72 @@
+# =================================================================================== #
+#
+# Filename: Makefile
+# Description:
+#  - It contains some subsections, which are referring to distinct parts that all
+#    together compose and let the different tasks to be accomplished and carried out
+#    as one may desire for the purposes he/she bears in mind.
+#
+# Sctions:
+#  - `Variables` - section with upper case names referring to Makefile's global
+#     variables.
+#  - `Tasks` - section that owns targets written for resolving specific objectives.
+#
+# =================================================================================== #
+
+# =================================================================================== #
+# Section - Variables
+# =================================================================================== #
+
+SCRIPT_INTERPETER = python3
+
+TEST_BATCH_SCRIPT = test_batch_of_models.py
+TEST_BATCH_ARGS = --input_dataset_file ../../results/datasets/tmp/baselines/pool_1610833309.4336185/enanched_pool_1610833309.4336185.csv \
+ --output_dataset_path ../../results/tests/datasets/tmp/baselines/pool_1610833309.4336185 \
+ --tests_logging_root ../../results/tests/tmp/baselines/pool_1610833309.4336185
+
+# create_models_dataset.py
+# CRMLDT = CReste_ModeL_DataseT
+# ------------------------------------------- #
+CRMLDT_SCRIPT = create_models_dataset.py
+CRMLDT_ARGS = --conf_file conf_evaluate_models.yaml
+CRMLDT_SUMMARY_ARGS = --conf_file conf_evaluate_models.yaml --summary_estimated_workload
+
+
+# create_models_dataset.py
+# CES = Create_Experiment_Settings
+# ------------------------------------------- #
+CES_SCRIPT = handling_experiment_settings.py
+CES_ARGS = --conf_file ./confs/conf_create_experiment_settings_qatlrq.yaml
+CES_SUMMARY_ARGS = --conf_file ./confs/conf_create_experiment_settings_qatlrq.yaml --summary_estimated_workload
+
+# =================================================================================== #
+# Section - Targets
+# =================================================================================== #
+
+# Targtes for : test_batch_of_models.py
+# ------------------------------------------- #
+test_batch:
+	clear
+	chmod u+x $(TEST_BATCH_SCRIPT)
+	$(SCRIPT_INTERPETER) $(TEST_BATCH_SCRIPT) $(TEST_BATCH_ARGS)
+
+# Targtes for : create_models_dataset.py
+# ------------------------------------------- #
+crmldt:
+	clear
+	$(SCRIPT_INTERPETER) $(CRMLDT_SCRIPT) $(CRMLDT_ARGS)
+
+crmldt_show_summary_workload:
+	clear
+	$(SCRIPT_INTERPETER) $(CRMLDT_SCRIPT) $(CRMLDT_SUMMARY_ARGS)
+
+# Targtes for : create_models_dataset.py
+# ------------------------------------------- #
+ces:
+	clear
+	$(SCRIPT_INTERPETER) $(CES_SCRIPT) $(CES_ARGS)
+
+ces_show_summary_workload:
+	clear
+	$(SCRIPT_INTERPETER) $(CES_SCRIPT) $(CES_SUMMARY_ARGS)
+

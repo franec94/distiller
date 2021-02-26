@@ -1,0 +1,26 @@
+# Image's conf options.
+image_file_path: Null
+n_hf:  64
+n_hl:  5
+w: 256
+h: 256
+
+# Model's conf options.
+baseline_values_ws: "128,4096,4096,4096,4096,4096,64"
+baseline_values_bias: "2,64,64,64,64,64,1"
+arr_wts_no: "128,3072,2868,2868,2868,2048,64"
+
+# Save conf options.
+flag_save_to_df_csv: false
+flag_join_to_cmprs_df_csv: false
+flag_save_as_tmp: true
+cmprs_dataset_name: "cmprs_df.csv"
+
+# Experiment file conf options.
+target_date: '2020.12.14-174343'
+experimtent_timestamp: '1610462502.6123333'
+kind_freq: 'high-freq' # 'mid-freq'
+input_dir: 'C:\Users\Francesco\Desktop\experiments-qat\high-freq-experiments' # 'C:\Users\Francesco\Desktop\experiments-qat\mid-freq-experiments'
+
+# Output file conf options.
+dest_dir: "uniform_csv_files"

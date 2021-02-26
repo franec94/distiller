@@ -1,0 +1,15 @@
+# Image's conf options.
+image_file_path: Null
+n_hf:  64
+n_hl:  5
+w: 256
+h: 256
+
+# Model's conf options.
+baseline_values_ws: "128,4096,4096,4096,4096,4096,64"
+baseline_values_bias: "2,64,64,64,64,64,1"
+
+# Save conf options.
+dest_dir: "uniform_csv_files"
+save_to_cmprs_dataset: true
+cmprs_dataset_name: "cmprs_df.csv"

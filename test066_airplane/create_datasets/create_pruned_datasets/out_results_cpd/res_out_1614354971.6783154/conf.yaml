@@ -1,0 +1,6 @@
+init_from:
+  date: "___2021.02.03-210001"
+prune_data:
+  prune_tech: "AGP"
+input_data:
+  image_name: "test066"

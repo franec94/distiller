@@ -1,0 +1,21 @@
+\section{Jpege schema}
+
+\begin{tikzpicture}[node  distance =10em]
+\node[entity] (jpeg-instance) {Jpeg Instance};
+
+\node[attribute] (metrices) [left of=jpeg-instance] {METRICES} edge (jpeg-instance);
+\node[attribute] (psnr) [left of=metrices] {PSNR} edge (metrices);
+\node[attribute] (mse) [above  left of=metrices] {SSIM} edge (metrices);
+\node[attribute] (ssim) [below  left of=metrices] {MSE} edge (metrices);
+
+\node[attribute] (jpeg-algorithm) [above of=jpeg-instance] {JPEG-TECH} edge (jpeg-instance);
+\node[attribute] (quality) [above of=jpeg-algorithm] {QUALITY} edge (jpeg-algorithm);
+\node[attribute] (cr) [above  left of=jpeg-algorithm] {CR} edge (jpeg-algorithm);
+\node[attribute] (bpp) [above  right of=jpeg-algorithm] {BPP} edge (jpeg-algorithm);
+
+
+\node[attribute] (image-size) [below  right of=jpeg-instance] {IMAGE-SIZE} edge (jpeg-instance);
+\node[attribute] (file-size-bits) [above  right of=image-size] {FILE SIZE BITS} edge (image-size);
+\node[attribute] (width) [right of=image-size] {WIDTH} edge (image-size);
+\node[attribute] (height) [below  right of=image-size] {HEIGHT} edge (image-size);
+\end{tikzpicture}

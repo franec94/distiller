@@ -204,7 +204,7 @@ def save_created_conf_files(conf_dict: dict, out_conf_list: list, ts = None) -> 
 # Run experiments
 # =================================================================================================== #
 
-def get_custom_command(a_conf_train_dict:dict, out_conf:dict, echo: bool = False) -> str:
+def get_custom_command(a_conf_train_dict : dict, out_conf : dict, echo: bool = False) -> str:
     """TODO COMMENT IT."""
     LOGGING_ROOT = a_conf_train_dict["logging_root"]
     SIDELENGTH = a_conf_train_dict["sidelength"]
@@ -220,6 +220,11 @@ def get_custom_command(a_conf_train_dict:dict, out_conf:dict, echo: bool = False
     INITIALIZED_MODEL = a_conf_train_dict["init_model"]
     COMPRESS_SCHEDULE = "../schedulers/scheduler.yaml"
     RESULTS_CSV_PATH = a_conf_train_dict["results_csv_path"]
+
+    IMAGE_FILEPATH = None
+    if "image_path" in a_conf_train_dict.keys():
+        IMAGE_FILEPATH = a_conf_train_dict["image_path"] = 0.0
+        pass
 
     if "lambda_L_1" not in a_conf_train_dict.keys():
         a_conf_train_dict["lambda_L_1"] = 0.0
@@ -254,7 +259,8 @@ python3 siren_main_app.py \
     --verbose 0'
 """
     else:
-        cmd=f"""
+        if not IMAGE_FILEPATH:
+            cmd=f"""
 CUDA_VISIBLE_DEVICES=0 \
 python3 siren_main_app.py \
     --logging_root {LOGGING_ROOT} \
@@ -276,6 +282,31 @@ python3 siren_main_app.py \
     --save_test_data_to_csv_path {RESULTS_CSV_PATH} \
     --verbose 0
 """
+        else:
+            cmd=f"""
+CUDA_VISIBLE_DEVICES=0 \
+python3 siren_main_app.py \
+    --logging_root {LOGGING_ROOT} \
+    --experiment_name 'quant_train' \
+    --image_filepath {IMAGE_FILEPATH}
+    --sidelength {SIDELENGTH} \
+    --n_hf {N_HF}  \
+    --n_hl {N_HL} \
+    --seed 0 \
+    --cuda \
+    --train \
+    --evaluate \
+    --num_epochs {EPOCHS} \
+    --lr {LR} \
+    --lambda_L_1 {lambda_L_1} \
+    --lambda_L_2 {lambda_L_2} \
+    --epochs_til_ckpt 5000 \
+    --resume-from {INITIALIZED_MODEL} \
+    --compress {COMPRESS_SCHEDULE} \
+    --save_test_data_to_csv_path {RESULTS_CSV_PATH} \
+    --verbose 0
+"""
+            pass
         pass
     return cmd
 
@@ -537,7 +568,7 @@ def run_dataset_experiments(args, conf_dict: dict, a_df:pd.DataFrame = pd.DataFr
                 _ = yaml.dump(scheduler, scheduler_file)
                 pass
             cmd = a_row_dict["command_line"]
-            print(cmd)
+            pbar.write(f"{str(cmd)}")
             run_subprocess_cmd_waiting_it(cmd, verbose=1)
             pbar.update(1)
             # sys.exit(0)

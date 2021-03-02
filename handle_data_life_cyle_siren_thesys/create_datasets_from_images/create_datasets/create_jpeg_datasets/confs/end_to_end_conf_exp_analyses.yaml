@@ -1,0 +1,74 @@
+exp_infos:
+  # Data Paths
+  # --------------------------------------------------------------- #
+  root_dir_exp:
+    # trials bits-5
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit5/qatlrq_exp_1611177738.8328216"
+    
+    # trials bits-16
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611180023.2432656"
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611182013.119655"
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611183978.9893289"
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611183978.98933"
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611290168.1300104"
+    - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611334078.680677"
+    
+  exp_datetime: 
+    # trials bits-5
+    - "1611177738.8328216"
+
+    # trials bits-16
+    - "1611180023.2432656"
+    - "1611182013.119655"
+    - "1611183978.9893289"
+    - "1611183978.98933"
+    - "1611290168.1300104"
+    - "1611334078.680677"
+  
+  # Model's infos
+  # --------------------------------------------------------------- #
+  model_infos:
+    ws_pruned: [128,3687,2868,2253,1844,1844,64]
+    ws: [128,4096,4096,4096,4096,4096,64]
+    biases: [2,64,64,64,64,64,1]
+    n_hf: 64
+    n_hl: 5
+  
+  # Image's infos
+  # --------------------------------------------------------------- #
+  image_infos:
+    crop_w: 256
+    crop_h: 256
+    path: null
+  
+  # Out dirs infos
+  # --------------------------------------------------------------- #
+  oud_dirs_info:
+    baselines_dir: "baselines_images"
+    target_images: "target_images"
+    out_dir_1: "graphics_wrt_quant_tech"
+    out_dir_2: "graphics_wrt_qt_lr"
+    out_dir_3: "graphics_wrt_lr"
+    tables_dir: "tables"
+  
+  # Filter data to reduce graphics crowd
+  # --------------------------------------------------------------- #
+  filter_data:
+    jpeg:
+      min_psnr: 34.0
+      max_psnr: null
+      sampling_datapoints: 10
+      min_q: 68
+      max_q: 95
+    siren_bs:
+      min_psnr: 24.5
+      max_psnr: 50.0
+      sampling_datapoints: 10
+    qatrlq:
+      delta_psnr: 5
+
+
+# - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611183978.9893289"
+# - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611183978.98933"
+# - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611290168.1300104"
+# - "/home/franec94/Documents/thesys-siren/codebase/notebooks/analyze_quant_data/tmp_exp/trials-bit16/qatlrq_exp_1611334078.680677"

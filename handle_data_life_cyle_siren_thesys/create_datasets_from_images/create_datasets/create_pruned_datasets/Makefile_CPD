@@ -1,0 +1,46 @@
+# ========================================== #
+# Filename: Makefile_CPD
+# Aim: Running some stasks or jobs for
+#      building datasets related to Deep 
+#      Learning Techniques for compressing
+#      Net Models by means of Pruning
+#      Approaches such as AGP method.
+# ========================================== #
+
+# ========================================== #
+# Makefile Variables
+# ========================================== #
+
+INT_SCRPT = python3
+
+SCD = main_cpd.py # Script Create Datasets
+
+# Arguments for program referred to as SCD name
+ROOT_DIR = --root_dir /home/franec94/Desktop/tmp_iside/tmp_agp_prune/test066_airplane
+
+OUT_DIR = --out_dir ./out_results_cpd/
+
+CONF_FP = --conf_filepath ./confs_cpd/conf.yaml
+
+TESTS_LOGGING_ROOT = --tests_logging_root ../../../tested_pruned_models/
+
+OUT_DATASET_PATH = --output_dataset_path ../../../out_dataset_path_tested_pruned_models/
+
+PP  = --performances_path /home/franec94/Desktop/tmp_iside/tmp_agp_prune/performances.txt
+
+ARGS_SCD = $(ROOT_DIR) $(OUT_DIR) $(CONF_FP) $(TESTS_LOGGING_ROOT) $(OUT_DATASET_PATH) $(PP)
+
+# ========================================== #
+# Makefile Tasks / Targets
+# ========================================== #
+
+run_SCD:
+	clear
+	chmod u+x $(SCD)
+	$(INT_SCRPT) $(SCD) $(ARGS_SCD)
+
+run_HELP:
+	clear
+	chmod u+x $(SCD)
+	$(INT_SCRPT) $(SCD) --help
+

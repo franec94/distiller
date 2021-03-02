@@ -1,0 +1,7 @@
+ROOT_DIR : "/media/franec94/Elements/Francesco/THESYS/FROM_DESKTOP/tmp_iside/tmp_qat/test066_airplane/test066_airplane_4"
+OUT_DIR : "./out/results"
+CONF_FILEPATH : "./confs/conf_test066_init_from_pruned.yaml"
+TESTS_LOGGING_ROOTS : "./logs"
+OUTPUT_DATASET_PATH : "./out/datasets"
+PERFORMANCES_PATH : "/media/franec94/Elements/Francesco/THESYS/FROM_DESKTOP/tmp_iside/tmp_qat/test066_airplane/performances.txt"
+OUT_FILENAME : "out.csv"

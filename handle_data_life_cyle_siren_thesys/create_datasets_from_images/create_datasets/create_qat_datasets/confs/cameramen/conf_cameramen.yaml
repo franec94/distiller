@@ -1,0 +1,7 @@
+ROOT_DIR : "/media/franec94/Elements/Francesco/THESYS/FROM_DESKTOP/tmp_iside/tmp_qat/cameramen/cameramen_1"
+OUT_DIR : "./out/results"
+CONF_FILEPATH : "./confs/cameramen/conf_cameramen_init_from_pruned.yaml"
+TESTS_LOGGING_ROOTS : "./logs"
+OUTPUT_DATASET_PATH : "./out/datasets"
+PERFORMANCES_PATH : "/media/franec94/Elements/Francesco/THESYS/FROM_DESKTOP/tmp_iside/tmp_qat/cameramen/performances.txt"
+OUT_FILENAME : "out.csv"

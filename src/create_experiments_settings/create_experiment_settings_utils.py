@@ -223,7 +223,7 @@ def get_custom_command(a_conf_train_dict : dict, out_conf : dict, echo: bool = F
 
     IMAGE_FILEPATH = None
     if "image_path" in a_conf_train_dict.keys():
-        IMAGE_FILEPATH = a_conf_train_dict["image_path"] = 0.0
+        IMAGE_FILEPATH = a_conf_train_dict["image_path"]
         pass
 
     if "lambda_L_1" not in a_conf_train_dict.keys():

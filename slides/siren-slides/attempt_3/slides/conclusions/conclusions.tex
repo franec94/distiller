@@ -1,0 +1,56 @@
+
+
+
+
+\begin{frame}
+    \frametitle{Selected Deep Nets Compression Techniques}
+        % \centering \Huge
+        \begin{center}
+            {\fontsize{40}{50}\selectfont \emph{Conclusions}}
+        \end{center}
+        \begin{center}
+            \emph{Last Remarks learnt from compressing Siren Based Nets}
+        \end{center}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Conclusions and Remarks}
+    The major remarks we have found while appling Deep Networks Compression Techiniques such as pruning-based approaches and quantizing-based approaches
+    are the following. In particular, speaking about adopted Pruning Algorithm, which is Automated Gradual Pruning (AGP) we notice that:
+    \begin{itemize}
+        \item Models seem to need a reasonable extensive number of epochs to improve over brain damage, i.e. weights prunining
+        \item It result a better choice to let models to be pruned when an adequate large number of steps last between two consecutive wheight pruning
+        \item item We were able to identify Hyper-params combinations for AGP pruning method that
+        \begin{itemize}
+            \item outperform baseline architectures, i.e. plain Siren-based Nets.
+            \item satisty constraints of being at least lower in size w.r.t Learned
+            Image as well as still performing better than some comparing in size plain Siren-nets.
+        \end{itemize}
+        \item However, when looking at performance that should be compared to Jpeg compression results we still notice that the existing gap
+        between values related to Bpp score are too large to justify just such a technique to effectively learn an implictly representation of the Target Image.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Conclusions and Remarks (2)}
+    The major remarks we have found while appling Deep Networks Compression Techiniques such as pruning-based approaches and quantizing-based approaches
+    are the following. Where, talking about adopted Quant Procedure, which is Linear Range quant-aware training we claim that:
+    \begin{itemize}
+        \item We have quantized starting from already trained and pruned models, obtaining in best cases that:
+        \begin{itemize}
+            \item I wide reduction in Bpp score corresponded a drammaticaly reduction in Pnsr values
+            \item Still we have retrieved quantized model instances that show an acceptable Psnr score value w.r.t both Jpeg compressed counterpart,
+            and even an indisputable results wr.t plain Siren-based models.
+        \end{itemize}
+        \item However, Learning Rate Hyper-param was crucial for identifying promising Linear Range Quant Configurations, and lower Learning Rate values
+        seems to outperform larger ones.
+        \item Differently from AGP pruning technique, we observed that for training by means of quant awere procedures as LRQ:
+        \begin{itemize}
+            \item it was better to increase frequency with which updating learnable parameters to let quantization to take place
+            \item it was better to halt training as soon as possible in order to do not let weigths varying such that their density distribution will not
+            be any more adequante w.r.t learned quantization parameters.
+        \end{itemize}        
+    \end{itemize}
+\end{frame}

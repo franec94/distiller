@@ -1,0 +1,34 @@
+% Latex file name: further-works.tex
+% Here, within the current latex file we are going to report and describe, potential and possible
+% improvements, intended as other interesting and valuable NN Pruning Techniques which are available
+% out there as relevant alternatives to the yet discussed and employed methods to eventually overcome by
+% means such latter algorithms previous found results where instead we have adopted previous pruning approaches.
+
+\begin{frame}
+    \frametitle{Selected Deep Nets Compression Techniques}
+        % \centering \Huge
+        \begin{center}
+            {\fontsize{40}{50}\selectfont \emph{Future Works}}
+        \end{center}
+        \begin{center}
+            \emph{Suggestions for widening current intial analyses carried out}
+        \end{center}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Future Works: Other Pruning Techniques}
+    As we already mentioned, NN Pruning Techniques can reduce the parameter counts of training networks by over 90\%, decreasing \textbf{storage requirements}
+    and improving \textbf{computational performance of inference}, without compromising accuracy. So, Other availabe techniques we can adopt are:
+    \begin{itemize}
+        \item The \textbf{Lottery Ticket Hypothesis} by Jonathn Frankle et al. (March 2019), where the main reason for using it are:
+        \begin{itemize}
+            \item They found out standard \textbf{pruning techniques uncover trainable subnetworks}, i.e. winning tickets, from FCs and CNNs.
+            \item The \textbf{winning tickets}, i.e. best initial params intialization, lead to connections having initial weigths that make training particularly effective;
+            \item They show in their paper that there consistently exist \textbf{smaller subnetworks} that when trained from the start are able to learn at least as fast as their
+            larger counterpart while reaching similar test accuracy.
+            \item It supports both \textbf{one-shot} and \textbf{iterative-pruning} behaviour, making it suitable in a variety of context when hardware and time constraints arise. Furthermore, LTH follows \textbf{unstructured-pruning heuristics}, focusing on reaching sparisiy.
+        \end{itemize}
+        
+    \end{itemize}
+\end{frame}

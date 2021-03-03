@@ -1,0 +1,12 @@
+\beamer@sectionintoc {1}{Introduction}{2}{0}{1}
+\beamer@subsectionintoc {1}{1}{Siren Deep Neural Architecture}{2}{0}{1}
+\beamer@subsectionintoc {1}{2}{Compression Techniques}{5}{0}{1}
+\beamer@subsubsectionintoc {1}{2}{1}{Prunining Techniques}{10}{0}{1}
+\beamer@subsubsectionintoc {1}{2}{2}{Quantizing Techniques}{10}{0}{1}
+\beamer@subsubsectionintoc {1}{2}{3}{Distiller Pytorch Framework}{10}{0}{1}
+\beamer@sectionintoc {2}{Experiments}{10}{0}{2}
+\beamer@subsectionintoc {2}{1}{Experiemnt Design Choices and Results}{10}{0}{2}
+\beamer@subsubsectionintoc {2}{1}{1}{Automated Gradual Pruning Technique}{10}{0}{2}
+\beamer@subsubsectionintoc {2}{1}{2}{Linear Range Quantization Technique}{21}{0}{2}
+\beamer@sectionintoc {3}{Conclusions}{30}{0}{3}
+\beamer@subsectionintoc {3}{1}{Remarks and conclusions}{30}{0}{3}

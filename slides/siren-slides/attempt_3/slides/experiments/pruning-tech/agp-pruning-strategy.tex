@@ -1,0 +1,31 @@
+% -------------------------------------------------------------------------------- %
+% Latex file: `agp-pruning-strategy.tex`
+% Description:
+% Speaing about Automated Gradual Pruning Strategy
+% Followed to train already over-parameterized and over-fitting plain models.
+% -------------------------------------------------------------------------------- %
+
+\begin{frame}
+    \frametitle{Selected Deep Nets Compression Techniques}
+        % \centering \Huge
+        \begin{center}
+            {\fontsize{40}{50}\selectfont \emph{Training Strategies and Workflow}}
+        \end{center}
+        \begin{center}
+            \emph{Identified and Applied for learning Pruned Deep Net Models}
+        \end{center}
+\end{frame}
+
+% Pruning Technique Workflow
+% -------------------------------------------------------------------------------- %
+\begin{frame}
+    \frametitle{Pruning Technique Workflow}
+    For pruning Siren based Deep Models via AGP pruning method, and after having performed some random trials,
+        via \textbf{Random Search Approach} to indetify most suitable hyper-params, we follow the subsequent training strategy:
+    \begin{itemize}
+            \item We determine the degree of pruning for each layer depending on the \textbf{Sensitivity Level Analysis} done ahead of pruning time.
+            \item We let the \textbf{Frequency} Hyper-parameter to be picked up from: $\{50, 100, 200\}$ possible choices, essential to let net model
+            \item We follow a generically \textbf{Suggested Heuristic in literature}, where we avoid pruning first and last layers
+                in order to let performance to not degradate too much;
+    \end{itemize}
+\end{frame}

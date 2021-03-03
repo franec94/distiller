@@ -1,0 +1,14 @@
+
+
+
+
+\begin{frame}
+    \frametitle{Linear Range Quant Workflow}
+        For Quantizing Siren based already pruned Deep Models via \textbf{LR QAT Compressing Method}, and after having performed some random trials,
+        via \textbf{Random Search Approach} to indetify most suitable hyper-params, we follow the subsequent training strategy:
+        \begin{itemize}
+            \item We let \textbf{quantization} levels to be in the interval represented from the following values {4, 8, 9, 16};
+            \item We let the \textbf{frequency of updates} to modify quantizing parameters to be {2, 5, 10, 25} from trials to trails; 
+            \item We let the Learning Rate to be reduced from $1e-4$ to $7.5e-5$ and even a lower value as $5.5e-5$;
+        \end{itemize}
+\end{frame}

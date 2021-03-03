@@ -1,0 +1,95 @@
+\headcommand {\slideentry {0}{0}{1}{1/1}{}{0}}
+\headcommand {\beamer@framepages {1}{1}}
+\headcommand {\beamer@sectionpages {1}{1}}
+\headcommand {\beamer@subsectionpages {1}{1}}
+\headcommand {\sectionentry {1}{Introduction}{2}{Introduction}{0}}
+\headcommand {\beamer@subsectionpages {2}{1}}
+\headcommand {\beamer@subsectionentry {0}{1}{1}{2}{Siren Deep Neural Architecture}}
+\headcommand {\slideentry {1}{1}{1}{2/2}{Siren Deep Neural Architecture}{0}}
+\headcommand {\beamer@framepages {2}{2}}
+\headcommand {\slideentry {1}{1}{2}{3/3}{Siren Deep Neural Architecture}{0}}
+\headcommand {\beamer@framepages {3}{3}}
+\headcommand {\slideentry {1}{1}{3}{4/4}{Siren Deep Neural Architecture}{0}}
+\headcommand {\beamer@framepages {4}{4}}
+\headcommand {\beamer@subsectionpages {2}{4}}
+\headcommand {\beamer@subsectionentry {0}{1}{2}{5}{Compression Techniques}}
+\headcommand {\slideentry {1}{2}{1}{5/5}{Compression Techniques}{0}}
+\headcommand {\beamer@framepages {5}{5}}
+\headcommand {\slideentry {1}{2}{2}{6/6}{Compression Techniques}{0}}
+\headcommand {\beamer@framepages {6}{6}}
+\headcommand {\slideentry {1}{2}{3}{7/7}{Compression Techniques}{0}}
+\headcommand {\beamer@framepages {7}{7}}
+\headcommand {\slideentry {1}{2}{4}{8/8}{Compression Techniques}{0}}
+\headcommand {\beamer@framepages {8}{8}}
+\headcommand {\slideentry {1}{2}{5}{9/9}{Compression Techniques}{0}}
+\headcommand {\beamer@framepages {9}{9}}
+\headcommand {\beamer@subsubsectionentry {0}{1}{2}{1}{10}{Prunining Techniques}}
+\headcommand {\beamer@subsubsectionentry {0}{1}{2}{2}{10}{Quantizing Techniques}}
+\headcommand {\beamer@subsubsectionentry {0}{1}{2}{3}{10}{Distiller Pytorch Framework}}
+\headcommand {\beamer@sectionpages {2}{9}}
+\headcommand {\beamer@subsectionpages {5}{9}}
+\headcommand {\sectionentry {2}{Experiments}{10}{Experiments}{0}}
+\headcommand {\beamer@subsectionpages {10}{9}}
+\headcommand {\beamer@subsectionentry {0}{2}{1}{10}{Experiemnt Design Choices and Results}}
+\headcommand {\beamer@subsubsectionentry {0}{2}{1}{1}{10}{Automated Gradual Pruning Technique}}
+\headcommand {\slideentry {2}{1}{1}{10/10}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {10}{10}}
+\headcommand {\slideentry {2}{1}{2}{11/11}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {11}{11}}
+\headcommand {\slideentry {2}{1}{3}{12/12}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {12}{12}}
+\headcommand {\slideentry {2}{1}{4}{13/13}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {13}{13}}
+\headcommand {\slideentry {2}{1}{5}{14/14}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {14}{14}}
+\headcommand {\slideentry {2}{1}{6}{15/15}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\slideentry {2}{1}{7}{16/16}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {16}{16}}
+\headcommand {\slideentry {2}{1}{8}{17/17}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {17}{17}}
+\headcommand {\slideentry {2}{1}{9}{18/18}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {18}{18}}
+\headcommand {\slideentry {2}{1}{10}{19/19}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {19}{19}}
+\headcommand {\slideentry {2}{1}{11}{20/20}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {20}{20}}
+\headcommand {\beamer@subsubsectionentry {0}{2}{1}{2}{21}{Linear Range Quantization Technique}}
+\headcommand {\slideentry {2}{1}{12}{21/21}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {21}{21}}
+\headcommand {\slideentry {2}{1}{13}{22/22}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {22}{22}}
+\headcommand {\slideentry {2}{1}{14}{23/23}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {23}{23}}
+\headcommand {\slideentry {2}{1}{15}{24/24}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {24}{24}}
+\headcommand {\slideentry {2}{1}{16}{25/25}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {25}{25}}
+\headcommand {\slideentry {2}{1}{17}{26/26}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {26}{26}}
+\headcommand {\slideentry {2}{1}{18}{27/27}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {27}{27}}
+\headcommand {\slideentry {2}{1}{19}{28/28}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {28}{28}}
+\headcommand {\slideentry {2}{1}{20}{29/29}{Experiemnt Design Choices and Results}{0}}
+\headcommand {\beamer@framepages {29}{29}}
+\headcommand {\beamer@sectionpages {10}{29}}
+\headcommand {\beamer@subsectionpages {10}{29}}
+\headcommand {\sectionentry {3}{Conclusions}{30}{Conclusions}{0}}
+\headcommand {\beamer@subsectionpages {30}{29}}
+\headcommand {\beamer@subsectionentry {0}{3}{1}{30}{Remarks and conclusions}}
+\headcommand {\slideentry {3}{1}{1}{30/30}{Remarks and conclusions}{0}}
+\headcommand {\beamer@framepages {30}{30}}
+\headcommand {\slideentry {3}{1}{2}{31/31}{Remarks and conclusions}{0}}
+\headcommand {\beamer@framepages {31}{31}}
+\headcommand {\slideentry {3}{1}{3}{32/32}{Remarks and conclusions}{0}}
+\headcommand {\beamer@framepages {32}{32}}
+\headcommand {\slideentry {3}{1}{4}{33/33}{Remarks and conclusions}{0}}
+\headcommand {\beamer@framepages {33}{33}}
+\headcommand {\slideentry {3}{1}{5}{34/34}{Remarks and conclusions}{0}}
+\headcommand {\beamer@framepages {34}{34}}
+\headcommand {\beamer@partpages {1}{34}}
+\headcommand {\beamer@subsectionpages {30}{34}}
+\headcommand {\beamer@sectionpages {30}{34}}
+\headcommand {\beamer@documentpages {34}}
+\headcommand {\gdef \inserttotalframenumber {34}}

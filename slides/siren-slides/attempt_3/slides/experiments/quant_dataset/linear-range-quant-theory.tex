@@ -1,0 +1,53 @@
+
+
+
+
+% -------------------------------------------------------------------------------- %
+\begin{frame}
+    \frametitle{Selected Deep Nets Compression Techniques}
+        % \centering \Huge
+        \begin{center}
+            {\fontsize{40}{50}\selectfont \emph{Range Linear Quantization}}
+        \end{center}
+        \begin{center}
+            \emph{Quantization Aware Training Technique for Compressing Deep Nets}
+        \end{center}
+\end{frame}
+
+
+% -------------------------------------------------------------------------------- %
+\begin{frame}
+    \frametitle{Linear Range Quant}
+        In order to satisfy quantizing requirements we made use of Linear Range Quantization technique, which is a Quant Aware Training method developed by
+        Benoit et al, (2018), whose main features are:
+
+        \begin{itemize}
+            \item \textbf{quantization scheme} that relies only on integer arithmetic to approximate the floating-point computations in a neural network;
+            \item \textbf{Training Procedure} that simulates the effect of quantization helps to restore model accuracy to near-identical
+                levels as the original.
+            \item The Algorithm uses exponential moving averages to track activation ranges.
+        \end{itemize}
+\end{frame}
+
+
+% -------------------------------------------------------------------------------- %
+\begin{frame}
+    \frametitle{Linear Range Quant (2)}
+        In order to satisfy quantizing requirements we made use of Linear Range Quantization technique, which is a Quant Aware Training method developed by
+        Benoit et al, (2018), whose main features are:
+
+        \begin{itemize}
+        \item They requiring that thequantization scheme be anaffine mapping of integers $q$ toreal numbers $r$, i.e. of the form:
+        \begin{equation}
+            r = S(q - Z)
+        \end{equation}
+        for some constants S and Z quant-parameters.
+        \item where, The constant S (for “scale”) is an arbitrary positive realnumber. It is typically represented in software as a floating-point quantity,
+            like the real values $r$.
+        \item The constant Z (for “zero-point”) is of the same type as quantized values $q$, and is in fact the quantized value $q$ corresponding
+            to the real value 0.
+        \item Finally, The motivationfor this requirement is that efficient implementation of neural network operators
+            often requires zero-padding of arraysaround boundaries.
+
+        \end{itemize}
+\end{frame}
